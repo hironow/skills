@@ -1,0 +1,50 @@
+{
+  "skill_name": "gcp-serverless-tf",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "gcp-serverless-appdev の scaffold 構成（Cloud Run + Firestore + Firebase Auth + Cloud Tasks + Pub/Sub、monorepo で backend/ と frontend/ がある）に対応する terraform ファイル群を生成して。Terraform を使って、state は GCS バケットに置きたい。環境は dev と prod の 2 つ。project_id は my-app-project、region は asia-northeast1 で。",
+      "expected_output": "terraform/ ディレクトリに modules/ と environments/ が生成され、Cloud Run, Firestore, Cloud Tasks, Pub/Sub, Artifact Registry, IAM のリソース定義が含まれる",
+      "files": [],
+      "assertions": [
+        {"id": "has_module_structure", "type": "file_exists", "description": "modules/ にサブモジュールが存在"},
+        {"id": "has_environment_dirs", "type": "file_exists", "description": "environments/dev/ と environments/prod/ が存在"},
+        {"id": "has_cloud_run_resource", "type": "content_contains", "description": "google_cloud_run_v2_service が含まれる"},
+        {"id": "has_firestore_resource", "type": "content_contains", "description": "google_firestore_database が含まれる"},
+        {"id": "has_cloud_tasks_resource", "type": "content_contains", "description": "google_cloud_tasks_queue が含まれる"},
+        {"id": "has_pubsub_resource", "type": "content_contains", "description": "google_pubsub_topic が含まれる"},
+        {"id": "has_gcs_backend", "type": "content_contains", "description": "backend \"gcs\" 設定がある"},
+        {"id": "has_variables", "type": "content_contains", "description": "project_id と region が変数化"},
+        {"id": "has_iam_config", "type": "content_contains", "description": "IAM 設定がある"},
+        {"id": "has_api_enablement", "type": "content_contains", "description": "google_project_service で API 有効化"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "backend/src/services/ に新しく notification_service.py を追加して、Cloud Tasks のキュー 'email-queue' を使ってメール送信タスクを enqueue するコードを書いた。既存の terraform/ ディレクトリがあるので、この変更に対応する .tf の差分を教えて。\n\n追加したコードの概要:\n- google.cloud.tasks_v2 を import\n- create_task() で email-queue にタスクを投入\n- タスクのハンドラーは /api/v1/notifications/process エンドポイント",
+      "expected_output": "Cloud Tasks キュー email-queue の google_cloud_tasks_queue リソース追加、IAM に cloudtasks.enqueuer ロール追加、Cloud Run の環境変数更新の差分が提案される",
+      "files": [],
+      "assertions": [
+        {"id": "has_cloud_tasks_queue", "type": "content_contains", "description": "email-queue の google_cloud_tasks_queue がある"},
+        {"id": "has_tasks_iam", "type": "content_contains", "description": "cloudtasks.enqueuer IAM 設定"},
+        {"id": "has_tasks_api", "type": "content_contains", "description": "cloudtasks.googleapis.com API 有効化"},
+        {"id": "has_env_vars_update", "type": "content_contains", "description": "Cloud Run 環境変数更新"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Terraform と OpenTofu どっち使うべきか迷ってる。要件は: GCS に state 置きたい、OSS ライセンスがいい、GCP の Cloud Run + Firestore + Pub/Sub を管理する。state の暗号化もしたい。チームは 3 人で、CI は GitHub Actions。どっちがいいか比較して、選んだ方の初期設定ファイル（versions.tf, provider.tf, backend.tf）を生成して。",
+      "expected_output": "Terraform vs OpenTofu の比較表、OSS + state encryption 要件から OpenTofu を推奨、versions.tf/provider.tf/backend.tf が生成される",
+      "files": [],
+      "assertions": [
+        {"id": "recommends_opentofu", "type": "content_contains", "description": "OpenTofu を推奨"},
+        {"id": "has_comparison", "type": "content_contains", "description": "ライセンスと暗号化の比較"},
+        {"id": "has_versions_tf", "type": "file_exists", "description": "versions.tf 生成"},
+        {"id": "has_provider_tf", "type": "file_exists", "description": "provider.tf 生成"},
+        {"id": "has_backend_tf", "type": "file_exists", "description": "backend.tf 生成"},
+        {"id": "has_state_encryption", "type": "content_contains", "description": "state encryption 設定"},
+        {"id": "has_gcs_backend", "type": "content_contains", "description": "backend \"gcs\" がある"}
+      ]
+    }
+  ]
+}

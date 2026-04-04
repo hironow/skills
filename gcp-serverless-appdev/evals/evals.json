@@ -1,0 +1,23 @@
+{
+  "skill_name": "gcp-serverless-appdev",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "GCPで新しいWebアプリケーションのプロジェクトを立ち上げたい。Backend は Python (FastAPI)、Frontend は Next.js で、Firestore をデータベースに使う。プロジェクト構造とセットアップ手順を教えて。",
+      "expected_output": "monorepo 構造の提案、Dockerfile、docker-compose.yaml (emulator)、justfile、pyproject.toml、Firestore security rules のテンプレートが含まれること。scaffold.md を参照していること。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "ユーザーがフォームを送信したら、バックエンドで外部APIを叩いてメール送信する処理を追加したい。この処理は確実に完了させたいけど、ユーザーにはすぐレスポンスを返したい。Cloud Tasks と Pub/Sub のどっちを使うべき？理由も教えて。",
+      "expected_output": "Cloud Tasks を推奨すること。理由として 1:1 explicit invocation、rate control、scheduling が挙げられること。Pub/Sub は 1:N fan-out 向けであることが説明されること。冪等性の実装が言及されること。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "うちのチームは AWS を使ってきたんだけど、GCP に移行を検討してる。AWS の SQS でやってる非同期処理を GCP ではどうすればいい？あと DynamoDB の代わりは何になる？",
+      "expected_output": "SQS -> Cloud Tasks (1:1) or Pub/Sub (1:N) のマッピング。DynamoDB -> Firestore のマッピング。それぞれの違いと GCP を選ぶ理由が説明されること。Cross-Cloud 比較表と infrastructure-11-gcp-alternatives.md の内容が反映されていること。",
+      "files": []
+    }
+  ]
+}
