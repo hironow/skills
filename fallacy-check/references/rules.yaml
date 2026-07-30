@@ -1,0 +1,312 @@
+# =============================================================
+# 誤謬パターン検出（詭弁チェック） ルール定義
+# 由来: ユーザ提供の v0.1 YAML を土台に、skill 化のため signal を再導出し
+#       機械可読フィールド（context_sensitive / requires_history / disputed /
+#       attribution_sensitive / structural）を付与した版。
+# 出典:
+#   - ニコニコ大百科「詭弁の特徴のガイドライン」(15条 + 追加4条 + 解説)
+#   - Wikipedia「詭弁」(古典的詭弁・現代的パターン)
+# 注意: ニコニコ大百科の各条は「その誤謬の文体で書かれた自己例示（諷刺）」である。
+#       signal は例文の額面コピーではなく、判定基準として再導出してある。
+# 用途: LLM 駆動の検出スキル（SKILL.md）の照合カタログ。ルールベース前段にも流用可。
+# =============================================================
+
+meta:
+  # ★出典自身が警告している最重要ポイント。SKILL.md の「大原則」と対応する。
+  design_principles:
+    - id: DP-01
+      name: 後件肯定の回避
+      rule: >
+        「詭弁には特徴Xがある」は「Xがあれば詭弁」を意味しない。
+        このガイドラインで何かを詭弁と断定する行為自体が後件肯定の誤謬になる。
+        よって出力は verdict（詭弁 / 非詭弁）ではなく、
+        flag + signal_strength + 該当パターンID の形式に留めること。
+    - id: DP-02
+      name: 詭弁と誤謬の区別
+      rule: >
+        詭弁の定義は「欺く意図を持って行われる誤謬」。テキストのみから意図は
+        判定不能なので、出力ラベルは「誤謬パターンの検出」に留め、
+        「詭弁」という断定ラベルは付けない。
+    - id: DP-03
+      name: 文脈依存パターンの扱い
+      rule: >
+        一部パターンは文脈次第で正当な論法になる（context_sensitive: true）。
+        例: 反例提示は全称命題への反証としては正当（G-02）、対偶は論理的に正しい（W-01）。
+        議論の型（全称 / 傾向 / 定義論争、および条件文 / 因果 / 類推 / 連続量の構造）を
+        先に分類してから該当パターンを適用すること。
+    - id: DP-04
+      name: 欠落パターンの補完
+      rule: >
+        ガイドライン15条には最頻出の形式的誤謬「前件否定」が含まれない（出典解説で指摘）。
+        補完パターン S-01（前件否定）/ S-02（後件肯定）として追加してある。
+
+# -------------------------------------------------------------
+# フィールドの意味
+#   signal               : 判定基準（日英両対応。cue 語の羅列でなく「何を見るか」）
+#   fallacy_type         : 対応する形式的・非形式的誤謬名（出典解説による）
+#   context_sensitive    : true なら議論の型で gate（該当型でなければフラグしない）
+#   requires_history     : true なら会話履歴が必須（single_text では N/A）
+#   disputed             : true なら出典自身が「詭弁と言えない意見が多い」と記す。
+#                          低 signal_strength + context_note 必須で扱う
+#   attribution_sensitive: true なら引用・言及で誤検出しやすい。発話帰属を先に確認
+#   structural           : conditional（P→Q の推論方向を見る）/ continuum（境界の曖昧さ）
+#   category             : misleading_expression は「誤謬」でなく「ミスリード表現」枠
+# -------------------------------------------------------------
+patterns:
+  # ---- ガイドライン本編 15条（G-01〜G-15）----
+  - id: G-01
+    label: 事実に対して仮定を持ち出す
+    fallacy_type: 論点先取
+    signal: >
+      確定した事実への反論として、根拠のない未検証の仮定（「もし〜だったら」「仮に〜なら」/
+      "what if", "suppose that"）を対置し、その仮定を反論の根拠として扱う。
+      探索のための仮定は正当であり、確定事実を仮定で覆そうとする点が誤謬になる。
+    context_sensitive: false
+
+  - id: G-02
+    label: ごくまれな反例をとりあげる
+    fallacy_type: 誤った二分法
+    signal: >
+      傾向論・統計的一般化に対して、例外的な少数事例を全体否定の根拠に使う。
+      "one exception therefore the rule is false" の形。
+    context_sensitive: true
+    disputed: true
+    caution: >
+      全称命題（すべてのXはY）への反例提示は正当な反証なのでフラグしない。
+      傾向論を論じている場合のみ候補。出典解説でも異論ありと明記。
+
+  - id: G-03
+    label: 自分に有利な将来像を予想する
+    fallacy_type: 論点先取
+    signal: >
+      現時点で検証不能な将来の可能性（「いずれ〜になる」/ "eventually it will"）を、
+      あたかも現在の反論の根拠であるかのように提示する。
+    context_sensitive: false
+
+  - id: G-04
+    label: 主観で決め付ける
+    fallacy_type: [自然主義の誤謬, 道徳主義の誤謬, 同情論証]
+    signal: >
+      当事者の願望・感情・べき論（「〜であってほしい」「〜すべきだ」/ "ought", "should be"）を、
+      事実命題の真偽の根拠として扱う。is と ought を取り違える。
+    context_sensitive: false
+
+  - id: G-05
+    label: 資料を示さず自論が支持されていると思わせる
+    fallacy_type: 衆人に訴える論証
+    signal: >
+      「一般的だ」「世界では」「みんな」/ "everyone knows", "it is common" のような多数の支持を
+      示唆する表現を、出典やデータなしで根拠に使う。
+    context_sensitive: false
+    detection_hint: 出典要求に応えられない多数派言及を検出する。
+
+  - id: G-06
+    label: 一見関係ありそうで関係ない話を始める
+    fallacy_type: [論点のすり替え, 論点回避]
+    signal: >
+      表面的に関連しそうな別トピックを持ち出し、争点への回答を回避する（red herring）。
+    context_sensitive: false
+
+  - id: G-07
+    label: 陰謀であると力説する
+    fallacy_type: [陰謀論, 未知論証]
+    signal: >
+      反証不能な背後の意図や策略の存在（「裏で操っている」/ "they are behind it"）を主張し、
+      立証責任を相手に転嫁する。
+    context_sensitive: false
+
+  - id: G-08
+    label: 知能障害を起こす
+    fallacy_type: 人身攻撃
+    signal: >
+      議論そのものを嘲笑や茶化しに切り替え、真剣な検討から逃避する。
+    context_sensitive: false
+    attribution_sensitive: true
+
+  - id: G-09
+    label: 自分の見解を述べずに人格批判をする
+    fallacy_type: 人身攻撃
+    signal: >
+      命題への反論を示さず、発言者の属性・経歴・人格への攻撃（ad hominem）に置き換える。
+    context_sensitive: false
+    attribution_sensitive: true
+
+  - id: G-10
+    label: ありえない解決策を図る
+    fallacy_type: 論点先取
+    signal: >
+      実現不可能な条件を解決策として提示し、議論を打ち切る（"just do the impossible" の形）。
+    context_sensitive: true
+    disputed: true
+    caution: >
+      なぜ不可能かを示さなければ詭弁として成立しないという意見が多い（出典解説）。
+      不可能性の根拠提示とセットで判定する。
+
+  - id: G-11
+    label: レッテル貼りをする
+    fallacy_type: 人身攻撃
+    signal: >
+      相手の主張に否定的なカテゴリラベル（「〜厨」「〜派」「信者」/ derogatory label）を貼り、
+      内容の検討なしに価値を下げる。
+    context_sensitive: false
+    attribution_sensitive: true
+    related: [W-02]  # loaded language と近縁
+
+  - id: G-12
+    label: 決着した話を経緯を無視して蒸し返す
+    fallacy_type: [論点のすり替え, 論点回避]
+    signal: >
+      既に合意・決着済みの論点を、それまでの経緯を無視して再提起する。
+    context_sensitive: false
+    requires_history: true
+    detection_hint: 会話履歴が必要（単発テキストでは検出不能 = N/A）。
+
+  - id: G-13
+    label: 勝利宣言をする
+    fallacy_type: 循環論法
+    signal: >
+      「既に論破済み」「もう答えは出ている」/ "already debunked" のように、論証の実体を示さず
+      決着済みであることだけを宣言する。
+    context_sensitive: false
+
+  - id: G-14
+    label: 細かい部分のミスを指摘し相手を無知と認識させる
+    fallacy_type: [論点のすり替え, 論点回避]
+    signal: >
+      本筋と無関係な些末な誤り（誤字、言い間違い、端数）の指摘によって、
+      相手の主張全体の信頼性を毀損する。
+    context_sensitive: false
+
+  - id: G-15
+    label: 新しい概念が全て正しいのだとミスリードする
+    fallacy_type: 新しさに訴える論証
+    signal: >
+      新しさや進歩を受け入れないことを誤りの根拠とし（appeal to novelty）、
+      命題の真偽と新旧を混同させる。
+    context_sensitive: false
+
+  # ---- 追加条文（G-16〜G-19）----
+  - id: G-16
+    label: 全てか無かで途中を認めない・あえて無視する
+    fallacy_type: 誤った二分法
+    signal: >
+      全数検証の不可能性など完全性の欠如を理由に、部分的な妥当性まで否定する。
+    context_sensitive: false
+    related: [W-03]  # 経験則の否定と構造が近い
+
+  - id: G-17
+    label: 勝手に極論化して結論の正当性に疑問を呈する
+    fallacy_type: 誤った二分法
+    signal: >
+      相手の主張を実際より強い主張（極論）に置き換えてから、その極論を攻撃する。
+    context_sensitive: false
+    attribution_sensitive: true
+    note: いわゆるストローマン（藁人形論法）。相手の原主張と、置き換えられた極論の差を確認する。
+
+  - id: G-18
+    label: 自分で話をずらしておいて「話をずらすな」と批難する
+    fallacy_type: [論点のすり替え, 論点回避]
+    signal: >
+      自ら論点を移動させた上で、元の論点に留まる相手を論点逸脱と非難する。
+    context_sensitive: false
+    requires_history: true
+    detection_hint: 会話履歴が必要（単発テキストでは検出不能 = N/A）。
+
+  - id: G-19
+    label: 権威主義におちいって話を聞かなくなる
+    fallacy_type: 権威に訴える論証
+    signal: >
+      資格や肩書の有無を、議論への参加資格や主張の真偽の条件とし、内容の検討を拒否する。
+    context_sensitive: false
+
+  # ---- Wikipedia「詭弁」由来（W-01〜W-05）----
+  - id: W-01
+    label: 対偶を使う詭弁
+    fallacy_type: 論理的には妥当（誤りなし）
+    signal: >
+      対偶変換自体は論理的に正しいが、日常語で「PならばQ」を因果として読む傾向を利用し、
+      対偶「QでないならPでない」を奇異な因果主張に見せて、包含関係と因果関係の混同を誘発する。
+    context_sensitive: true
+    category: misleading_expression
+    caution: >
+      論理的誤りは存在しない。「誤謬」フラグではなく「ミスリード表現」カテゴリで扱う。
+      論理的に妥当で明快な対偶はフラグしない。
+    strength: 逆・裏と違い形式的誤りがないため強固（出典明記）。
+
+  - id: W-02
+    label: 含みのある言葉 (loaded language)
+    fallacy_type: [論点先取, 論点回避]
+    signal: >
+      感情や価値判断を喚起する語彙（攻撃的形容だけでなく「回復」「大人の判断」のような常用語も
+      含む / emotionally loaded wording）を散りばめ、論理ではなく語調で先験的な結論を刷り込む。
+    context_sensitive: false
+    detection_hint: 評価語の密度、事実記述と評価表現の混在比率を測る。
+    caution: 虐待や災害など正当に激しい語を要する話題では過剰発火しやすい。context_note 必須。
+
+  - id: W-03
+    label: 経験則の否定
+    fallacy_type: 形式的誤りなし（実質的詭弁）
+    signal: >
+      経験則（帰納）が完全証明を持たないことを理由に、その有用性ごと否定する。
+      同じ手法であらゆる経験則を否定できてしまう点が詭弁性の根拠。
+    context_sensitive: true
+    caution: 帰納の限界の指摘自体は哲学的に正当。実務上の意思決定を妨害する文脈でのみ候補。
+
+  - id: W-04
+    label: 連続性の虚偽 (Continuum fallacy)
+    fallacy_type: 術語の量的曖昧性の悪用
+    signal: >
+      「高額」「砂山」のような境界の曖昧な量的概念について、明確な閾値がないことを利用して
+      定義や合意を無効化する（砂山のパラドックス型）。
+    context_sensitive: true
+    disputed: true
+    structural: continuum
+    detection_hint: 契約や規約の文脈で頻出。閾値未定義の量的術語への挑戦を検出する。
+    caution: 連続性そのものの指摘は正当。曖昧さ「だけ」で合意を無効化しているときのみ候補。
+
+  - id: W-05
+    label: 決疑論 (Casuistry)
+    fallacy_type: 例外による一般則の侵食
+    signal: >
+      例外的事例を根拠に一般法や原則の適用を回避し、責任を免れる。
+    context_sensitive: true
+    caution: 個別事情の考慮そのものは正当な場合がある。原則の一般的無効化に使うときのみ候補。
+
+  # ---- 補完パターン（出典解説が指摘する欠落 / 自己言及リスク）----
+  - id: S-01
+    label: 前件否定
+    fallacy_type: 形式的誤謬
+    signal: >
+      「PならばQ。Pでない。ゆえにQでない」の形式（denying the antecedent）。
+      日常最頻出だがガイドライン15条に欠落（出典解説で指摘）。
+    context_sensitive: false
+    structural: conditional
+
+  - id: S-02
+    label: 後件肯定
+    fallacy_type: 形式的誤謬
+    signal: >
+      「PならばQ。Qである。ゆえにP」の形式（affirming the consequent）。
+      本チェッカー自身が「特徴があるから詭弁だ」と断定すると、この誤謬に陥る。
+    context_sensitive: false
+    structural: conditional
+    self_referential: true  # DP-01 参照
+
+# -------------------------------------------------------------
+# 出力スキーマ（DP-01 / DP-02 に基づく）。SKILL.md の「出力スキーマ」と対応。
+# -------------------------------------------------------------
+output_schema:
+  mode: null            # single_text | dialogue_log
+  argument_frame:       # Stage 1 の分類結果
+    claim_type: null    # 全称命題 | 傾向論 | 定義論争 | 事実命題 | 価値命題 | 不明
+    structure: []       # [条件文, 因果, 類推, 連続量] のうち該当分
+  flags:
+    - pattern_id: string      # 例: G-09
+      span: string            # 該当箇所
+      attribution: string     # self | quoted | attributed | steelman
+      signal_strength: float  # 0.0-1.0 表層シグナルの一致強度（frame で棄却されていないこと込み）。
+                              # 「詭弁である確率」ではない。
+      context_note: string    # 正当な用法の可能性、または未確定である点を必ず記載
+  verdict: null               # 断定は出力しない（DP-01）
+  disclaimer: これは誤謬パターンの検出であり、詭弁の断定ではない。意図は判定していない。
+  limitations: []             # 適用できなかった観点（皮肉・入れ子論証・言語混在など）
