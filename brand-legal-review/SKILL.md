@@ -43,22 +43,11 @@ Accept a calculated level of legal exposure to protect brand loyalty. Flag HIGH-
 For each section you review, provide:
 
 - **Risk Level**: [LOW / MEDIUM / HIGH]
-- **Issue**: Brief description of the legal concern (if any)
+- **Issue**: the legal concern (if any) and why it is risky
 - **Recommendation**:
   - If LOW/MEDIUM: Keep original OR suggest minor refinement that preserves tone
   - If HIGH: Provide an alternative phrasing that achieves the SAME emotional resonance while reducing liability
 
-## What NOT to Do
+## Scope of edits
 
-- Do not rewrite the entire document in legal language
-- Do not add disclaimers or caveats unless absolutely necessary
-- Do not prioritize legal safety over brand voice
-- Do not use passive voice where active voice exists
-- Do not remove emotional language that builds trust
-
-## Best Practices
-
-1. **Preserve emotional resonance**: If the original text says "We believe in...", keep that commitment language
-2. **Suggest, don't replace**: Offer alternatives only for HIGH-risk issues
-3. **Explain the risk clearly**: Help the author understand WHY something is risky
-4. **Consider community perception**: Think about how changes will be received by users
+Propose alternative wording only for HIGH-risk passages, and keep the author's active voice and commitment language in every alternative. Add a disclaimer or caveat only when a HIGH-risk issue cannot be resolved any other way.

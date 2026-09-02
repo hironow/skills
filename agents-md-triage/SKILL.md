@@ -4,12 +4,9 @@ description: |
   Audit AGENTS.md / CLAUDE.md / GEMINI.md and their spoke files (docs/agents/*
   etc.), classify every line as discoverable / task-specific / always, and
   produce a staged plan to shrink the hub and extract skills. Use whenever the
-  user asks to audit, slim down, reduce, reorganize, or skill-ify agent
-  instruction files — e.g. "audit AGENTS.md", "reduce context files",
-  "CLAUDE.md is getting bloated", "keep the instruction budget", "cut
-  always-loaded tokens". Apply even when the user does not say "audit" but
-  asks about context reduction, token reduction, or tidying up instruction
-  files.
+  user wants agent instruction files audited, slimmed, reorganized, or
+  skill-ified, or asks about context/token reduction or an instruction budget
+  for those files — whether or not they say "audit".
 ---
 
 # AGENTS.md Triage

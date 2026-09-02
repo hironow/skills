@@ -13,7 +13,7 @@ When exploring the codebase, use the project's domain glossary to get a clear me
 
 **This is the skill.** Everything else is mechanical. If you have a fast, deterministic, agent-runnable pass/fail signal for the bug, you will find the cause — bisection, hypothesis-testing, and instrumentation all just consume that signal. If you don't have one, no amount of staring at code will save you.
 
-Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
+Spend disproportionate effort here.
 
 ### Ways to construct one — try them in roughly this order
 
@@ -47,8 +47,6 @@ The goal is not a clean repro but a **higher reproduction rate**. Loop the trigg
 ### When you genuinely cannot build a loop
 
 Stop and say so explicitly. List what you tried. Ask the user for: (a) access to whatever environment reproduces it, (b) a captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or (c) permission to add temporary production instrumentation. Do **not** proceed to hypothesise without a loop.
-
-Do not proceed to Phase 2 until you have a loop you believe in.
 
 ## Phase 2 — Reproduce
 

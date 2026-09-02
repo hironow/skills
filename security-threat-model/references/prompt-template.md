@@ -82,11 +82,11 @@ Adapt the analysis to the project type. For example:
 	•	Network daemons: exposed ports, supported protocols, message formats, and request handling paths.
 	•	Operating system or low-level components: common vulnerability classes (e.g., memory corruption, logic flaws) that could lead to LPE or RCE.
 
-Be thorough but pragmatic: the goal is to help a security engineer quickly determine whether a discovered bug is security-relevant and where deeper investigation should focus.
+The goal is to help a security engineer quickly determine whether a discovered bug is security-relevant and where deeper investigation should focus.
 
 Tooling Notes
 
-If Ripgrep (rg) is available, use it to explore the codebase. When using grep or rg, always include the -I flag to avoid searching through binary files.
+Skip binary files when searching the codebase.
 ```
 
 
@@ -115,7 +115,7 @@ In-scope code locations (if known):
 # Task
 Construct a repo-centric threat model that helps AppSec engineers understand the most important security risks and where to focus manual review.
 
-You MUST follow this process and reflect outputs in the final document:
+Follow this process and reflect each step's output in the final document:
 
 ## Process
 1) Repo discovery (evidence collection)
@@ -161,14 +161,14 @@ You MUST follow this process and reflect outputs in the final document:
 
 6) Risk prioritization
    - For each threat:
-     * Likelihood: low/medium/high with a 1 to 2 sentence justification
-     * Impact: low/medium/high with a 1 to 2 sentence justification
+     * Likelihood: low/medium/high with a brief justification
+     * Impact: low/medium/high with a brief justification
      * Overall priority: critical/high/medium/low (based on likelihood x impact, adjusted for existing controls)
    - Explicitly state which assumptions most affect risk.
 
 7) Validate assumptions and service context with the user (required before final report)
    - Summarize key assumptions that materially affect scope or risk ranking.
-   - Ask 1 to 3 targeted questions to resolve missing service meta-context (service owner/environment, scale/users, deployment model, authn/authz, internet exposure, data sensitivity, multi-tenancy).
+   - Ask only the questions whose answers would change the ranking (service owner/environment, scale/users, deployment model, authn/authz, internet exposure, data sensitivity, multi-tenancy).
    - Pause and wait for user feedback before producing the final report.
    - If the user cannot answer, proceed with explicit assumptions and mark any conditional conclusions.
 
@@ -180,7 +180,7 @@ You MUST follow this process and reflect outputs in the final document:
      * Detection/monitoring ideas (logging, metrics, alerts)
 
 9) Focus paths for manual security review
-   - Output 2 to 30 repo-relative paths (files or directories) that merit deeper review.
+   - Output the repo-relative paths (files or directories) that merit deeper review.
    - For each path, give a one-sentence reason tied to the threat model.
 
 10) Quality check
@@ -192,15 +192,12 @@ You MUST follow this process and reflect outputs in the final document:
      * assumptions and open questions
 
 ## Required output format (exact)
-Before producing the final Markdown report, first provide an assumption-validation check-in:
-- List the key assumptions in 3 to 6 bullets.
-- Ask 1 to 3 targeted context questions.
-- Wait for the user response, then produce the final report below using the clarified context.
+Produce the report only after the Process step 7 check-in has been answered (or explicitly declined).
 
 Produce valid Markdown with these sections in this order:
 
 ## Executive summary
-- 1 short paragraph on the top risk themes and highest-risk areas.
+- A short paragraph on the top risk themes and highest-risk areas.
 
 ## Scope and assumptions
 - In-scope paths, out-of-scope items, and explicit assumptions.
@@ -231,7 +228,7 @@ Represent the system as a sequence of arrow-style bullets (e.g., Internet → AP
 - A table: Surface | How reached | Trust boundary | Notes | Evidence (repo path / symbol)
 
 ## Top abuse paths
-- 5 to 10 short abuse paths, each as a numbered sequence of steps (attacker goal -> steps -> impact).
+- The abuse paths that matter most for this repo, each as a numbered sequence (attacker goal -> steps -> impact).
 
 ## Threat model table
 - A Markdown table with columns:
@@ -252,4 +249,4 @@ Rules:
 ## Notes on use
 
 - Fill in known context, but allow the model to infer and mark assumptions.
-- Include 1–2 repo-path anchors per major claim; do not dump every match.
+- Anchor each major claim to repo paths; do not dump every match.

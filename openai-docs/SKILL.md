@@ -6,7 +6,7 @@ description: "Use when the user asks how to build with OpenAI products or APIs a
 
 # OpenAI Docs
 
-Provide authoritative, current guidance from OpenAI developer docs using the developers.openai.com MCP server. Always prioritize the developer docs MCP tools over web.run for OpenAI-related questions. Only if the MCP server is installed and returns no meaningful results should you fall back to web search.
+Provide authoritative, current guidance from OpenAI developer docs using the developers.openai.com MCP server. Always prioritize the developer docs MCP tools over general web search for OpenAI-related questions. Only if the MCP server is installed and returns no meaningful results should you fall back to web search.
 
 ## Quick start
 
@@ -28,11 +28,9 @@ Provide authoritative, current guidance from OpenAI developer docs using the dev
 
 If MCP tools fail or no OpenAI docs resources are available:
 
-1. Run the install command yourself: `codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp`
-2. If it fails due to permissions/sandboxing, immediately retry the same command with escalated permissions and include a 1-sentence justification for approval. Do not ask the user to run it yet.
-3. Only if the escalated attempt fails, ask the user to run the install command.
-4. Ask the user to restart Codex.
-5. Re-run the doc search/fetch after restart.
+1. Register the server in the current agent's MCP config yourself (Codex: `codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp`; Claude Code: `claude mcp add --transport http openaiDeveloperDocs https://developers.openai.com/mcp`).
+2. If that is blocked by permissions, ask the user to run it.
+3. Ask the user to restart the agent, then re-run the search.
 
 ## Workflow
 
@@ -51,6 +49,4 @@ If MCP tools fail or no OpenAI docs resources are available:
 
 ## Tooling notes
 
-- Always use MCP doc tools before any web search for OpenAI-related questions.
-- If the MCP server is installed but returns no meaningful results, then use web search as a fallback.
 - When falling back to web search, restrict to official OpenAI domains (developers.openai.com, platform.openai.com) and cite sources.

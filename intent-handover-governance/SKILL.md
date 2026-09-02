@@ -1,6 +1,6 @@
 ---
 name: intent-handover-governance
-description: docs/intent.md（なぜ今やるか＝人間の意図）と docs/handover.md（どこまで進み・次に何をするか）の2ファイルで開発の継続性を統治する。intent は人間が確定させ AI は推測で書かない。handover は毎セッション末に更新し2分で読める形を保つ。更新前に intent ⇄ handover ⇄ リポジトリ実状態の整合検査を必ず行い、乖離の裁定は人間に委ねる。Use when the user mentions intent.md, handover.md, 引き継ぎ, ハンドオーバー, 意図の記録・確認, セッション終了・作業再開, work unit の開始/切替, 「なぜ今やるか」「どこまで進んだか」の記録, or wants session continuity captured in docs.
+description: docs/intent.md（なぜ今やるか＝人間の意図）と docs/handover.md（どこまで進み・次に何をするか）の2ファイルで開発の継続性を統治する。intent は人間が確定させ AI は推測で書かない。handover は毎セッション末に更新し2分で読める形を保つ。更新前に intent ⇄ handover ⇄ リポジトリ実状態の整合検査を必ず行い、乖離の裁定は人間に委ねる。Use when the user mentions intent.md, handover.md, 引き継ぎ（ハンドオーバー）, 意図の記録・確認, セッション終了・作業再開, work unit の開始/切替, or wants session continuity captured in docs.
 ---
 
 # Intent / Handover Governance（intent × handover × ルーブリック × 整合検査）

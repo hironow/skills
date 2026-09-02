@@ -27,7 +27,6 @@ Deliver an actionable AppSec-grade threat model that is specific to the reposito
 
 ### 2) Derive boundaries, assets, and entry points
 - Enumerate trust boundaries as concrete edges between components, noting protocol, auth, encryption, validation, and rate limiting.
-- List assets that drive risk (data, credentials, models, config, compute resources, audit logs).
 - Identify entry points (endpoints, upload surfaces, parsers/decoders, job triggers, admin tooling, logging/error sinks).
 
 ### 3) Calibrate assets and attacker capabilities

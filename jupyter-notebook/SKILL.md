@@ -42,14 +42,14 @@ Capture the objective, audience, and what "done" looks like.
 Use the helper script to avoid hand-authoring raw notebook JSON.
 
 ```bash
-uv run --python 3.12 python "$JUPYTER_NOTEBOOK_CLI" \
+uv run python "$JUPYTER_NOTEBOOK_CLI" \
   --kind experiment \
   --title "Compare prompt variants" \
   --out output/jupyter-notebook/compare-prompt-variants.ipynb
 ```
 
 ```bash
-uv run --python 3.12 python "$JUPYTER_NOTEBOOK_CLI" \
+uv run python "$JUPYTER_NOTEBOOK_CLI" \
   --kind tutorial \
   --title "Intro to embeddings" \
   --out output/jupyter-notebook/intro-to-embeddings.ipynb

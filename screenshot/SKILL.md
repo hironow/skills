@@ -10,7 +10,7 @@ Follow these save-location rules every time:
 
 1) If the user specifies a path, save there.
 2) If the user asks for a screenshot without a path, save to the OS default screenshot location.
-3) If Codex needs a screenshot for its own inspection, save to the temp directory.
+3) If you need a screenshot for your own inspection, save to the temp directory.
 
 ## Tool priority
 
@@ -39,7 +39,7 @@ bash <path-to-skill>/scripts/ensure_macos_permissions.sh && \
 python3 <path-to-skill>/scripts/take_screenshot.py --app "Codex"
 ```
 
-For Codex inspection runs, keep the output in temp:
+For agent inspection runs, keep the output in temp:
 
 ```bash
 bash <path-to-skill>/scripts/ensure_macos_permissions.sh && \
@@ -64,7 +64,7 @@ Common patterns:
 python3 <path-to-skill>/scripts/take_screenshot.py
 ```
 
-- Temp location (Codex visual check):
+- Temp location (agent visual check):
 
 ```bash
 python3 <path-to-skill>/scripts/take_screenshot.py --mode temp
@@ -161,7 +161,7 @@ Common patterns:
 powershell -ExecutionPolicy Bypass -File <path-to-skill>/scripts/take_screenshot.ps1
 ```
 
-- Temp location (Codex visual check):
+- Temp location (agent visual check):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File <path-to-skill>/scripts/take_screenshot.ps1 -Mode temp

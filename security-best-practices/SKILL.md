@@ -13,15 +13,9 @@ This information, if present, can be used to write new secure by default code, o
 
 ## Workflow
 
-The initial step for this skill is to identify ALL languages and ALL frameworks which you are being asked to use or already exist in the scope of the project you are working in. Focus on the primary core frameworks. Often you will want to identify both frontend and backend languages and frameworks.
+Identify every language and framework in scope — frontend and backend both, when present — and read each matching reference: `<language>-<framework>-<stack>-security.md` plus any `<language>-general-<stack>-security.md`. If a web app's frontend framework is unspecified, also read `javascript-general-web-frontend-security.md`.
 
-Then check this skill's references directory to see if there are any relevant documentation for the language and or frameworks. Make sure you read ALL reference files which relate to the specific framework or language. The format of the filenames is `<language>-<framework>-<stack>-security.md`. You should also check if there is a `<language>-general-<stack>-security.md` which is agnostic to the framework you may be using.
-
-If working on a web application which includes a frontend and a backend, make sure you have checked for reference documents for BOTH the frontend and backend!
-
-If you are asked to make a web app which will include both a frontend and backend, but the frontend framework is not specified, also check out `javascript-general-web-frontend-security.md`. It is important that you understand how to secure both the frontend and backend.
-
-If no relevant information is available in the skill's references directory, think a little bit about what you know about the language, the framework, and all well known security best practices for it. If you are unsure you can try to search online for documentation on security best practices.
+If no reference matches, fall back to well-known security guidance for that language and framework, consulting official documentation online when needed.
 
 From there it can operate in a few ways.
 
@@ -51,13 +45,9 @@ The report should be clearly delineated into multiple sections based on severity
 
 For critical findings include a one sentence impact statement.
 
-Once the report is written, also report it to the user directly, although you may be less verbose. You can offer to explain any of the findings or the reasons behind the security best practices guidance if the user wants more info on any findings.
+After writing the file, give the user a brief summary of the findings and the file path; offer to expand on any finding.
 
 Important: When referencing code in the report, make sure to find and include line numbers for the code you are referencing.
-
-After you write the report file, summarize the findings to the user.
-
-Also tell the user where the final report was written to
 
 # Fixes
 
@@ -67,11 +57,7 @@ If you passively found a critical finding, notify the user and ask if they would
 
 When producing fixes, focus on fixing a single finding at a time. The fixes should have concise clear comments explaining that the new code is based on the specific security best practice, and perhaps a very short reason why it would be dangerous to not do it in this way.
 
-Always consider if the changes you want to make will impact the functionality of the user's code. Consider if the changes may cause regressions with how the project works currently. It is often the case that insecure code is relied on for other reasons (and this is why insecure code lives on for so long). Avoid breaking the user's project as this may make them not want to apply security fixes in the future. It is better to write a well thought out, well informed by the rest of the project, fix, then a quick slapdash change.
-
-Always follow any normal change or commit flow the user has configured. If making git commits, provide clear commit messages explaining this is to align with security best practices. Try to avoid bunching a number of unrelated findings into a single commit.
-
-Always follow any normal testing flows the user has configured (if any) to confirm that your changes are not introducing regressions. Consider the second order impacts the changes may have and inform the user before making them if there are any.
+Insecure code is often relied on elsewhere, which is why it survives. Before applying a fix, check what depends on the current behavior and run the project's tests so the fix does not regress functionality. One finding per fix and per commit, with a message naming the practice.
 
 # General Security Advice
 

@@ -40,7 +40,7 @@ is **unblocked** when every ticket in its `Blocked by` list is `resolved`. A
 session **claims** its ticket by setting `Status: in-progress` and saving the map
 before any work, so concurrent sessions skip it.
 
-Each ticket must be sized to one 100K token agent session.
+Each ticket must be resolvable within a single agent session.
 
 ## Ticket Types
 

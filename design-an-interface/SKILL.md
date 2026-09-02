@@ -88,7 +88,6 @@ From "A Philosophy of Software Design":
 
 ## Anti-Patterns
 
-- Don't let sub-agents produce similar designs - enforce radical difference
 - Don't skip comparison - the value is in contrast
 - Don't implement - this is purely about interface shape
-- Don't evaluate based on implementation effort
+- Judge designs on interface qualities, not on how much work each would take to build — effort is a later concern.

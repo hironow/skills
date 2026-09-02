@@ -4,14 +4,10 @@ description: >
   Generate and maintain Terraform/OpenTofu configurations for GCP serverless
   architectures (Cloud Run, Firestore, Cloud Tasks, Pub/Sub, Cloud Functions,
   Eventarc, Cloud Scheduler, Artifact Registry, Secret Manager).
-  Use this skill for: generating initial .tf files for a GCP serverless project,
-  updating Terraform when application code changes (new services, endpoints,
-  queues, topics), scaffolding GCP infrastructure as code, choosing between
-  Terraform and OpenTofu for GCP, writing google provider resources,
-  Cloud Run terraform configuration, Firestore terraform setup,
-  or any task involving "terraform" or "tofu" combined with GCP serverless services.
-  Also use when the user says "tfファイル作って", "インフラをコード化",
-  "terraformで", "tofuで", or asks to IaC-ify a GCP serverless application.
+  Use for any Terraform or OpenTofu work on those services — initial .tf
+  generation, updating .tf after application code changes, and the
+  Terraform-vs-OpenTofu choice — including Japanese requests such as
+  "tfファイル作って" or "インフラをコード化".
 ---
 
 # GCP Serverless Terraform/OpenTofu Skill
@@ -141,16 +137,7 @@ GCP のリソース属性（特に Cloud Run v2, Firestore のパラメータ）
    → "terraform google_firestore_database resource"
    ```
 
-2. **context7** — Terraform/OpenTofu の最新構文
-   ```
-   mcp__plugin_context7_context7__resolve-library-id
-   → libraryName: "hashicorp/terraform" (Terraform)
-   → libraryName: "opentofu" (OpenTofu)
-
-   mcp__plugin_context7_context7__query-docs
-   → "module structure best practices"
-   → "provider version constraints"
-   ```
+2. **context7** — Terraform/OpenTofu の最新構文。`resolve-library-id` で "hashicorp/terraform" / "opentofu" を解決し、`query-docs` で "module structure best practices" / "provider version constraints" を引く。
 
 **MCP 利用フロー:**
 1. 生成するリソースごとに `google-dev-knowledge` で最新の属性を検索

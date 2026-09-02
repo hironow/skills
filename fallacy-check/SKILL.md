@@ -1,14 +1,12 @@
 ---
 name: fallacy-check
 description: >-
-  議論や主張やコメントや討論ログのテキストから、誤謬パターン（ストローマン、人身攻撃、
-  レッテル貼り、loaded language、衆人や権威や新しさへの訴え、誤った二分法、連続性の虚偽、
-  前件否定、後件肯定など）を検出してフラグする。ニコニコ大百科「詭弁の特徴のガイドライン」と
-  Wikipedia「詭弁」を出典とするカタログ（references/rules.yaml）を用いる。「これ詭弁じゃない?」
-  「論理の飛躍や主張の穴を指摘して」「fallacy や straw man を検出して」「この討論ログの誤謬を
-  洗って」などと言われたとき、または説得文やポリシー論や議論スレッドを論理面でレビューする
-  ときに使用する。文章を自然に整える推敲そのものは argument-gap-edit の領分。重要: 詭弁か否かの
-  断定（verdict）はせず、flag と signal_strength とパターンID に留める。意図は判定しない。
+  議論・主張・討論ログのテキストから、誤謬パターン（ストローマン、人身攻撃、レッテル貼り、
+  loaded language、衆人・権威・新しさへの訴え、誤った二分法、連続性の虚偽、前件否定、
+  後件肯定など）を検出してフラグする。出典はニコニコ大百科「詭弁の特徴のガイドライン」と
+  Wikipedia「詭弁」（references/rules.yaml）。詭弁の指摘、論理の飛躍や主張の穴の点検、
+  説得文・ポリシー論・議論スレッドの論理面レビューを求められたときに使う。文章を整える推敲は
+  argument-gap-edit の領分。
   Use when reviewing an argument, essay, policy statement, or debate log for logical fallacies.
 version: 0.1.0
 ---

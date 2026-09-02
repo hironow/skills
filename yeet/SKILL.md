@@ -10,19 +10,18 @@ description: "Use only when the user explicitly asks to stage, commit, push, and
 
 ## Naming conventions
 
-- Branch: `codex/{description}` when starting from main/master/default.
+- Branch: `{agent}/{description}` (e.g. `codex/…`, `claude/…`) when starting from the default branch.
 - Commit: `{description}` (terse).
-- PR title: `[codex] {description}` summarizing the full diff.
+- PR title: `{description}` summarizing the full diff.
 
 ## Workflow
 
-- If on main/master/default, create a branch: `git checkout -b "codex/{description}"`
+- If on main/master/default, create a branch: `git checkout -b "{agent}/{description}"`
 - Otherwise stay on the current branch.
 - Confirm status, then stage everything: `git status -sb` then `git add -A`.
 - Commit tersely with the description: `git commit -m "{description}"`
 - Run checks if not already. If checks fail due to missing deps/tools, install dependencies and rerun once.
 - Push with tracking: `git push -u origin $(git branch --show-current)`
-- If git push fails due to workflow auth errors, pull from master and retry the push.
-- Open a PR and edit title/body to reflect the description and the deltas: `GH_PROMPT_DISABLED=1 GIT_TERMINAL_PROMPT=0 gh pr create --draft --fill --head $(git branch --show-current)`
-- Write the PR description to a temp file with real newlines (e.g. pr-body.md ... EOF) and run pr-body.md to avoid \\n-escaped markdown.
+- If the push is rejected for a missing `workflow` scope, run `gh auth refresh -s workflow` and retry.
+- Write the PR body to a temp file with real newlines (heredoc → `pr-body.md`), then: `GH_PROMPT_DISABLED=1 GIT_TERMINAL_PROMPT=0 gh pr create --draft --title "{description}" --body-file pr-body.md --head "$(git branch --show-current)"`
 - PR description (markdown) must be detailed prose covering the issue, the cause and effect on users, the root cause, the fix, and any tests or checks used to validate.

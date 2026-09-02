@@ -143,19 +143,6 @@ Primary request: replace the background with a warm sunset gradient
 Constraints: change only the background; keep the product and its edges unchanged; no text; no watermark
 ```
 
-## Prompting best practices (short list)
-- Structure prompt as scene -> subject -> details -> constraints.
-- Include intended use (ad, UI mock, infographic) to set the mode and polish level.
-- Use camera/composition language for photorealism.
-- Quote exact text and specify typography + placement.
-- For tricky words, spell them letter-by-letter and require verbatim rendering.
-- For multi-image inputs, reference images by index and describe how to combine them.
-- For edits, repeat invariants every iteration to reduce drift.
-- Iterate with single-change follow-ups.
-- For latency-sensitive runs, start with quality=low; use quality=high for text-heavy or detail-critical outputs.
-- For strict edits (identity/layout lock), consider input_fidelity=high.
-- If results feel “tacky”, add a brief “Avoid:” line (stock-photo vibe; cheesy lens flare; oversaturated neon; harsh bloom; oversharpening; clutter) and specify restraint (“editorial”, “premium”, “subtle”).
-
 More principles: `references/prompting.md`. Copy/paste specs: `references/sample-prompts.md`.
 
 ## Guidance by asset type

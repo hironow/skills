@@ -11,13 +11,13 @@ Run an interactive QA session. The user describes problems they're encountering.
 
 ### 1. Listen and lightly clarify
 
-Let the user describe the problem in their own words. Ask **at most 2-3 short clarifying questions** focused on:
+Let the user describe the problem in their own words. Ask only the clarifying questions needed to file a reproducible issue, focused on:
 
 - What they expected vs what actually happened
 - Steps to reproduce (if not obvious)
 - Whether it's consistent or intermittent
 
-Do NOT over-interview. If the description is clear enough to file, move on.
+If the description is clear enough to file, move on.
 
 ### 2. Explore the codebase in the background
 
