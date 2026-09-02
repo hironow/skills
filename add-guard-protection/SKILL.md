@@ -18,8 +18,8 @@ The Arcjet CLI is the primary tool for authenticating, managing sites, configuri
 # Via npx (no install required)
 npx @arcjet/cli --help
 
-# Or install globally via npm
-npm install -g @arcjet/cli
+# Or install globally via bun
+bun add -g @arcjet/cli
 
 # Or via Homebrew
 brew install arcjet

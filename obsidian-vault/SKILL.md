@@ -7,9 +7,7 @@ description: Search, create, and manage notes in the Obsidian vault with wikilin
 
 ## Vault location
 
-`/mnt/d/Obsidian Vault/AI Research/`
-
-Mostly flat at root level.
+Read the vault root from `$OBSIDIAN_VAULT`; if unset, ask the user once and export it for the session. Mostly flat at root level.
 
 ## Naming conventions
 
@@ -29,10 +27,10 @@ Mostly flat at root level.
 
 ```bash
 # Search by filename
-find "/mnt/d/Obsidian Vault/AI Research/" -name "*.md" | grep -i "keyword"
+find "$OBSIDIAN_VAULT" -name "*.md" | grep -i "keyword"
 
 # Search by content
-grep -rl "keyword" "/mnt/d/Obsidian Vault/AI Research/" --include="*.md"
+grep -rl "keyword" "$OBSIDIAN_VAULT" --include="*.md"
 ```
 
 Or use Grep/Glob tools directly on the vault path.
@@ -49,11 +47,11 @@ Or use Grep/Glob tools directly on the vault path.
 Search for `[[Note Title]]` across the vault to find backlinks:
 
 ```bash
-grep -rl "\\[\\[Note Title\\]\\]" "/mnt/d/Obsidian Vault/AI Research/"
+grep -rl "\\[\\[Note Title\\]\\]" "$OBSIDIAN_VAULT"
 ```
 
 ### Find index notes
 
 ```bash
-find "/mnt/d/Obsidian Vault/AI Research/" -name "*Index*"
+find "$OBSIDIAN_VAULT" -name "*Index*"
 ```

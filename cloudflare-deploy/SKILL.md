@@ -9,7 +9,7 @@ Consolidated skill for building on the Cloudflare platform. Use decision trees b
 
 ## Authentication (Required Before Deploy)
 
-Verify auth before `wrangler deploy`, `wrangler pages deploy`, or `npm run deploy`:
+Verify auth before `wrangler deploy`, `wrangler pages deploy`, or `bun run deploy`:
 
 ```bash
 npx wrangler whoami    # Shows account if authenticated

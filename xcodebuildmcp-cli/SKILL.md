@@ -21,7 +21,7 @@ brew install xcodebuildmcp
 ```
 
 ```bash
-npm install -g xcodebuildmcp@latest
+bun add -g xcodebuildmcp@latest
 ```
 
 Re-check after install:

@@ -1,11 +1,11 @@
 ---
 name: update-submodule-changelog
 description: |
-  サブモジュール（protocols/*, gcloud/*）更新後に docs/changelogs.md を更新する。
+  サブモジュール（protocols/*, payments/*, gcloud/*）更新後に docs/changelogs.md を更新する。
   「サブモジュール更新」「changelog更新」「プロトコル変更まとめ」などのキーワードで自動適用。
   git submodule update 後や、依存関係の変更ドキュメント化に使用。
 argument-hint: [対象サブモジュール名（省略時は全て）]
-allowed-tools: Read, Write, Bash(git:*), Grep, Glob, Task
+allowed-tools: Read, Write, Bash(git:*), Grep, Glob, Agent
 ---
 
 # Submodule Changelog Update Skill
@@ -46,9 +46,7 @@ git log --oneline -10
 cat CHANGELOG.md | head -100
 ```
 
-**調査対象ディレクトリ**:
-- `protocols/` - プロトコルサブモジュール（A2A, A2UI, ACP, ADP, AG-UI, AgentSkills, AP2, MCP, MCP-UI, OpenResponses, UCP, x402）
-- `gcloud/` - Google Cloud サブモジュール（adk-python, adk-go, adk-js, agent-starter-pack, cloud-run-mcp, gcloud-mcp, gke-mcp, google-analytics-mcp, mcp, mcp-security, genai-toolbox）
+**調査対象**: `git submodule status` に出るサブモジュールのうち、外部ライブラリ／仕様のリポジトリ。自作・非ライブラリの `skills` / `knowledge-work-plugins` / `guardrails/**` / `tools/**` は除く。`git submodule status` は対象の**列挙にのみ**使い、記載するバージョンは各リポジトリの最新タグ・リリースを調べる（上記「重要」参照）。現在の配置は `protocols/`（プロトコル仕様）、`payments/`（決済系プロトコル）、`gcloud/`（Google Cloud / ADK）。
 
 ### Step 3: changelogs.md の更新
 
@@ -148,9 +146,6 @@ git log --pretty=format:"%s" -10
 git describe --tags --abbrev=0
 git tag -l | tail -5
 ```
-
-### 複数エージェントで並列調査
-Task tool を使って Explore エージェントを並列起動し、複数のサブモジュールを同時に調査すると効率的。
 
 ## チェックリスト
 

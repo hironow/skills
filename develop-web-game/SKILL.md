@@ -134,9 +134,9 @@ At the end of your work, leave TODOs and suggestions for the next agent in `prog
   ```
   command -v npx >/dev/null 2>&1
   ```
-- If `npx` is missing, install Node/npm and then install Playwright globally:
+- If `npx` is missing, install Bun (https://bun.sh) and then install Playwright globally:
   ```
-  npm install -g @playwright/mcp@latest
+  bun add -g @playwright/mcp@latest
   ```
 - Do not switch to `@playwright/test` unless explicitly asked; stick to the client script.
 
