@@ -30,5 +30,5 @@
 
 - `<skill-name>/SKILL.md` — skill definition (frontmatter + body)
 - `sibyl/` — most recently added skill (2026-06-10)
-- `write-a-skill/` — skill about authoring skills (possible de facto style guide)
+- `writing-great-skills/` — the style reference for authoring skills; skill creation itself is delegated to the upstream anthropics `skill-creator` (installed via `bunx skills`), so this repo carries no authoring workflow skill
 - `git log --oneline -- <skill-name>/` — trace an individual skill's history
