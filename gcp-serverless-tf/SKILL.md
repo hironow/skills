@@ -11,6 +11,9 @@ description: >
   "tfファイル作って" or "インフラをコード化".
   Not for application code, service selection, or gcloud-based deployment — that is
   gcp-serverless-appdev.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # GCP Serverless Terraform/OpenTofu Skill

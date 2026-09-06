@@ -1,6 +1,12 @@
 ---
 name: request-refactor-plan
 description: Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps.
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@f958fa1:skills/deprecated/request-refactor-plan
+  upstream-license: MIT
+  changes: "shorter wording of the interview step and of the plan output (2026-09-02 de-cruft); deprecated upstream"
 ---
 
 This skill will be invoked when the user wants to create a refactor request. You should go through the steps below. You may skip steps if you don't consider them necessary.

@@ -11,6 +11,10 @@ description: >-
   Use when reviewing an argument, essay, policy statement, or debate log for logical fallacies
   without editing the text itself.
 version: 0.1.0
+license: MIT
+metadata:
+  provenance: original
+  inspired-by: "https://dic.nicovideo.jp/a/詭弁の特徴のガイドライン; https://ja.wikipedia.org/wiki/詭弁"
 ---
 
 # 誤謬パターン検出（詭弁チェック）

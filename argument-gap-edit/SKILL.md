@@ -1,6 +1,12 @@
 ---
 name: argument-gap-edit
 description: 書籍原稿で、無理筋な議論、段落間に埋めがたいギャップ、理論や引用の見せびらかし、段落単位の割り込みを検出し、論理単位ごとに再配置・削除・橋渡しする編集を行う。「直して」「書き直して」「並べ替えて」のように原稿そのものを編集する依頼、ある箇所で得た編集方針を別箇所へ適用するとき、議論の筋を点検して直すときに使用する。誤謬を指摘するだけで本文を変えない依頼は fallacy-check。
+license: Unlicense
+metadata:
+  provenance: derived
+  upstream: gist:k16shikano/fd287c3133457c4fd8f5601d34aa817d@5ed08e447536:comment-6201959
+  upstream-license: Unlicense
+  changes: "identical to the skill k16shikano posted as a comment on the japanese-tech-writing gist (2026-06-16) except the description, which gained trigger phrases and the sibling pointers in #7"
 ---
 
 # Argument Gap Edit

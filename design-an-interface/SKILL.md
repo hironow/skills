@@ -1,6 +1,12 @@
 ---
 name: design-an-interface
 description: Generate multiple radically different interface designs for a module using parallel sub-agents. Use when user wants to design an API, explore interface options, compare module shapes, or mentions "design it twice".
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@f958fa1:skills/deprecated/design-an-interface
+  upstream-license: MIT
+  changes: "harness-neutral sub-agent spawning (one Agent call each, in a single message), one 'don't' bullet dropped, the effort criterion reworded; deprecated upstream"
 ---
 
 # Design an Interface

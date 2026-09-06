@@ -1,6 +1,10 @@
 ---
 name: manager-loop
 description: Run very long-horizon, multi-hour autonomous builds in Claude Code by splitting roles - a manager session that interviews the user, writes a phased checklist and steers, and a separate implementer agent that finishes one phase at a time "extremely well" while ticking a progress dashboard. Use whenever the user asks for an ambitious end-to-end build, a large migration or rewrite, a "build the whole thing" request, or anything a human team would need days for; also when the user says "manager loop", "run this to completion", "keep going until it's done", "long-running", "autonomous build", or complains that a long agent run stalled in minutiae, plateaued, or asymptoted. Not for ordinary single-task coding.
+license: MIT
+metadata:
+  provenance: original
+  inspired-by: "https://x.com/mattshumer_/status/2095723177389232540; https://somethingbig.ai/astra-review"
 ---
 
 # Manager Loop

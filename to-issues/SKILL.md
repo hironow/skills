@@ -2,6 +2,12 @@
 name: to-issues
 description: Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertical slices.
 disable-model-invocation: true
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@c5a4a8c:skills/engineering/to-issues
+  upstream-license: MIT
+  changes: "taken before upstream's Process/Reference split: vertical-slice rules inline, no wide-refactor expand-contract section, no native sub-issue linking; deleted upstream in #464"
 ---
 
 # To Issues

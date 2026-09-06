@@ -2,6 +2,12 @@
 name: writing-great-skills
 description: Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable.
 disable-model-invocation: true
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@6bcbcb0:skills/productivity/writing-great-skills
+  upstream-license: MIT
+  changes: "unchanged apart from the provenance frontmatter (SKILL.md, GLOSSARY.md, agents/openai.yaml identical); renamed upstream to writing-for-agents in #763"
 ---
 
 A skill exists to wrangle determinism out of a stochastic system. **Predictability** — the agent taking the same _process_ every run, not producing the same output — is the root virtue; every lever below serves it.

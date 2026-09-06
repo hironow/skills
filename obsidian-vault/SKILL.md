@@ -1,6 +1,12 @@
 ---
 name: obsidian-vault
 description: Search, create, and manage notes in the Obsidian vault with wikilinks and index notes. Use when user wants to find, create, or organize notes in Obsidian.
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@f958fa1:skills/personal/obsidian-vault
+  upstream-license: MIT
+  changes: "the vault root comes from $OBSIDIAN_VAULT (asked once if unset) instead of the hardcoded /mnt/d/Obsidian Vault/AI Research/ path"
 ---
 
 # Obsidian Vault

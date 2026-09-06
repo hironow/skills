@@ -1,6 +1,9 @@
 ---
 name: decision-record-governance
 description: Create, update, and supersede (or reverse) decision records — ADRs for technical decisions and PDRs for product decisions — governed by decision-queue.md (the list of decisions awaiting approval) and a quality rubric. Always checks every other DR for contradiction, duplication, misreading, false relation, and mistaken relationship, and when anything is found, requires a Slack consultation that involves the people behind the conflicting record so a human rules on it. Use when the user mentions ADR, PDR, decision record, decision queue, 決定記録, 意思決定の起票・更新・supersede・反転, DR の矛盾・整合性チェック, 決裁の相談・催促, or wants to manage architecture or product decisions.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # Decision Record Governance (ADR/PDR × queue × rubric × consistency check × Slack consultation)

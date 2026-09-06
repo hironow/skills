@@ -4,6 +4,9 @@ description: |
   This skill should be used when the user asks to "legal review", "policy review",
   "review AI policy", "法務レビュー", "ポリシーチェック", or needs brand-conscious
   legal review for company communications that prioritize community trust over legal safety.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # Brand-Conscious Legal Review Skill

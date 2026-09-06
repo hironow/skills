@@ -2,6 +2,12 @@
 name: decision-mapping
 description: Turn a loose idea into a sequenced map of investigation tickets, then drive them to resolution one at a time.
 disable-model-invocation: true
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@b38badf:skills/in-progress/decision-mapping
+  upstream-license: MIT
+  changes: "keeps three ticket types (upstream later added Task); 'sized to one 100K token session' became 'resolvable within a single agent session'; renamed upstream to wayfinder"
 ---
 
 This skill is invoked when a loose idea requires more than one agent session to turn into a plan. It creates a stateful decision map in a markdown file, and drives the user through a sequence of tickets to resolve the open questions - which may require either prototyping, research or grilling. The map is domain-agnostic: it plans engineering work, course content, or anything else that fits the same shape.

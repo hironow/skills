@@ -8,6 +8,9 @@ description: >-
   gate, or writing any report that claims something is "done", "green", or
   "verified". Especially load-bearing when the author and the verifier are
   the same context — the situation this skill exists to break.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # Verification discipline: trust nothing ("何も信用しない"), including yourself

@@ -7,6 +7,9 @@ description: |
   user wants agent instruction files audited, slimmed, reorganized, or
   skill-ified, or asks about context/token reduction or an instruction budget
   for those files — whether or not they say "audit".
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # AGENTS.md Triage

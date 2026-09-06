@@ -2,6 +2,12 @@
 name: ubiquitous-language
 description: Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions "domain model" or "DDD".
 disable-model-invocation: true
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@f958fa1:skills/deprecated/ubiquitous-language
+  upstream-license: MIT
+  changes: "unchanged apart from the provenance frontmatter; deprecated upstream"
 ---
 
 # Ubiquitous Language

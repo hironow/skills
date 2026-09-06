@@ -4,9 +4,9 @@ description: "Use when building or iterating on a web game (HTML/JS) and a relia
 license: Apache-2.0
 metadata:
   provenance: derived
-  upstream: unknown
+  upstream: openai/skills@30444ae:skills/.curated/develop-web-game
   upstream-license: Apache-2.0
-  changes: origin not found among the known upstream repositories; ships the Apache-2.0 LICENSE.txt it came with; SKILL.md edited in the 2026-09-02 prompt audit
+  changes: "installed through Codex's skill-installer from openai/skills .curated (opt-in, not bundled; added 0ed635a, removed upstream in 11c6438); SKILL.md only: description no longer says Codex, the screenshot-verification paragraph is condensed, and Playwright MCP is installed with bun add -g instead of npm install -g; the other six files are byte-identical"
 ---
 
 

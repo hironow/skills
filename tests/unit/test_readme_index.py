@@ -143,6 +143,60 @@ def test_unknown_upstream_is_rendered_as_unknown(tmp_path: Path) -> None:
     )
 
 
+def test_gist_upstreams_link_to_the_gist_revision(tmp_path: Path) -> None:
+    """`gist:<owner>/<id>@<sha>:<file>` renders gist links, not github.com/tree."""
+    _skill(
+        tmp_path,
+        "jtw",
+        "name: jtw\ndescription: Does J.\nmetadata:\n  provenance: derived\n"
+        "  upstream: gist:k16shikano/fd287c3133457c4fd8f5601d34aa817d@5ed08e447536:SKILL.md\n"
+        "  upstream-license: none\n  changes: frontmatter added\n",
+    )
+    entries = collect(tmp_path)
+    assert "| fork of k16shikano (gist) |" in render_index(entries)
+    assert (
+        "| [k16shikano (gist fd287c3)](https://gist.github.com/k16shikano/fd287c3133457c4fd8f5601d34aa817d)"
+        " | none | [`jtw`](jtw/SKILL.md) from [`SKILL.md`@5ed08e447536]"
+        "(https://gist.github.com/k16shikano/fd287c3133457c4fd8f5601d34aa817d/5ed08e447536): frontmatter added |"
+    ) in render_credits(entries)
+
+
+def test_gist_comment_upstreams_link_to_the_comment(tmp_path: Path) -> None:
+    """A path of `comment-<id>` on a gist upstream links to that comment."""
+    _skill(
+        tmp_path,
+        "age",
+        "name: age\ndescription: Does A.\nmetadata:\n  provenance: derived\n"
+        "  upstream: gist:k16shikano/fd287c3133457c4fd8f5601d34aa817d@5ed08e447536:comment-5678\n"
+        "  upstream-license: Unlicense\n  changes: none\n",
+    )
+    assert (
+        "[`comment-5678`@5ed08e447536]"
+        "(https://gist.github.com/k16shikano/fd287c3133457c4fd8f5601d34aa817d#gistcomment-5678)"
+    ) in render_credits(collect(tmp_path))
+
+
+def test_inspired_by_sources_are_credited_for_original_skills(tmp_path: Path) -> None:
+    """`metadata.inspired-by` (URLs separated by `; `) is listed under the credits."""
+    _skill(
+        tmp_path,
+        "loop",
+        "name: loop\ndescription: Does L.\nlicense: MIT\nmetadata:\n"
+        "  provenance: original\n"
+        '  inspired-by: "https://example.com/post; https://example.org/review"\n',
+    )
+    entries = collect(tmp_path)
+    assert (
+        entries[0].inspired_by == "https://example.com/post; https://example.org/review"
+    )
+    out = render_credits(entries)
+    assert "Original (confirmed): `loop`" in out
+    assert (
+        "Inspired by (idea credit; the text here is original):\n\n"
+        "- `loop`: <https://example.com/post>, <https://example.org/review>"
+    ) in out
+
+
 def test_derived_skill_without_contract_is_an_error(tmp_path: Path) -> None:
     _skill(
         tmp_path,

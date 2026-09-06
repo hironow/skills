@@ -6,6 +6,9 @@ description: |
   after git submodule update, or whenever dependency changes need to be documented.
 argument-hint: [submodule name (all when omitted)]
 allowed-tools: Read, Write, Bash(git:*), Grep, Glob, Agent
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # Submodule Changelog Update Skill

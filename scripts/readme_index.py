@@ -30,8 +30,9 @@ from pathlib import Path
 from frontmatter import read_skill, skill_dirs
 
 MAX_SUMMARY = 140
+# `owner/repo@sha:path` for a GitHub repository, `gist:owner/id@sha:file` for a gist
 UPSTREAM_RE = re.compile(
-    r"^(?P<repo>[\w.-]+/[\w.-]+)@(?P<sha>[0-9a-f]{7,40}):(?P<path>.+)$"
+    r"^(?P<gist>gist:)?(?P<repo>[\w.-]+/[\w.-]+)@(?P<sha>[0-9a-f]{7,40}):(?P<path>.+)$"
 )
 
 
@@ -48,6 +49,7 @@ class SkillEntry:
     upstream: str | None
     upstream_license: str | None
     changes: str | None
+    inspired_by: str | None = None
 
 
 def first_sentence(description: str) -> str:
@@ -77,6 +79,9 @@ def collect(root: Path) -> list[SkillEntry]:
                 if meta.get("upstream-license")
                 else None,
                 changes=str(meta["changes"]) if meta.get("changes") else None,
+                inspired_by=str(meta["inspired-by"])
+                if meta.get("inspired-by")
+                else None,
             )
         )
     return entries
@@ -88,7 +93,12 @@ def _flags(entry: SkillEntry) -> str:
         flags.append("user-invoked")
     if entry.provenance == "derived":
         m = UPSTREAM_RE.match(entry.upstream or "")
-        flags.append(f"fork of {m.group('repo')}" if m else "derived (origin unknown)")
+        if not m:
+            flags.append("derived (origin unknown)")
+        elif m.group("gist"):
+            flags.append(f"fork of {m.group('repo').split('/')[0]} (gist)")
+        else:
+            flags.append(f"fork of {m.group('repo')}")
     return ", ".join(flags)
 
 
@@ -105,8 +115,23 @@ def render_index(entries: list[SkillEntry]) -> str:
 
 
 def _repo_of(upstream: str) -> str:
+    """Grouping key: `owner/repo`, `gist:owner/id`, or `unknown`."""
     m = UPSTREAM_RE.match(upstream)
-    return m.group("repo") if m else "unknown"
+    if not m:
+        return "unknown"
+    return f"gist:{m.group('repo')}" if m.group("gist") else m.group("repo")
+
+
+def _repo_head(repo: str) -> str:
+    """The first cell of a credits row for a grouping key."""
+    if repo == "unknown":
+        return "unknown"
+    if repo.startswith("gist:"):
+        owner, gist_id = repo[len("gist:") :].split("/", 1)
+        return (
+            f"[{owner} (gist {gist_id[:7]})](https://gist.github.com/{owner}/{gist_id})"
+        )
+    return f"[{repo}](https://github.com/{repo})"
 
 
 def _upstream_link(upstream: str) -> str:
@@ -115,6 +140,11 @@ def _upstream_link(upstream: str) -> str:
     if not m:
         return ""
     repo, sha, path = m.group("repo"), m.group("sha"), m.group("path")
+    if m.group("gist"):
+        if path.startswith("comment-"):
+            anchor = f"#gistcomment-{path[len('comment-') :]}"
+            return f"[`{path}`@{sha}](https://gist.github.com/{repo}{anchor})"
+        return f"[`{path}`@{sha}](https://gist.github.com/{repo}/{sha})"
     return f"[`{path}`@{sha}](https://github.com/{repo}/tree/{sha}/{path})"
 
 
@@ -135,9 +165,7 @@ def render_credits(entries: list[SkillEntry]) -> str:
     rows: list[str] = []
     for repo in sorted(groups, key=lambda r: (r == "unknown", r)):
         skills = sorted(groups[repo], key=lambda e: e.name)
-        head = (
-            "unknown" if repo == "unknown" else f"[{repo}](https://github.com/{repo})"
-        )
+        head = _repo_head(repo)
         licenses = " / ".join(sorted({str(e.upstream_license) for e in skills}))
         cells: list[str] = []
         for e in skills:
@@ -153,11 +181,23 @@ def render_credits(entries: list[SkillEntry]) -> str:
     )
     unknown = ", ".join(f"`{e.name}`" for e in entries if e.provenance == "unknown")
     original = ", ".join(f"`{e.name}`" for e in entries if e.provenance == "original")
-    return (
+    inspired = [
+        f"- `{e.name}`: "
+        + ", ".join(f"<{url.strip()}>" for url in e.inspired_by.split(";"))
+        for e in entries
+        if e.inspired_by
+    ]
+    out = (
         f"{table}\n\n"
         f"Origin not yet confirmed (no upstream found; confirm before publishing): {unknown or 'none'}\n\n"
         f"Original (confirmed): {original or 'none'}"
     )
+    if inspired:
+        out += (
+            "\n\nInspired by (idea credit; the text here is original):\n\n"
+            + "\n".join(inspired)
+        )
+    return out
 
 
 def replace_between_markers(doc: str, marker: str, content: str) -> str:

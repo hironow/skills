@@ -11,6 +11,9 @@ description: >
   including cross-cloud migration discussions.
   Not for Terraform/OpenTofu — any .tf, `tofu`, "tfファイル", or "インフラをコード化"
   request is gcp-serverless-tf.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # GCP Serverless Application Development Guide

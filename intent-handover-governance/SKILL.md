@@ -1,6 +1,9 @@
 ---
 name: intent-handover-governance
 description: Govern development continuity with two files — docs/intent.md (why we are doing this now, the human's intent) and docs/handover.md (how far we got and what comes next). The intent is settled by a human and never guessed by the AI; the handover is updated at the end of every session and kept readable in two minutes. Before any update, check intent ⇄ handover ⇄ the repository's actual state for drift, and leave the ruling on any gap to a human. Use when the user mentions intent.md, handover.md, 引き継ぎ（ハンドオーバー）, 意図の記録・確認, セッション終了・作業再開, starting or switching a work unit, or wants session continuity captured in docs.
+license: MIT
+metadata:
+  provenance: original
 ---
 
 # Intent / Handover Governance (intent × handover × rubric × consistency check)
