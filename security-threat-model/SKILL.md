@@ -1,6 +1,12 @@
 ---
 name: "security-threat-model"
 description: "Repository-grounded threat modeling that enumerates trust boundaries, assets, attacker capabilities, abuse paths, and mitigations, and writes a concise Markdown threat model. Trigger only when the user explicitly asks to threat model a codebase or path, enumerate threats/abuse paths, or perform AppSec threat modeling. Do not trigger for general architecture summaries, code review, or non-security design work."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/security-threat-model
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit; references/prompt-template.md gained the closing code fence the upstream file lacks
 ---
 
 # Threat Model Source Code Repo

@@ -1,6 +1,12 @@
 ---
 name: "develop-web-game"
 description: "Use when building or iterating on a web game (HTML/JS) and a reliable development + testing loop is needed: implement small changes, run a Playwright-based test script with short input bursts and intentional pauses, inspect screenshots/text, and review console errors with render_game_to_text."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: unknown
+  upstream-license: Apache-2.0
+  changes: origin not found among the known upstream repositories; ships the Apache-2.0 LICENSE.txt it came with; SKILL.md edited in the 2026-09-02 prompt audit
 ---
 
 

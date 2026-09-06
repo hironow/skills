@@ -1,3 +1,4 @@
+<!-- Modified from openai/skills@49f948f:skills/.system/imagegen; the changes are summarised in SKILL.md (metadata.changes). -->
 # Prompting best practices (gpt-image-1.5)
 
 ## Contents

@@ -1,6 +1,12 @@
 ---
 name: cloudflare-deploy
 description: Deploy applications and infrastructure to Cloudflare using Workers, Pages, and related platform services. Use when the user asks to deploy, host, publish, or set up a project on Cloudflare.
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/cloudflare-deploy
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit; the bundled reference docs are unchanged
 ---
 
 # Cloudflare Deploy

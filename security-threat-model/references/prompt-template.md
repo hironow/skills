@@ -1,3 +1,4 @@
+<!-- Modified from openai/skills@49f948f:skills/.curated/security-threat-model; the changes are summarised in SKILL.md (metadata.changes). -->
 # Threat Modeling Prompt Template for LLMs
 
 This reference provides a disciplined, repo-grounded prompt that produces AppSec-usable threat models. Use it when you need a reliable output contract and a consistent process to assemble the threat model output
@@ -245,6 +246,7 @@ Rules:
 
 ## Focus paths for security review
 - A table: Path | Why it matters | Related Threat IDs
+```
 
 ## Notes on use
 

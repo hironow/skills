@@ -1,6 +1,12 @@
 ---
 name: "openai-docs"
 description: "Use when the user asks how to build with OpenAI products or APIs and needs up-to-date official documentation with citations (for example: Codex, Responses API, Chat Completions, Apps SDK, Agents SDK, Realtime, model capabilities or limits); prioritize OpenAI docs MCP tools and restrict any fallback browsing to official OpenAI domains."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/openai-docs
+  upstream-license: Apache-2.0
+  changes: SKILL.md and agents/openai.yaml edited in the 2026-09-02 prompt audit
 ---
 
 

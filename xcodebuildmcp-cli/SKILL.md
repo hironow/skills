@@ -1,8 +1,12 @@
 ---
 name: xcodebuildmcp-cli
 description: Official skill for the XcodeBuildMCP CLI. Use when doing iOS/macOS/watchOS/tvOS/visionOS work (build, test, run, debug, log, UI automation).
+license: MIT
 metadata:
+  provenance: derived
   upstream: cameroncooke/XcodeBuildMCP@e6ef59b:skills/xcodebuildmcp-cli
+  upstream-license: MIT
+  changes: bun add -g instead of npm install -g; otherwise identical to the official CLI skill
 ---
 
 # XcodeBuildMCP CLI

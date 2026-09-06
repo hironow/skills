@@ -1,8 +1,12 @@
 ---
 name: diagnose
 description: Disciplined diagnosis loop for hard bugs and performance regressions - build a feedback loop, reproduce and minimise, hypothesise, instrument, fix with a regression test. Use when the user says "diagnose this" / "debug this", reports a bug, says something is broken/throwing/failing, or describes a performance regression.
+license: MIT
 metadata:
+  provenance: derived
   upstream: mattpocock/skills@3cca18b:skills/engineering/diagnosing-bugs
+  upstream-license: MIT
+  changes: from diagnosing-bugs: de-crufted, then Redact / loop completion gate / Minimise ported back; glossary grounding instead of CONTEXT.md; guarded architecture hand-off
 ---
 
 # Diagnose

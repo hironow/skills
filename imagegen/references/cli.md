@@ -1,3 +1,4 @@
+<!-- Modified from openai/skills@49f948f:skills/.system/imagegen; the changes are summarised in SKILL.md (metadata.changes). -->
 # CLI reference (`scripts/image_gen.py`)
 
 This file contains the “command catalog” for the bundled image generation CLI. Keep `SKILL.md` as overview-first; put verbose CLI details here.

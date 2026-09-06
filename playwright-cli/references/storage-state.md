@@ -1,3 +1,4 @@
+<!-- Modified from microsoft/playwright-cli@655530f:skills/playwright-cli; the changes are summarised in SKILL.md (metadata.changes). -->
 # Storage Management
 
 Manage cookies, localStorage, sessionStorage, and browser storage state.

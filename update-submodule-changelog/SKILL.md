@@ -151,9 +151,9 @@ git tag -l | tail -5
 
 Before declaring the update done:
 
-- [ ] 最終更新 shows today's date
+- [ ] `最終更新` shows today's date
 - [ ] **Versions reflect each repository's latest release** (not the checked-out state)
-- [ ] Newly added protocols appear under 注目ポイント
+- [ ] Newly added protocols appear under `注目ポイント`
 - [ ] Breaking changes are collected in the summary table
 - [ ] Every reference link in each section resolves
 - [ ] The Japanese reads naturally

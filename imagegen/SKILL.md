@@ -1,6 +1,12 @@
 ---
 name: "imagegen"
 description: "Use when the user asks to generate or edit images via the OpenAI Image API (for example: generate image, edit/inpaint/mask, background removal or replacement, transparent background, product shots, concept art, covers, or batch variants); run the bundled CLI (`scripts/image_gen.py`) and require `OPENAI_API_KEY` for live calls."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.system/imagegen
+  upstream-license: Apache-2.0
+  changes: SKILL.md, references, agents/openai.yaml and scripts/image_gen.py edited in the 2026-09-02 prompt audit (from the .system/imagegen skill)
 ---
 
 

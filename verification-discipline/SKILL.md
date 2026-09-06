@@ -10,7 +10,7 @@ description: >-
   the same context — the situation this skill exists to break.
 ---
 
-# Verification discipline: trust nothing (何も信用しない), including yourself
+# Verification discipline: trust nothing ("何も信用しない"), including yourself
 
 Capability is cheap; calibrated trust is what fails. These rules turn "I
 believe it works" into "here is what was proven, by what, and what wasn't."

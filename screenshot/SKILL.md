@@ -1,6 +1,12 @@
 ---
 name: "screenshot"
 description: "Use when the user explicitly asks for a desktop or system screenshot (full screen, specific app or window, or a pixel region), or when tool-specific capture capabilities are unavailable and an OS-level capture is needed."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/screenshot
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit; scripts unchanged
 ---
 
 

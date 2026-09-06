@@ -1,6 +1,12 @@
 ---
 name: "yeet"
 description: "Use only when the user explicitly asks to stage, commit, push, and open a GitHub pull request in one flow using the GitHub CLI (`gh`)."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/yeet
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit
 ---
 
 ## Prerequisites

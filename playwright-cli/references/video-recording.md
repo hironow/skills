@@ -1,3 +1,4 @@
+<!-- Modified from microsoft/playwright-cli@655530f:skills/playwright-cli; the changes are summarised in SKILL.md (metadata.changes). -->
 # Video Recording
 
 Capture browser automation sessions as video for debugging, documentation, or verification. Produces WebM (VP8/VP9 codec).

@@ -1,9 +1,13 @@
 ---
 name: add-guard-protection
-license: Apache-2.0
 description: Protect code paths that have no incoming HTTP request — AI agent tool calls, agent loops, MCP tool handlers, background jobs, queue workers — with Arcjet Guard (`@arcjet/guard` for JS/TS, `arcjet.guard` for Python), covering rate limiting, prompt injection detection, sensitive information blocking, and custom rules. Use when the user says "rate limit my tool calls", "block prompt injection in my agent", "add security to my MCP server", or "protect my queue worker", even without mentioning Arcjet or Guard. Not for HTTP routes, endpoints, forms, or webhooks — that is add-request-protection. Uses the Arcjet CLI (`bunx @arcjet/cli` or `brew install arcjet`) for authentication and site/key setup.
+license: Apache-2.0
 metadata:
   author: arcjet
+  provenance: derived
+  upstream: arcjet/arcjet-plugin@2c95022:plugins/arcjet/skills/add-guard-protection
+  upstream-license: Apache-2.0
+  changes: description made mutually exclusive with add-request-protection; bunx / bun add / uv add instead of npx / npm install / pip install; content predates the current upstream layout
 ---
 
 # Add Arcjet Guard Protection

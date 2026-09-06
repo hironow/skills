@@ -1,6 +1,12 @@
 ---
 name: "security-best-practices"
 description: "Perform language and framework specific security best-practice reviews and suggest improvements. Trigger only when the user explicitly requests security best practices guidance, a security review/report, or secure-by-default coding help. Trigger only for supported languages (python, javascript/typescript, go). Do not trigger for general code review, debugging, or non-security tasks."
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/security-best-practices
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit; references unchanged
 ---
 
 # Security Best Practices

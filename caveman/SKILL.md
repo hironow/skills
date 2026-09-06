@@ -4,6 +4,12 @@ description: >
   Ultra-compressed communication mode: drops filler, articles, and pleasantries
   while keeping full technical accuracy. Use when the user asks for caveman mode
   ("caveman mode", "talk like caveman", /caveman).
+license: MIT
+metadata:
+  provenance: derived
+  upstream: JuliusBrussee/caveman@5184b3d:skills/caveman
+  upstream-license: MIT
+  changes: SKILL.md rewritten and de-crufted; only the skill is vendored, not the caveman tooling
 ---
 
 Respond terse like smart caveman. All technical substance stay. Only fluff die.

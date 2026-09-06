@@ -1,8 +1,13 @@
 ---
 name: gh-address-comments
 description: Help address review/issue comments on the open GitHub PR for the current branch using gh CLI; verify gh auth first and prompt the user to authenticate if not logged in.
+license: Apache-2.0
 metadata:
   short-description: Address comments in a GitHub PR review
+  provenance: derived
+  upstream: openai/skills@49f948f:skills/.curated/gh-address-comments
+  upstream-license: Apache-2.0
+  changes: unchanged apart from frontmatter; kept as the single copy for gh comment triage
 ---
 
 # PR Comment Handler

@@ -1,3 +1,4 @@
+<!-- Modified from arcjet/arcjet-plugin@2c95022:plugins/arcjet/skills/add-guard-protection; the changes are summarised in SKILL.md (metadata.changes). -->
 # JavaScript/TypeScript Guard Reference
 
 ## Installation

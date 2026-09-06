@@ -1,9 +1,13 @@
 ---
 name: add-request-protection
-license: Apache-2.0
 description: Protect a server-side HTTP route or endpoint — API route, form handler, auth endpoint, webhook — with Arcjet, covering rate limiting, bot detection, email validation, and abuse prevention. Works across Next.js, Express, Fastify, SvelteKit, Remix, Bun, Deno, NestJS, and Python (Django/Flask). Use when the user says "add rate limiting", "block bots", "prevent brute force", or "secure my endpoint", even without mentioning Arcjet. Not for code with no HTTP request (tool calls, MCP handlers, agent loops, workers) — that is add-guard-protection. Uses the Arcjet CLI (`bunx @arcjet/cli` or `brew install arcjet`) for authentication, site/key setup, remote rule management, and traffic verification.
+license: Apache-2.0
 metadata:
   author: arcjet
+  provenance: derived
+  upstream: arcjet/arcjet-plugin@2c95022:plugins/arcjet/skills/protect-route
+  upstream-license: Apache-2.0
+  changes: description made mutually exclusive with add-guard-protection; bunx instead of npx; content predates the current upstream layout, where the skill is now named protect-route
 ---
 
 # Add Arcjet Protection to a Route

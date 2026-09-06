@@ -1,3 +1,4 @@
+<!-- Modified from openai/skills@49f948f:skills/.system/imagegen; the changes are summarised in SKILL.md (metadata.changes). -->
 # Codex network approvals / sandbox notes
 
 This guidance is intentionally isolated from `SKILL.md` because it can vary by environment and may become stale. Prefer the defaults in your environment when in doubt.

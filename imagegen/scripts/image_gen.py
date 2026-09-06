@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified from openai/skills@49f948f:skills/.system/imagegen; the changes are summarised in SKILL.md (metadata.changes).
 """Generate or edit images with the OpenAI Image API.
 
 Defaults to gpt-image-1.5 and a structured prompt augmentation workflow.

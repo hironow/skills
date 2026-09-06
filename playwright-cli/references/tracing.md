@@ -1,3 +1,4 @@
+<!-- Modified from microsoft/playwright-cli@655530f:skills/playwright-cli; the changes are summarised in SKILL.md (metadata.changes). -->
 # Tracing
 
 Capture detailed execution traces for debugging and analysis. Traces include DOM snapshots, screenshots, network activity, and console logs.

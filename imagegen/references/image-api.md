@@ -1,3 +1,4 @@
+<!-- Modified from openai/skills@49f948f:skills/.system/imagegen; the changes are summarised in SKILL.md (metadata.changes). -->
 # Image API quick reference
 
 ## Endpoints

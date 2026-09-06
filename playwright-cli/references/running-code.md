@@ -1,3 +1,4 @@
+<!-- Modified from microsoft/playwright-cli@655530f:skills/playwright-cli; the changes are summarised in SKILL.md (metadata.changes). -->
 # Running Custom Playwright Code
 
 Use `run-code` to execute arbitrary Playwright code for advanced scenarios not covered by CLI commands.

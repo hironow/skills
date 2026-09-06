@@ -2,6 +2,12 @@
 name: dogfood
 description: 'Exploratory testing of a running web application through a real browser (agent-browser): systematically drive the UI, find functional/UX/console issues, and produce a report with screenshot-and-video repro evidence per issue. Use for "dogfood", "bug hunt", or "exploratory test this site/app"; for filing issues the user reports conversationally, use the qa skill.'
 allowed-tools: Bash(agent-browser:*)
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: vercel-labs/agent-browser@4726ece:skill-data/dogfood
+  upstream-license: Apache-2.0
+  changes: SKILL.md edited in the 2026-09-02 prompt audit; references and templates unchanged
 ---
 
 # Dogfood

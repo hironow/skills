@@ -2,6 +2,12 @@
 name: to-prd
 description: Turn the current conversation into a PRD and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
 disable-model-invocation: true
+license: MIT
+metadata:
+  provenance: derived
+  upstream: mattpocock/skills@3cca18b:skills/engineering/to-spec
+  upstream-license: MIT
+  changes: renamed from to-spec: the artifact is a PRD published to the project tracker; lightly edited
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.

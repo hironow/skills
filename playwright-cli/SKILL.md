@@ -2,6 +2,12 @@
 name: playwright-cli
 description: Automates browser interactions for web testing, form filling, screenshots, and data extraction. Use when the user needs to navigate websites, interact with web pages, fill forms, take screenshots, test web applications, or extract information from web pages.
 allowed-tools: Bash(playwright-cli:*), Bash(bunx:*)
+license: Apache-2.0
+metadata:
+  provenance: derived
+  upstream: microsoft/playwright-cli@655530f:skills/playwright-cli
+  upstream-license: Apache-2.0
+  changes: SKILL.md and the bundled references edited in the 2026-09-02 prompt audit
 ---
 
 # Browser Automation with playwright-cli

@@ -1,8 +1,12 @@
 ---
 name: review
 description: Review the changes since a fixed point (commit, branch, tag, or merge-base) on two separate axes, Standards and Spec, using parallel sub-agents. Use when the user wants to review a branch, a PR, or work-in-progress changes, or asks to "review since X".
+license: MIT
 metadata:
+  provenance: derived
   upstream: mattpocock/skills@3cca18b:skills/engineering/code-review
+  upstream-license: MIT
+  changes: from code-review: PRD vocabulary, harness-neutral spawn wording, ask-the-user fallback for the issue tracker, trimmed description; the sub-agent word budgets were ported back
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
