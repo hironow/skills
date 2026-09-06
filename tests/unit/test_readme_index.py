@@ -86,13 +86,48 @@ def test_render_credits_lists_the_three_provenance_states(tmp_path: Path) -> Non
     )
     _skill(tmp_path, "delta", "name: delta\ndescription: Does D.\n")
     out = render_credits(collect(tmp_path))
-    assert "[owner/repo](https://github.com/owner/repo/tree/abc1234/skills/beta)" in out
-    assert "| MIT | trimmed |" in out
+    assert (
+        "| [owner/repo](https://github.com/owner/repo) | MIT | "
+        "[`beta`](beta/SKILL.md) from [`skills/beta`@abc1234]"
+        "(https://github.com/owner/repo/tree/abc1234/skills/beta): trimmed |"
+    ) in out
     assert (
         "Origin not yet confirmed (no upstream found; confirm before publishing): `delta`"
         in out
     )
     assert "Original (confirmed): `gamma`" in out
+
+
+def test_render_credits_groups_skills_by_upstream_repo(tmp_path: Path) -> None:
+    """One row per upstream repository; each skill keeps its own path@sha link."""
+    _skill(tmp_path, "beta", "name: beta\ndescription: Does B.\n" + DERIVED_MIT)
+    _skill(
+        tmp_path,
+        "alpha",
+        "name: alpha\ndescription: Does A.\nlicense: MIT\nmetadata:\n"
+        "  provenance: derived\n  upstream: owner/repo@def5678:skills/alpha\n"
+        "  upstream-license: MIT\n  changes: renamed\n",
+    )
+    _skill(
+        tmp_path,
+        "zeta",
+        "name: zeta\ndescription: Does Z.\nlicense: Apache-2.0\nmetadata:\n"
+        "  provenance: derived\n  upstream: other/repo@0123456:zeta\n"
+        "  upstream-license: Apache-2.0\n  changes: none\n",
+    )
+    out = render_credits(collect(tmp_path))
+    rows = [line for line in out.splitlines() if line.startswith("| [")]
+    assert len(rows) == len({"other/repo", "owner/repo"}), rows
+    assert rows[0].startswith(
+        "| [other/repo](https://github.com/other/repo) | Apache-2.0 | "
+    )
+    assert rows[1].startswith("| [owner/repo](https://github.com/owner/repo) | MIT | ")
+    assert (
+        "[`alpha`](alpha/SKILL.md) from [`skills/alpha`@def5678]"
+        "(https://github.com/owner/repo/tree/def5678/skills/alpha): renamed<br>"
+        "[`beta`](beta/SKILL.md) from [`skills/beta`@abc1234]"
+        "(https://github.com/owner/repo/tree/abc1234/skills/beta): trimmed |"
+    ) in rows[1]
 
 
 def test_unknown_upstream_is_rendered_as_unknown(tmp_path: Path) -> None:
@@ -102,7 +137,10 @@ def test_unknown_upstream_is_rendered_as_unknown(tmp_path: Path) -> None:
         "name: delta\ndescription: Does D.\nlicense: Apache-2.0\nmetadata:\n  provenance: derived\n"
         "  upstream: unknown\n  upstream-license: Apache-2.0\n  changes: origin not found\n",
     )
-    assert "| unknown |" in render_credits(collect(tmp_path))
+    assert (
+        "| unknown | Apache-2.0 | [`delta`](delta/SKILL.md): origin not found |"
+        in render_credits(collect(tmp_path))
+    )
 
 
 def test_derived_skill_without_contract_is_an_error(tmp_path: Path) -> None:

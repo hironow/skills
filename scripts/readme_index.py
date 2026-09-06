@@ -8,10 +8,10 @@ generated so they cannot drift from the skills:
     <!-- credits:start -->      ... <!-- credits:end -->
 
 The index lists every skill with the first sentence of its description and
-flags (`user-invoked`, `fork of <repo>`). The credits block lists every
-derived skill with its upstream repository (linked at the compared revision),
-the upstream license, and what changed here, followed by the skills whose
-origin is not yet confirmed and the confirmed originals — all read from the
+flags (`user-invoked`, `fork of <repo>`). The credits block has one row per
+upstream repository; each derived skill in the row links to the upstream path
+at the compared revision and states what changed here, followed by the skills
+whose origin is not yet confirmed and the confirmed originals — all read from the
 provenance contract in frontmatter (`metadata.provenance`,
 `metadata.upstream`, `metadata.upstream-license`, `metadata.changes`). A
 derived skill missing part of the contract is an error, never a blank cell.
@@ -104,16 +104,25 @@ def render_index(entries: list[SkillEntry]) -> str:
     return "| skill | what it does | notes |\n|---|---|---|\n" + "\n".join(rows)
 
 
-def _upstream_cell(upstream: str) -> str:
+def _repo_of(upstream: str) -> str:
+    m = UPSTREAM_RE.match(upstream)
+    return m.group("repo") if m else "unknown"
+
+
+def _upstream_link(upstream: str) -> str:
+    """`[path@sha](url)` for one skill's compared upstream revision, or ''."""
     m = UPSTREAM_RE.match(upstream)
     if not m:
-        return "unknown"
+        return ""
     repo, sha, path = m.group("repo"), m.group("sha"), m.group("path")
-    return f"[{repo}](https://github.com/{repo}/tree/{sha}/{path})"
+    return f"[`{path}`@{sha}](https://github.com/{repo}/tree/{sha}/{path})"
 
 
 def render_credits(entries: list[SkillEntry]) -> str:
-    rows: list[str] = []
+    """One row per upstream repository (unknown origins last); each skill in
+    the row links to the exact upstream path and revision it was compared
+    against, followed by what changed here."""
+    groups: dict[str, list[SkillEntry]] = {}
     for e in entries:
         if e.provenance != "derived":
             continue
@@ -122,13 +131,25 @@ def render_credits(entries: list[SkillEntry]) -> str:
                 f"{e.name}: a derived skill needs metadata.upstream, "
                 "metadata.upstream-license, and metadata.changes"
             )
-        rows.append(
-            f"| [`{e.name}`]({e.name}/SKILL.md) | {_upstream_cell(e.upstream)} "
-            f"| {e.upstream_license} | {_cell(e.changes)} |"
+        groups.setdefault(_repo_of(e.upstream), []).append(e)
+    rows: list[str] = []
+    for repo in sorted(groups, key=lambda r: (r == "unknown", r)):
+        skills = sorted(groups[repo], key=lambda e: e.name)
+        head = (
+            "unknown" if repo == "unknown" else f"[{repo}](https://github.com/{repo})"
         )
+        licenses = " / ".join(sorted({str(e.upstream_license) for e in skills}))
+        cells: list[str] = []
+        for e in skills:
+            link = _upstream_link(e.upstream or "")
+            origin = f" from {link}" if link else ""
+            cells.append(
+                f"[`{e.name}`]({e.name}/SKILL.md){origin}: {_cell(e.changes or '')}"
+            )
+        rows.append(f"| {head} | {licenses} | {'<br>'.join(cells)} |")
     table = (
-        "| skill | upstream | upstream license | what changed here |\n"
-        "|---|---|---|---|\n" + "\n".join(rows)
+        "| upstream | upstream license | skills (what changed here) |\n"
+        "|---|---|---|\n" + "\n".join(rows)
     )
     unknown = ", ".join(f"`{e.name}`" for e in entries if e.provenance == "unknown")
     original = ", ".join(f"`{e.name}`" for e in entries if e.provenance == "original")
