@@ -4,10 +4,13 @@ description: >
   Generate and maintain Terraform/OpenTofu configurations for GCP serverless
   architectures (Cloud Run, Firestore, Cloud Tasks, Pub/Sub, Cloud Functions,
   Eventarc, Cloud Scheduler, Artifact Registry, Secret Manager).
-  Use for any Terraform or OpenTofu work on those services — initial .tf
+  Use whenever the request involves Terraform, OpenTofu, .tf files, `tofu` or
+  `terraform` commands, or infrastructure as code for those services — initial .tf
   generation, updating .tf after application code changes, and the
   Terraform-vs-OpenTofu choice — including Japanese requests such as
   "tfファイル作って" or "インフラをコード化".
+  Not for application code, service selection, or gcloud-based deployment — that is
+  gcp-serverless-appdev.
 ---
 
 # GCP Serverless Terraform/OpenTofu Skill

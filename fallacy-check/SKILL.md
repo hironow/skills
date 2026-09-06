@@ -4,10 +4,12 @@ description: >-
   議論・主張・討論ログのテキストから、誤謬パターン（ストローマン、人身攻撃、レッテル貼り、
   loaded language、衆人・権威・新しさへの訴え、誤った二分法、連続性の虚偽、前件否定、
   後件肯定など）を検出してフラグする。出典はニコニコ大百科「詭弁の特徴のガイドライン」と
-  Wikipedia「詭弁」（references/rules.yaml）。詭弁の指摘、論理の飛躍や主張の穴の点検、
-  説得文・ポリシー論・議論スレッドの論理面レビューを求められたときに使う。文章を整える推敲は
-  argument-gap-edit の領分。
-  Use when reviewing an argument, essay, policy statement, or debate log for logical fallacies.
+  Wikipedia「詭弁」（references/rules.yaml）。「指摘して」「チェックして」「レビューして」のように
+  検出と報告だけを求められたときに使う（詭弁の指摘、論理の飛躍や主張の穴の点検、
+  説得文・ポリシー論・議論スレッドの論理面レビュー）。原稿そのものを直す・書き直す・
+  並べ替える依頼は argument-gap-edit。
+  Use when reviewing an argument, essay, policy statement, or debate log for logical fallacies
+  without editing the text itself.
 version: 0.1.0
 ---
 

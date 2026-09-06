@@ -2,13 +2,15 @@
 name: gcp-serverless-appdev
 description: >
   GCP serverless application development guide covering Cloud Run, Firestore,
-  Cloud Tasks, Pub/Sub, Firebase Auth, Cloud Functions, Eventarc, and Cloud Scheduler.
-  Provides infrastructure selection, implementation patterns, and deployment guidance.
-  Use this skill when: the user mentions "GCPで開発", "Cloud Runで", "Firestoreに",
-  "新しいGCPプロジェクト", scaffolding a GCP app, choosing between async services
-  (Cloud Tasks vs Pub/Sub), deploying to Cloud Run, Firestore data modeling,
-  Firebase Auth integration, or comparing GCP services with AWS/Azure equivalents.
-  Also relevant for cross-cloud migration discussions involving GCP serverless services.
+  Cloud Tasks, Pub/Sub, Firebase Auth, Cloud Functions, Eventarc, and Cloud Scheduler:
+  service selection, implementation patterns, and gcloud-based deployment.
+  Use when the user is designing or writing the application side — mentions "GCPで開発",
+  "Cloud Runで", "Firestoreに", "新しいGCPプロジェクト", scaffolding a GCP app, choosing
+  between Cloud Tasks and Pub/Sub, Firestore data modeling, Firebase Auth integration,
+  deploying a service with gcloud, or comparing GCP services with AWS/Azure equivalents,
+  including cross-cloud migration discussions.
+  Not for Terraform/OpenTofu — any .tf, `tofu`, "tfファイル", or "インフラをコード化"
+  request is gcp-serverless-tf.
 ---
 
 # GCP Serverless Application Development Guide
