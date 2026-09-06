@@ -1,6 +1,8 @@
 ---
 name: review
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: Review the changes since a fixed point (commit, branch, tag, or merge-base) on two separate axes, Standards and Spec, using parallel sub-agents. Use when the user wants to review a branch, a PR, or work-in-progress changes, or asks to "review since X".
+metadata:
+  upstream: mattpocock/skills@3cca18b:skills/engineering/code-review
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
@@ -10,7 +12,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
+Issue lookups follow the workflow in `docs/agents/issue-tracker.md` when the repo has one (`/setup-matt-pocock-skills` generates it). If it is missing, ask the user where issues live and proceed with what they provide.
 
 ## Process
 
@@ -57,19 +59,19 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 ### 4. Spawn both sub-agents in parallel
 
-Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.
+Run both sub-agents in parallel. In Claude Code that is a single message with two `Agent` tool calls, using the `general-purpose` subagent for both; in other harnesses use their parallel sub-agent mechanism, or run the two sequentially if none exists.
 
 **Standards sub-agent prompt** — include:
 
 - The full diff command and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
-- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Findings only — no preamble or restatement of the brief."
+- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words. Findings only — no preamble or restatement of the brief."
 
 **Spec sub-agent prompt** — include:
 
 - The diff command and commit list.
 - The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Findings only — no preamble or restatement of the brief."
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words. Findings only — no preamble or restatement of the brief."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
