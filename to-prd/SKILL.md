@@ -7,7 +7,7 @@ metadata:
   provenance: derived
   upstream: mattpocock/skills@3cca18b:skills/engineering/to-spec
   upstream-license: MIT
-  changes: renamed from to-spec: the artifact is a PRD published to the project tracker; lightly edited
+  changes: "renamed from to-spec: the artifact is a PRD published to the project tracker; lightly edited"
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.

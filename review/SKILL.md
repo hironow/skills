@@ -6,7 +6,7 @@ metadata:
   provenance: derived
   upstream: mattpocock/skills@3cca18b:skills/engineering/code-review
   upstream-license: MIT
-  changes: from code-review: PRD vocabulary, harness-neutral spawn wording, ask-the-user fallback for the issue tracker, trimmed description; the sub-agent word budgets were ported back
+  changes: "from code-review: PRD vocabulary, harness-neutral spawn wording, ask-the-user fallback for the issue tracker, trimmed description; the sub-agent word budgets were ported back"
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:

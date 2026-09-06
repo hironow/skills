@@ -6,7 +6,7 @@ metadata:
   provenance: derived
   upstream: mattpocock/skills@3cca18b:skills/engineering/diagnosing-bugs
   upstream-license: MIT
-  changes: from diagnosing-bugs: de-crufted, then Redact / loop completion gate / Minimise ported back; glossary grounding instead of CONTEXT.md; guarded architecture hand-off
+  changes: "from diagnosing-bugs: de-crufted, then Redact / loop completion gate / Minimise ported back; glossary grounding instead of CONTEXT.md; guarded architecture hand-off"
 ---
 
 # Diagnose
