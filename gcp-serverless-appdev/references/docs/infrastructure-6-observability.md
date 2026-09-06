@@ -4,8 +4,8 @@
 
 **Service**: [Sentry](https://sentry.io/)
 
-Real-time error tracking platform。Unhandled exception, breadcrumbs (event context),
-release tracking, performance monitoring を提供する。
+A real-time error tracking platform. It provides unhandled exception capture,
+breadcrumbs (event context), release tracking, and performance monitoring.
 
 ### 6.1.1 Integration Points
 
@@ -18,7 +18,7 @@ release tracking, performance monitoring を提供する。
 
 | Setting | Detail |
 |---------|--------|
-| DSN | Environment variable で inject |
+| DSN | Injected through an environment variable |
 | Environment | `APP_ENV` (dev/prd) |
 | Release | Git commit SHA or version tag |
 | Sample Rate | Configurable per environment |
@@ -27,14 +27,14 @@ release tracking, performance monitoring を提供する。
 
 **Service**: [Google Cloud Logging](https://cloud.google.com/logging)
 
-Cloud Run の stdout/stderr は自動的に Cloud Logging に集約される。
+Cloud Run stdout/stderr is collected into Cloud Logging automatically.
 
 ### 6.2.1 Application-Level Logging
 
 **Library**: [structlog](https://www.structlog.org/)
 
-Structured logging library。JSON format の structured log を出力し、
-Cloud Logging の severity, trace, labels による filtering / alerting と統合する。
+A structured logging library. It emits structured logs in JSON format and integrates with
+Cloud Logging filtering / alerting based on severity, trace, and labels.
 
 | Property | Detail |
 |----------|--------|
@@ -49,14 +49,14 @@ Cloud Logging の severity, trace, labels による filtering / alerting と統�
 | Collection | Automatic for Cloud Run (stdout/stderr) |
 | Retention | Default 30 days (configurable) |
 | Integration | Cloud Monitoring alerts via log-based metrics |
-| Export | BigQuery / Cloud Storage / Pub/Sub へのログ sink |
+| Export | Log sink to BigQuery / Cloud Storage / Pub/Sub |
 
 ## 6.3 Metrics & Alerting: Cloud Monitoring
 
 **Service**: [Google Cloud Monitoring](https://cloud.google.com/monitoring)
 
-Cloud Run の built-in metrics を自動収集する。
-Custom metrics, uptime checks, alerting policy を設定可能。
+It collects Cloud Run built-in metrics automatically.
+Custom metrics, uptime checks, and alerting policies can be configured.
 
 ### 6.3.1 Built-in Cloud Run Metrics
 
@@ -69,10 +69,10 @@ Custom metrics, uptime checks, alerting policy を設定可能。
 | Memory Utilization | Per-instance memory usage |
 | Container Startup Latency | Cold start time |
 
-### 6.3.2 SLI / SLO 定義
+### 6.3.2 SLI / SLO Definitions
 
-**SLI (Service Level Indicator)**: サービス品質を測定する指標。
-**SLO (Service Level Objective)**: SLI に対する目標値。
+**SLI (Service Level Indicator)**: the metric that measures service quality.
+**SLO (Service Level Objective)**: the target value for an SLI.
 
 | SLI | Measurement | SLO | Window |
 |-----|-------------|-----|--------|
@@ -97,16 +97,16 @@ Custom metrics, uptime checks, alerting policy を設定可能。
 | Channel | Use Case |
 |---------|----------|
 | Slack (webhook) | Primary: all alerts |
-| Email | Secondary: Critical alerts のみ |
+| Email | Secondary: critical alerts only |
 
 ### 6.3.5 Incident Escalation
 
-障害検知後の初動は [infrastructure-8-incident.md Section 8.5](infrastructure-8-incident.md#85-incident-response-flow-推奨) を参照。
+For the first response after an incident is detected, see [infrastructure-8-incident.md Section 8.5](infrastructure-8-incident.md#85-incident-response-flow-recommended).
 
 ## 6.4 LLM Observability (Optional)
 
-LLM-based application では、prompt / completion / evaluation の
-tracking に specialized platform を導入する。
+For LLM-based applications, introduce a specialized platform for tracking
+prompts, completions, and evaluations.
 
 | Tool | Purpose |
 |------|---------|
@@ -117,8 +117,8 @@ tracking に specialized platform を導入する。
 
 **Tool**: [Semgrep](https://semgrep.dev/)
 
-Static analysis tool for security vulnerability detection。
-Custom rule を定義して project-specific な security pattern を enforce できる。
+A static analysis tool for security vulnerability detection.
+Custom rules can be defined to enforce project-specific security patterns.
 
 | Item | Detail |
 |------|--------|
@@ -128,5 +128,5 @@ Custom rule を定義して project-specific な security pattern を enforce �
 
 ## 6.6 Analytics: Google Analytics (Optional)
 
-Firebase Integration 経由で Web analytics を収集可能。
-`NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` で measurement stream を指定する。
+Web analytics can be collected through the Firebase integration.
+The measurement stream is specified with `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`.

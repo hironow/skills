@@ -1,6 +1,6 @@
 # Project Scaffold Guide
 
-新規 GCP アプリケーションプロジェクトの初期構築手順。
+Initial setup procedure for a new GCP application project.
 
 ## 1. Monorepo Structure
 

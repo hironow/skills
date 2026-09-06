@@ -1,6 +1,6 @@
 # Infrastructure Selection
 
-本ドキュメント群は、サービスリリースに必要なインフラストラクチャの選定結果を記録する。
+This set of documents records the infrastructure selection results required to release the service.
 
 **Cloud Provider**: Google Cloud Platform (GCP)
 **Primary Region**: `asia-northeast1` (Tokyo)
@@ -75,13 +75,13 @@ Legend:
 
 ## Region Strategy
 
-全リソースを `asia-northeast1` (Tokyo) に統一する。
+Standardize all resources on `asia-northeast1` (Tokyo).
 
 | Resource | Region | Rationale |
 |----------|--------|-----------|
 | Cloud Run | `asia-northeast1` | Primary compute region |
 | Cloud Functions | `asia-northeast1` | Co-located with compute |
-| Firestore | `asia-northeast1` | Data locality (日本リージョン固定方針) |
+| Firestore | `asia-northeast1` | Data locality (policy of fixing to the Japan region) |
 | Cloud Spanner [Extension] | `asia-northeast1` | Co-located with compute |
 | Artifact Registry (Docker) | `asia-northeast1` | Co-located with compute |
 | Artifact Registry (Python) | `asia-northeast1` | Private package registry |
@@ -108,16 +108,16 @@ Legend:
 | Data (Document) | Cloud Firestore | [2.1](infrastructure-2-data.md#21-document-database-cloud-firestore) |
 | Data (Object) | Cloud Storage | [2.6](infrastructure-2-data.md#26-object-storage-cloud-storage-via-firebase-storage) |
 | Async | Cloud Tasks | [3.1](infrastructure-3-async.md#31-task-queue-cloud-tasks) |
-| Async | Cloud Pub/Sub | [3.2](infrastructure-3-async.md#32-message-bus-cloud-pubsub) |
-| Async | Eventarc | [3.3](infrastructure-3-async.md#33-event-routing-eventarc) |
+| Async | Cloud Pub/Sub | [3.2](infrastructure-3-async.md#32-message-broker-cloud-pubsub) |
+| Async | Eventarc | [3.3](infrastructure-3-async.md#33-event-router-eventarc) |
 | Async | Cloud Scheduler | [3.4](infrastructure-3-async.md#34-scheduled-execution-cloud-scheduler) |
-| CI/CD | GitHub Actions | [4.1](infrastructure-4-cicd.md#41-ci-github-actions) |
-| CI/CD | Cloud Build | [4.2](infrastructure-4-cicd.md#42-supplementary-build-cloud-build) |
-| Registry | Artifact Registry | [4.3](infrastructure-4-cicd.md#43-artifact-registry) |
+| CI/CD | GitHub Actions | [4.1](infrastructure-4-cicd.md#41-cicd-platform-github-actions) |
+| CI/CD | Cloud Build | [4.2](infrastructure-4-cicd.md#42-container-build-cloud-build) |
+| Registry | Artifact Registry | [4.3](infrastructure-4-cicd.md#43-container--package-registry-artifact-registry) |
 | Auth | Firebase Authentication | [5.1](infrastructure-5-auth.md#51-user-authentication-firebase-authentication) |
 | Secrets | Secret Manager | [5.3](infrastructure-5-auth.md#53-secret-management-google-cloud-secret-manager) |
 | Network | Cloud Run ingress / IAM | [9.1](infrastructure-9-network.md#91-public-ingress-cloud-run-default-domain), [9.2](infrastructure-9-network.md#92-ingress-control) |
-| Monitoring | Cloud Logging / Monitoring | [6.2](infrastructure-6-observability.md#62-structured-logging-structlog--cloud-logging), [6.3](infrastructure-6-observability.md#63-metrics--alerting-cloud-monitoring) |
+| Monitoring | Cloud Logging / Monitoring | [6.2](infrastructure-6-observability.md#62-logging-cloud-logging--structlog), [6.3](infrastructure-6-observability.md#63-metrics--alerting-cloud-monitoring) |
 | Monitoring | Sentry | [6.1](infrastructure-6-observability.md#61-error-tracking-sentry) |
 
 ### Extension (Optional)

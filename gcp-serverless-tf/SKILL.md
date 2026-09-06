@@ -15,54 +15,45 @@ description: >
 
 # GCP Serverless Terraform/OpenTofu Skill
 
-GCP サーバーレスアーキテクチャの Terraform/OpenTofu 構成を生成・保守する。
-`gcp-serverless-appdev` スキルで定義されたアーキテクチャ（Cloud Run, Firestore,
-Cloud Tasks, Pub/Sub 等）に対応する `.tf` ファイルを生成し、
-アプリケーションコードの変更に追従して `.tf` を更新する。
+Generate and maintain the Terraform/OpenTofu configuration for a GCP serverless architecture. Produce the `.tf` files that correspond to the architecture defined by the `gcp-serverless-appdev` skill (Cloud Run, Firestore, Cloud Tasks, Pub/Sub, and so on), and keep the `.tf` files in step with changes to the application code.
 
 ## Two Modes
 
-### Mode 1: Init (初期生成)
+### Mode 1: Init (initial generation)
 
-プロジェクトに `.tf` ファイルがまだ存在しない場合。
-ユーザーのアプリケーションコード（Dockerfile, main.py, docker-compose.yaml 等）を
-読み取り、使用している GCP サービスを特定して、対応する `.tf` ファイル群を生成する。
+The project has no `.tf` files yet. Read the user's application code (Dockerfile, main.py, docker-compose.yaml, …), identify the GCP services in use, and generate the corresponding set of `.tf` files.
 
-### Mode 2: Diff (差分更新)
+### Mode 2: Diff (incremental update)
 
-既存の `.tf` ファイルがある場合。
-アプリケーションコードの変更（git diff や新規ファイル）を読み取り、
-インフラに影響する変更を特定して `.tf` の差分を提案・適用する。
+`.tf` files already exist. Read the application code changes (git diff or new files), identify the ones that affect infrastructure, and propose and apply the `.tf` diff.
 
 ## Workflow
 
-### Step 1: ユーザーの意図を確認
+### Step 1: Confirm the user's intent
 
-以下を確認する（不明なら質問する）:
+Confirm the following (ask if unclear):
 
-1. **Terraform or OpenTofu?** — どちらを使うか。構文はほぼ同一だが、
-   `required_providers` の registry URL と state encryption が異なる
-2. **State backend** — GCS バケット or ローカル or Terraform Cloud
-3. **環境構成** — ディレクトリ分離（推奨）or workspaces
+1. **Terraform or OpenTofu?** The syntax is almost identical, but the `required_providers` registry URL and state encryption differ.
+2. **State backend** — a GCS bucket, local, or Terraform Cloud.
+3. **Environment layout** — separate directories (recommended) or workspaces.
 
-### Step 2: アプリケーション構成を読み取る
+### Step 2: Read the application configuration
 
-以下のファイルを Read してインフラ要件を抽出する:
+Read these files to extract the infrastructure requirements:
 
-- `docker-compose.yaml` — 使用しているエミュレータからサービスを推定
-- `Dockerfile` — Cloud Run のコンテナ設定
-- `pyproject.toml` / `package.json` — GCP SDK 依存から使用サービスを特定
-- `main.py` / アプリケーションコード — エンドポイント、Cloud Tasks/Pub/Sub 呼び出し
-- `firestore.rules` — Firestore の存在確認
-- `firebase.json` — Firebase プロジェクト設定
-- `.github/workflows/` — CI/CD 設定
+- `docker-compose.yaml` — infer services from the emulators in use
+- `Dockerfile` — the Cloud Run container configuration
+- `pyproject.toml` / `package.json` — identify services from GCP SDK dependencies
+- `main.py` / application code — endpoints, Cloud Tasks / Pub/Sub calls
+- `firestore.rules` — whether Firestore is present
+- `firebase.json` — Firebase project configuration
+- `.github/workflows/` — CI/CD configuration
 
-### Step 3: リソースマッピング
+### Step 3: Resource mapping
 
-検出したサービスを Terraform リソースにマッピングする。
-詳細は `references/resource-map.md` を Read して確認。
+Map the detected services to Terraform resources. Read `references/resource-map.md` for the details.
 
-主要なマッピング:
+Main mappings:
 
 | GCP Service | Terraform Resource | Module |
 |---|---|---|
@@ -80,9 +71,9 @@ Cloud Tasks, Pub/Sub 等）に対応する `.tf` ファイルを生成し、
 | Service Account | `google_service_account` | `modules/iam/` |
 | IAM Binding | `google_project_iam_member` | `modules/iam/` |
 
-### Step 4: ディレクトリ構造を生成
+### Step 4: Generate the directory structure
 
-Google Cloud 公式ベストプラクティスに従った構造:
+A structure that follows Google Cloud's published best practices:
 
 ```
 terraform/                    # or infra/
@@ -113,91 +104,83 @@ terraform/                    # or infra/
 │       └── outputs.tf
 ├── environments/
 │   ├── dev/
-│   │   ├── main.tf           # module 呼び出し + dev 固有値
+│   │   ├── main.tf           # module calls + dev-specific values
 │   │   ├── variables.tf
 │   │   ├── outputs.tf
-│   │   ├── backend.tf        # state backend 設定
-│   │   └── terraform.tfvars  # dev 環境変数
+│   │   ├── backend.tf        # state backend configuration
+│   │   └── terraform.tfvars  # dev environment variables
 │   ├── staging/
 │   │   └── ...
 │   └── prod/
 │       └── ...
-└── versions.tf               # provider version constraints (共通)
+└── versions.tf               # provider version constraints (shared)
 ```
 
-### Step 5: MCP で最新仕様を確認
+### Step 5: Check the latest specification through MCP
 
-`.tf` ファイルを書く前に、MCP で最新のリソース仕様を確認する。
-GCP のリソース属性（特に Cloud Run v2, Firestore のパラメータ）は
-頻繁に変わるため、一般知識だけでは不正確になりやすい。
+Before writing `.tf` files, confirm the latest resource specification through MCP. GCP resource attributes (especially the Cloud Run v2 and Firestore parameters) change often, so general knowledge alone is easily inaccurate.
 
-**利用可能な MCP:**
+**Available MCP servers:**
 
-1. **google-dev-knowledge** — GCP Terraform provider の最新ドキュメント
+1. **google-dev-knowledge** — the latest documentation for the GCP Terraform provider
    ```
    mcp__google-dev-knowledge__search_documents
    → "terraform google_cloud_run_v2_service configuration"
    → "terraform google_firestore_database resource"
    ```
 
-2. **context7** — Terraform/OpenTofu の最新構文。`resolve-library-id` で "hashicorp/terraform" / "opentofu" を解決し、`query-docs` で "module structure best practices" / "provider version constraints" を引く。
+2. **context7** — the latest Terraform/OpenTofu syntax. Resolve "hashicorp/terraform" / "opentofu" with `resolve-library-id`, then look up "module structure best practices" / "provider version constraints" with `query-docs`.
 
-**MCP 利用フロー:**
-1. 生成するリソースごとに `google-dev-knowledge` で最新の属性を検索
-2. 記法に迷ったら `context7` で Terraform/OpenTofu の最新構文を確認
-3. バンドルの `references/resource-map.md` と MCP の情報が異なる場合は MCP を優先
+**How to use them:**
+1. For each resource you generate, search `google-dev-knowledge` for the latest attributes.
+2. When unsure about syntax, check the latest Terraform/OpenTofu syntax with `context7`.
+3. If the bundled `references/resource-map.md` and the MCP results disagree, the MCP results win.
 
-**MCP が利用できない場合:**
-バンドルの references のみで対応するが、回答の末尾に
-`references/mcp-setup.md` のセットアップ案内を提示する。
+**When MCP is unavailable:**
+Work from the bundled references only, and append the setup notice from `references/mcp-setup.md` to the end of the answer.
 
-### Step 6: .tf ファイルを生成
+### Step 6: Generate the .tf files
 
-`references/resource-map.md` を Read してリソース定義のテンプレートを確認し、
-MCP で最新仕様を裏付けた上で `.tf` ファイルを生成する。
+Read `references/resource-map.md` for the resource definition templates, confirm the latest specification through MCP, then generate the `.tf` files.
 
-**生成時の原則:**
+**Principles when generating:**
 
-1. **Terraform と OpenTofu の互換性**: 基本的に HCL は共通。
-   差異がある場合はコメントで明記する
-2. **Region 固定**: `asia-northeast1` をデフォルトにする
-   （`gcp-serverless-appdev` の Core Principle に準拠）
-3. **変数化**: ハードコードしない。project_id, region, environment は変数にする
-4. **API 有効化**: 各モジュールで `google_project_service` を含め、
-   `enable_apis` 変数で制御可能にする
-5. **最小権限 IAM**: サービスアカウントには必要最小限のロールのみ付与
-6. **命名規則**: リソース名はアンダースコア区切り、
-   唯一のリソースは `main` と命名
+1. **Terraform/OpenTofu compatibility**: the HCL is shared in principle. Where they differ, say so in a comment.
+2. **Fixed region**: default to `asia-northeast1` (following the Core Principle of `gcp-serverless-appdev`).
+3. **Variables**: no hard-coding. `project_id`, `region`, and `environment` are variables.
+4. **API enablement**: include `google_project_service` in each module, controlled by an `enable_apis` variable.
+5. **Least-privilege IAM**: grant service accounts only the roles they need.
+6. **Naming**: resource names use underscores; a resource that is the only one of its kind is named `main`.
 
-## Diff Mode の詳細
+## Diff mode in detail
 
-既存の `.tf` がある場合の更新フロー:
+The update flow when `.tf` files already exist:
 
-1. **変更を検出**: `git diff` またはユーザーが指定したファイルの変更を読む
-2. **インフラ影響を判定**: 以下の変更パターンを検出する
-   - 新しい GCP SDK import → 新リソースが必要
-   - 新しいエンドポイント → Cloud Run の環境変数やサービス設定
-   - 新しい Cloud Tasks / Pub/Sub 呼び出し → キュー/トピック追加
-   - Dockerfile の変更 → Artifact Registry やビルド設定
-   - 環境変数の追加 → Secret Manager or Cloud Run env vars
-3. **差分 .tf を提案**: 追加・変更が必要な `.tf` ファイルの差分を提示
-4. **`terraform plan` 推奨**: 変更適用前に `terraform plan` で確認するよう促す
+1. **Detect changes**: read `git diff` or the files the user points at.
+2. **Judge the infrastructure impact**: look for these change patterns
+   - a new GCP SDK import → a new resource is needed
+   - a new endpoint → Cloud Run environment variables or service settings
+   - a new Cloud Tasks / Pub/Sub call → add a queue or topic
+   - a Dockerfile change → Artifact Registry or build settings
+   - a new environment variable → Secret Manager or Cloud Run env vars
+3. **Propose the .tf diff**: present the diff for the `.tf` files that need adding or changing.
+4. **Recommend `terraform plan`**: prompt the user to confirm with `terraform plan` before applying.
 
 ## References
 
 | Situation | Read this |
 |---|---|
-| リソース定義テンプレート | `references/resource-map.md` |
-| MCP セットアップ案内 | `references/mcp-setup.md` |
+| Resource definition templates | `references/resource-map.md` |
+| MCP setup notice | `references/mcp-setup.md` |
 
 ## Terraform vs OpenTofu
 
-| 項目 | Terraform | OpenTofu |
+| Item | Terraform | OpenTofu |
 |---|---|---|
 | Provider registry | `registry.terraform.io` | `registry.opentofu.org` |
-| State encryption | Terraform Cloud のみ | ネイティブ対応 |
+| State encryption | Terraform Cloud only | native |
 | License | BSL 1.1 | MPL 2.0 (OSS) |
-| HCL 互換性 | 基準 | ほぼ完全互換 |
-| `required_providers` | `source = "hashicorp/google"` | 同左 (fallback あり) |
+| HCL compatibility | the baseline | almost fully compatible |
+| `required_providers` | `source = "hashicorp/google"` | same (with a fallback) |
 
-実用上、`.tf` ファイルの内容はほぼ同一。`versions.tf` の書き方だけ注意する。
+In practice the `.tf` file contents are almost identical; only the wording of `versions.tf` needs care.

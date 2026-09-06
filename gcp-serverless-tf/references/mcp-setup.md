@@ -1,6 +1,6 @@
 # MCP Setup Guide for Terraform/OpenTofu
 
-MCP が利用できない場合、回答の末尾に以下の案内を提示する。
+When MCP is unavailable, append the notice below to the end of the answer. The notices are shown to the user in Japanese; keep them as they are.
 
 ## google-dev-knowledge MCP (GCP Terraform Provider)
 
@@ -29,8 +29,7 @@ claude mcp add google-dev-knowledge -s user -t http \
 
 ## context7 MCP (Terraform / OpenTofu docs)
 
-context7 MCP を設定すると、Terraform と OpenTofu の最新ドキュメントを
-直接参照して正確な HCL 構文やプロバイダ設定を取得できます。
+With the context7 MCP configured, the agent can consult the latest Terraform and OpenTofu documentation directly for accurate HCL syntax and provider configuration.
 
 ```
 # Claude Code に context7 MCP プラグインを追加

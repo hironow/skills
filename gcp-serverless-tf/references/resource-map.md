@@ -1,7 +1,7 @@
 # GCP Serverless Terraform Resource Map
 
-各 GCP サーバーレスサービスに対応する Terraform リソース定義のテンプレート。
-MCP で最新仕様を確認した上で、以下をベースに `.tf` を生成する。
+Terraform resource definition templates for each GCP serverless service.
+Confirm the latest specification through MCP, then generate the `.tf` files from these as the base.
 
 ## Table of Contents
 
@@ -652,16 +652,16 @@ terraform {
 
 ## Diff Detection Patterns
 
-アプリケーションコードの変更から Terraform への影響を検出するパターン:
+Patterns for detecting the Terraform impact of application code changes:
 
 | Code Change | Terraform Impact |
 |---|---|
-| 新しい `google-cloud-tasks` import | `google_cloud_tasks_queue` 追加 |
-| 新しい `google-cloud-pubsub` import | `google_pubsub_topic` + subscription 追加 |
-| 新 endpoint / router 追加 | Cloud Run env vars 更新の可能性 |
-| 新しい `firebase-admin` 利用 | Firestore / Auth 関連リソース確認 |
-| Dockerfile ベースイメージ変更 | Artifact Registry 設定確認 |
-| 環境変数追加 (.env) | Secret Manager or Cloud Run env 追加 |
-| `google-cloud-scheduler` import | `google_cloud_scheduler_job` 追加 |
-| Firestore security rules 変更 | Firestore index 更新の可能性 |
-| 新しいサービス（microservice）追加 | 新 Cloud Run service + SA + IAM |
+| New `google-cloud-tasks` import | Add `google_cloud_tasks_queue` |
+| New `google-cloud-pubsub` import | Add `google_pubsub_topic` + subscription |
+| New endpoint / router added | Cloud Run env vars may need updating |
+| New use of `firebase-admin` | Check Firestore / Auth related resources |
+| Dockerfile base image changed | Check the Artifact Registry configuration |
+| Environment variable added (.env) | Add to Secret Manager or Cloud Run env |
+| `google-cloud-scheduler` import | Add `google_cloud_scheduler_job` |
+| Firestore security rules changed | Firestore indexes may need updating |
+| New service (microservice) added | New Cloud Run service + SA + IAM |

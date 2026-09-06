@@ -1,7 +1,7 @@
 # Service Decision Trees
 
-技術選択で迷った時に参照するフローチャート。
-詳細な仕様は対応する `infrastructure-*.md` を Read して確認する。
+Flowcharts to consult when a technology choice is unclear.
+For detailed specifications, read the matching `infrastructure-*.md`.
 
 ## 1. Data Store Selection
 
@@ -70,10 +70,10 @@ Processing pattern?
 ```
 
 Key rules:
-- Cloud Tasks: "確実に 1 回は成功させたい" 1:1 処理
-- Pub/Sub: "複数の consumer に知らせたい" fan-out
-- Eventarc: "GCP サービスの変更に反応したい"
-- 全て at-least-once なので handler は冪等に実装
+- Cloud Tasks: 1:1 processing where you "want it to succeed at least once for sure"
+- Pub/Sub: fan-out where you "want to notify multiple consumers"
+- Eventarc: when you "want to react to a change in a GCP service"
+- Everything is at-least-once, so implement handlers idempotently
 
 ## 3. Compute Selection
 
@@ -92,7 +92,7 @@ Workload type?
 |     |     +--> Cloud Run Jobs
 |     |
 |     +--> Duration 1-168 hours?
-|           +--> Cloud Run Jobs (>24h は Preview)
+|           +--> Cloud Run Jobs (>24h is Preview)
 |
 +--> Pull-based continuous consumer?
 |     +--> Cloud Run Worker Pools
@@ -171,7 +171,7 @@ What kind of secret/config?
 
 ## 7. Database Query Capability Check
 
-Firestore で実現可能かの確認フロー:
+Flow for checking whether it can be done with Firestore:
 
 ```
 Query requirement?

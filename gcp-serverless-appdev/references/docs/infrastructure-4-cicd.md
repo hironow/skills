@@ -4,9 +4,9 @@
 
 **Service**: [GitHub Actions](https://docs.github.com/en/actions)
 
-GitHub-native の CI/CD platform。Repository event (push, PR) を trigger に
-workflow を実行する。GCP への認証は Workload Identity Federation (OIDC) を使用し、
-long-lived service account key を排除する。
+A GitHub-native CI/CD platform. It runs workflows triggered by repository events (push, PR).
+Authentication to GCP uses Workload Identity Federation (OIDC),
+which eliminates long-lived service account keys.
 
 ### 4.1.1 Pipeline Structure
 
@@ -29,7 +29,7 @@ Push / PR
 
 ### 4.1.3 Concurrency Control
 
-同一 branch に対する workflow は最新のみ実行し、in-progress の previous run は cancel する。
+For a given branch, only the latest workflow runs; a previous run still in progress is cancelled.
 
 ```yaml
 concurrency:
@@ -39,19 +39,19 @@ concurrency:
 
 ### 4.1.4 Path Filtering
 
-Backend / Frontend の変更を path filter で分離し、
-無関係なコンポーネントの build/test をスキップする。
+Backend and frontend changes are separated with path filters,
+so builds and tests for unrelated components are skipped.
 
 ## 4.2 Container Build: Cloud Build
 
 **Service**: [Google Cloud Build](https://cloud.google.com/build)
 
-GCP-managed の CI/CD service。Dockerfile からの container build に加え、
-Secret Manager との native integration により、build 時の secret injection が容易。
+A GCP-managed CI/CD service. On top of building containers from a Dockerfile,
+its native integration with Secret Manager makes injecting secrets at build time easy.
 
-GitHub Actions との使い分け: 基本は GitHub Actions で CI/CD を実行し、
-Cloud Build は GCP Secret Manager 連携が必要な場合や
-Artifact Registry への直接 push が必要な場合に補完的に使用する。
+Choosing between this and GitHub Actions: run CI/CD on GitHub Actions by default, and use
+Cloud Build as a complement when integration with GCP Secret Manager is needed,
+or when a direct push to Artifact Registry is needed.
 
 ### 4.2.1 Configuration
 
@@ -63,7 +63,7 @@ Artifact Registry への直接 push が必要な場合に補完的に使用す�
 
 ## 4.3 Container / Package Registry: Artifact Registry
 
-[Section 1.4 (infrastructure-1-compute.md)](infrastructure-1-compute.md#14-container--package-registry-artifact-registry) を参照。
+See [Section 1.4 (infrastructure-1-compute.md)](infrastructure-1-compute.md#14-container-registry-artifact-registry).
 
 ### 4.3.1 Docker Image
 
@@ -92,8 +92,8 @@ Artifact Registry への直接 push が必要な場合に補完的に使用す�
 
 **Service**: [Renovate](https://docs.renovatebot.com/)
 
-Automated dependency update bot。PR を自動生成し、dependency の minor/patch update を
-group 化して提案する。
+An automated dependency update bot. It opens PRs automatically and proposes minor/patch
+dependency updates in groups.
 
 ### 4.5.1 Configuration
 
@@ -101,15 +101,15 @@ group 化して提案する。
 |---------|-------|
 | Schedule | Weekends only |
 | Timezone | `Asia/Tokyo` |
-| Stability Days | 7 (publish 後 7 日経過してから提案) |
-| Grouping | Minor と patch を別グループ |
+| Stability Days | 7 (proposed only after 7 days have passed since publication) |
+| Grouping | Minor and patch in separate groups |
 
 ## 4.6 Environment Variable Management: dotenvx
 
 **Tool**: [dotenvx](https://dotenvx.com/)
 
-`.env` file の暗号化管理ツール。Environment ごとの `.env.{env}` file を
-public key で暗号化して repository に commit し、deploy 時に private key で復号する。
+A tool for managing encrypted `.env` files. The per-environment `.env.{env}` file is encrypted
+with a public key and committed to the repository, then decrypted with the private key at deploy time.
 
 ### 4.6.1 File Structure
 
@@ -146,4 +146,4 @@ public key で暗号化して repository に commit し、deploy 時に private 
 
 ### 4.7.3 Code Generation Validation
 
-OpenAPI spec や Pydantic model からの自動生成コードが最新であることを CI で検証する。
+CI verifies that code generated from the OpenAPI spec and from Pydantic models is up to date.

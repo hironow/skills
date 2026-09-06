@@ -2,13 +2,13 @@
 
 ## 7.1 Local Emulator Suite
 
-Local development では、GCP service を emulator で再現し、
-cloud 環境への依存なしに開発・テストを行う。
+In local development, GCP services are reproduced with emulators so that
+development and testing run without depending on the cloud environment.
 
 ### 7.1.1 Firebase Emulator Suite
 
-Firebase CLI が提供する統合 emulator。Single process で複数サービスを起動し、
-Web UI (port 4000) で状態を確認できる。
+An integrated emulator provided by the Firebase CLI. It starts several services in a
+single process, and the state can be inspected in the Web UI (port 4000).
 
 | Service | Port | Emulated Feature |
 |---------|------|------------------|
@@ -22,7 +22,7 @@ Web UI (port 4000) で状態を確認できる。
 
 ### 7.1.2 Docker Compose Stack
 
-Firebase Emulator 以外のデータストアは Docker Compose で起動する。
+Data stores other than the Firebase Emulator are started with Docker Compose.
 
 | Service | Image | Ports |
 |---------|-------|-------|
@@ -35,43 +35,45 @@ Firebase Emulator 以外のデータストアは Docker Compose で起動する�
 
 ### 7.1.3 Data Persistence
 
-Emulator data は volume mount で永続化し、再起動後も保持する。
-Firebase Emulator は `--export-on-exit` / `--import` flag で
-data directory の export/import を行う。
+Emulator data is persisted through a volume mount and retained across restarts.
+The Firebase Emulator exports and imports its data directory with the
+`--export-on-exit` / `--import` flags.
 
 ## 7.2 Task Runner
 
-開発コマンドを task runner で統一し、個人差を排除する。
+Development commands are unified in a task runner to remove per-person differences.
 
 ### 7.2.1 Primary: justfile
 
 | Command | Purpose |
 |---------|---------|
-| `just dev` | Backend dev server 起動 (hot-reload) |
-| `just test` | Unit test 実行 |
-| `just test-e2e` | E2E test 実行 |
-| `just lint` | Linter 実行 (ruff check + mypy) |
-| `just fmt` | Formatter 実行 (ruff format) |
+| `just dev` | Start the backend dev server (hot-reload) |
+| `just test` | Run unit tests |
+| `just test-e2e` | Run E2E tests |
+| `just lint` | Run the linter (ruff check + mypy) |
+| `just fmt` | Run the formatter (ruff format) |
 | `just build` | Docker image build |
-| `just push` | Artifact Registry へ push |
-| `just deploy` | Cloud Run へ deploy |
+| `just push` | Push to Artifact Registry |
+| `just deploy` | Deploy to Cloud Run |
 
 ### 7.2.2 Supplementary: mise.toml
 
-Tool version management + task definition。
-環境変数 (`GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` 等) を一元管理し、
-task 内で参照する。
+Tool version management plus task definitions.
+Environment variables (`GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, and so on)
+are managed in one place and referenced from tasks.
 
 ## 7.3 Code Generation Pipeline
 
-API client と型定義を source of truth から自動生成し、手動同期のズレを防ぐ。
+API clients and type definitions are generated automatically from the source of
+truth, which prevents drift caused by manual synchronization.
 
 | Source | Target | Tool |
 |--------|--------|------|
 | FastAPI (Python) -> OpenAPI spec | Go / Swift / Dart client | OpenAPI Generator (Docker) |
 | Pydantic model (Python) | TypeScript type definitions | pydantic-to-typescript |
 
-CI で生成結果の差分を検証し、未反映の変更を検出する。
+CI verifies the diff of the generated output and detects changes that have not
+been applied.
 
 ## 7.4 Deploy Procedure
 
@@ -79,7 +81,7 @@ CI で生成結果の差分を検証し、未反映の変更を検出する。
 
 ```
 1. Docker image build (multi-stage)
-2. Artifact Registry へ push
+2. Push to Artifact Registry
 3. gcloud run deploy --image={image}:{tag} \
      --region={region} \
      --memory={memory} \
@@ -122,8 +124,8 @@ gcloud functions deploy {function_name} \
 
 ## 7.5 Health Check
 
-Cloud Run service の liveness を確認する endpoint。
-Load balancer と Cloud Scheduler からの定期確認にも使用する。
+An endpoint that checks the liveness of a Cloud Run service.
+It is also used for periodic checks from the load balancer and Cloud Scheduler.
 
 | Item | Value |
 |------|-------|
@@ -135,7 +137,7 @@ Load balancer と Cloud Scheduler からの定期確認にも使用する。
 
 ### 7.6.1 Cloud Run Auto-Scaling
 
-Cloud Run は request 数に応じて instance を自動 scale する。
+Cloud Run scales instances automatically according to the number of requests.
 
 ```
 0 requests --> 0 instances (scale-to-zero)
@@ -147,7 +149,7 @@ Cloud Run は request 数に応じて instance を自動 scale する。
   +--> Requests drop --> Scale in (idle instances removed)
 ```
 
-**Cold Start 対策**:
-- `--min-instances=1` で warm instance を常駐させる (production)
-- Container image size を最小化 (multi-stage build)
-- Application の startup time を短縮
+**Cold start countermeasures**:
+- Keep a warm instance resident with `--min-instances=1` (production)
+- Minimize the container image size (multi-stage build)
+- Shorten the application startup time

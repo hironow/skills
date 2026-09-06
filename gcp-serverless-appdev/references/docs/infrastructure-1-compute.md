@@ -4,9 +4,9 @@
 
 **Service**: [Google Cloud Run](https://cloud.google.com/run)
 
-Fully-managed serverless container platform。HTTP request-driven auto-scaling (including scale-to-zero) を提供する。
-VM / Kubernetes cluster の管理は不要。OCI-compatible container image を deploy するだけで、
-TLS termination, load balancing, revision management を platform 側が担う。
+A fully-managed serverless container platform. It provides HTTP request-driven auto-scaling (including scale-to-zero).
+There is no need to manage VMs or Kubernetes clusters. You only deploy an OCI-compatible container image, and
+the platform handles TLS termination, load balancing, and revision management.
 
 ### 1.1.1 Frontend Service
 
@@ -37,12 +37,12 @@ TLS termination, load balancing, revision management を platform 側が担う�
 
 **Service**: [Google Cloud Functions](https://cloud.google.com/functions)
 
-Single-purpose な event-driven function を deploy する serverless platform。
-Cloud Run と異なり、HTTP request 以外に Firebase Auth event, Firestore trigger,
-Pub/Sub message 等の GCP event を直接 trigger として受け取れる。
+A serverless platform for deploying single-purpose, event-driven functions.
+Unlike Cloud Run, it can take GCP events such as Firebase Auth events, Firestore triggers,
+and Pub/Sub messages directly as triggers, not only HTTP requests.
 
-Cloud Run が「long-running な HTTP service」に適するのに対し、
-Cloud Functions は「特定 event に反応する短い処理」に適する。
+Where Cloud Run suits a "long-running HTTP service",
+Cloud Functions suits "short processing that reacts to a specific event".
 
 ### 1.2.1 Key Characteristics
 
@@ -56,18 +56,18 @@ Cloud Functions は「特定 event に反応する短い処理」に適する。
 
 ### 1.2.2 Usage Pattern
 
-Firebase Auth の `user.create` event に反応して初期データを作成する等、
-GCP service event に対する lightweight な処理に使用する。
+Use it for lightweight processing in response to GCP service events, such as
+creating initial data in reaction to the Firebase Auth `user.create` event.
 
 ## 1.3 Container Build Strategy
 
-Multi-stage Docker build を採用し、build dependencies を final image から排除する。
+Adopt a multi-stage Docker build and keep build dependencies out of the final image.
 
 ### 1.3.1 Backend Image
 
 ```
-Stage 1 (builder): uv による dependency resolution + install
-Stage 2 (runtime): Python slim image + application code のみ
+Stage 1 (builder): dependency resolution + install with uv
+Stage 2 (runtime): Python slim image + application code only
 ```
 
 - Base builder: `ghcr.io/astral-sh/uv:python3.13-bookworm-slim`
@@ -79,7 +79,7 @@ Stage 2 (runtime): Python slim image + application code のみ
 ```
 Stage 1 (deps): pnpm install (lockfile-based)
 Stage 2 (builder): next build (standalone output)
-Stage 3 (runner): Node.js alpine + standalone output のみ
+Stage 3 (runner): Node.js alpine + standalone output only
 ```
 
 - Base: `node:lts-alpine`
@@ -89,9 +89,9 @@ Stage 3 (runner): Node.js alpine + standalone output のみ
 
 **Service**: [Google Cloud Artifact Registry](https://cloud.google.com/artifact-registry)
 
-GCP-native な multi-format registry。Docker container image に加え、
-Python / npm / Maven 等の language package も hosting できる。
-IAM による fine-grained access control と vulnerability scanning を提供する。
+A GCP-native multi-format registry. In addition to Docker container images, it can also
+host language packages such as Python, npm, and Maven.
+It provides fine-grained access control through IAM, plus vulnerability scanning.
 
 ### 1.4.1 Docker Repository
 
@@ -108,9 +108,9 @@ IAM による fine-grained access control と vulnerability scanning を提供�
 | Location | `asia-northeast1` |
 | Format | Python |
 | Naming | `asia-northeast1-python.pkg.dev/{project}/{repository}/` |
-| Usage | 共有ライブラリを private package として publish し、他プロジェクトから `uv add` で利用 |
+| Usage | Publish shared libraries as private packages and consume them from other projects with `uv add` |
 
 ## 1.5 Local Development
 
-Firebase Emulator Suite + Docker Compose による local emulation。
-Cloud Run 自体は container を local で `docker run` することで再現する。
+Local emulation with the Firebase Emulator Suite + Docker Compose.
+Cloud Run itself is reproduced by running the container locally with `docker run`.

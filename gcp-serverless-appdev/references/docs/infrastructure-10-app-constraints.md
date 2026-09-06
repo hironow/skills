@@ -1,53 +1,55 @@
 # 10. Infrastructure Constraints on Application Development
 
-本ドキュメントは、インフラ選定 (Section 1〜9) がアプリケーション開発に課す制約を列挙する。
-Backend / Frontend / Mobile の各レイヤーで遵守すべき事項を定める。
+This document lists the constraints that the infrastructure choices (Sections 1
+through 9) impose on application development.
+It defines what must be observed at each of the Backend, Frontend, and Mobile layers.
 
-## 10.1 Cross-Cutting Constraints (全レイヤー共通)
+## 10.1 Cross-Cutting Constraints (Common to All Layers)
 
-### 10.1.1 Idempotency (冪等性)
+### 10.1.1 Idempotency
 
-Cloud Tasks, Pub/Sub, Eventarc は全て **at-least-once delivery** である。
-同一リクエストが複数回到達する可能性があるため、
-副作用を持つ処理は冪等に実装しなければならない。
+Cloud Tasks, Pub/Sub, and Eventarc all provide **at-least-once delivery**.
+The same request may arrive more than once, so any processing that has side
+effects must be implemented idempotently.
 
 | Pattern | Detail |
 |---------|--------|
-| Idempotency Key | Request に一意な ID を含め、処理済みなら skip |
-| Upsert | INSERT OR UPDATE で重複 write を吸収 |
-| Firestore Transaction | `runTransaction` 内で状態を確認してから write |
+| Idempotency Key | Include a unique ID in the request and skip it if already processed |
+| Upsert | Absorb duplicate writes with INSERT OR UPDATE |
+| Firestore Transaction | Check the state inside `runTransaction` before writing |
 
 ### 10.1.2 Stateless Execution
 
-Cloud Run instance は request 間で状態を保持しない前提で設計する。
+Design on the assumption that a Cloud Run instance keeps no state between requests.
 
 | Constraint | Rationale |
 |------------|-----------|
-| In-memory state は request 間で共有不可 | Scale-to-zero / scale-out で instance が入れ替わる |
-| File system への永続 write 不可 | Container file system は ephemeral |
-| Session state は外部ストアに保持 | Firestore / Cloud Storage を使用 |
+| In-memory state cannot be shared between requests | Instances are swapped out by scale-to-zero / scale-out |
+| No durable writes to the file system | The container file system is ephemeral |
+| Keep session state in an external store | Use Firestore / Cloud Storage |
 
 ### 10.1.3 Request Timeout
 
-Cloud Run の request timeout (default 300s) 内に response を返す必要がある。
-長時間処理は Cloud Tasks に enqueue して非同期化する。
+A response must be returned within the Cloud Run request timeout (default 300s).
+Long-running processing is enqueued to Cloud Tasks and handled asynchronously.
 
 ### 10.1.4 Cold Start Awareness
 
-Scale-to-zero 構成の場合、初回 request で cold start が発生する。
-Application の起動時間 (import, initialization) を最小化する設計が必要。
+With a scale-to-zero configuration, the first request incurs a cold start.
+The design must minimize application startup time (imports, initialization).
 
 | Mitigation | Detail |
 |------------|--------|
-| Lazy initialization | Heavy な resource (ML model, DB pool) は初回アクセス時に初期化 |
-| Image size 最小化 | Multi-stage build, 不要な依存の排除 |
-| Min instances = 1 (production) | Cold start 回避 (cost trade-off) |
+| Lazy initialization | Initialize heavy resources (ML model, DB pool) on first access |
+| Minimize image size | Multi-stage build, drop unnecessary dependencies |
+| Min instances = 1 (production) | Avoids cold start (cost trade-off) |
 
 ### 10.1.5 Environment Isolation
 
-dev / prd は独立した GCP project であり、Firestore / Storage / Auth のデータは完全分離。
-Application code は環境を `APP_ENV` 等の環境変数で判定し、
-環境固有の値はハードコードしない。
+dev and prd are independent GCP projects, and Firestore / Storage / Auth data is
+fully separated.
+Application code determines the environment from an environment variable such as
+`APP_ENV`, and never hardcodes environment-specific values.
 
 ## 10.2 Backend Constraints
 
@@ -60,64 +62,65 @@ Application code は環境を `APP_ENV` 等の環境変数で判定し、
 | Startup time | < 10s recommended | Cold start budget |
 | Memory limit | 1024 MiB | [Section 1.1.2](infrastructure-1-compute.md#112-backend-service) |
 | Concurrency | 80 requests/instance | [Section 1.1.2](infrastructure-1-compute.md#112-backend-service) |
-| Stateless | In-memory state 不可 | [Section 10.1.2](#1012-stateless-execution) |
+| Stateless | No in-memory state | [Section 10.1.2](#1012-stateless-execution) |
 
 ### 10.2.2 Authentication Handling
 
 | Caller | Verification Method |
 |--------|-------------------|
-| End-user (Frontend/Mobile) | `Authorization: Bearer {Firebase ID Token}` -> Firebase Admin SDK で verify |
-| GCP service (Tasks/Scheduler/Eventarc) | `Authorization: Bearer {OIDC Token}` -> IAM が自動検証 (`--no-allow-unauthenticated`) |
+| End-user (Frontend/Mobile) | `Authorization: Bearer {Firebase ID Token}` -> verify with the Firebase Admin SDK |
+| GCP service (Tasks/Scheduler/Eventarc) | `Authorization: Bearer {OIDC Token}` -> verified automatically by IAM (`--no-allow-unauthenticated`) |
 | Internal service (Backend -> Backend) | Service account OIDC token |
 
-Backend は caller 種別に応じて token type を判別する必要がある。
+The backend must determine the token type according to the kind of caller.
 
 ### 10.2.3 Firestore Data Model Constraints
 
-Firestore は内部的に Cloud Spanner をストレージ基盤として使用しており、
-全クエリで strong consistency を保証する。
-過去の「inequality filter は 1 field のみ」制限は撤廃済み。
+Firestore internally uses Cloud Spanner as its storage foundation and guarantees
+strong consistency for every query.
+The former restriction that an inequality filter could apply to only one field
+has been removed.
 
 | Constraint | Detail |
 |------------|--------|
-| Consistency | **Strong consistency (全クエリ)** |
+| Consistency | **Strong consistency (all queries)** |
 | Max document size | 1 MiB |
 | Max write rate (single document) | 1 write/sec |
 | Max transaction size | 500 documents |
-| Inequality / range filter | **複数フィールド対応** (最大 10 フィールド) |
-| Array membership | `array-contains` / `array-contains-any` は 1 query に 1 つ |
-| `in` | 最大 30 disjunction values |
-| `not-in` | 最大 **10** values |
+| Inequality / range filter | **Multiple fields supported** (up to 10 fields) |
+| Array membership | One `array-contains` / `array-contains-any` per query |
+| `in` | Up to 30 disjunction values |
+| `not-in` | Up to **10** values |
 | `OR` query | Supported |
-| Composite index (Standard) | Multi-field query には明示的な index 定義が必要 |
-| Pipeline operations (Enterprise) | Array unnest, aggregation, regex, chained stages が可能 |
-| Geo query | lat/lng 直接 range query (推奨) または Geohash。クライアント側での距離フィルタリングが必要 |
-| Vector search (KNN) | `find_nearest` API。最大 2048 次元、最大 1000 件。Vector index の作成が必要 |
+| Composite index (Standard) | A multi-field query needs an explicit index definition |
+| Pipeline operations (Enterprise) | Array unnest, aggregation, regex, and chained stages are available |
+| Geo query | Direct range query on lat/lng (recommended) or Geohash. Distance filtering must be done on the client side |
+| Vector search (KNN) | `find_nearest` API. Up to 2048 dimensions, up to 1000 results. A vector index must be created |
 
-> Firestore editions の詳細は [infrastructure-2-data.md Section 2.1.1](infrastructure-2-data.md#211-editions) を参照。
-> Geo query / Vector search の詳細は [infrastructure-2-data.md Section 2.1.3](infrastructure-2-data.md#213-query-capabilities) を参照。
+> For details of Firestore editions, see [infrastructure-2-data.md Section 2.1.1](infrastructure-2-data.md#211-editions).
+> For details of geo query and vector search, see [infrastructure-2-data.md Section 2.1.3](infrastructure-2-data.md#213-query-capabilities).
 
 ### 10.2.4 Cloud Tasks Callback Endpoint
 
-Cloud Tasks から呼ばれる endpoint は以下を満たす必要がある:
+An endpoint called by Cloud Tasks must satisfy the following:
 
 | Constraint | Detail |
 |------------|--------|
-| 成功: 2xx 返却 | 2xx 以外は retry される |
-| 冪等性 | At-least-once のため同一 task が複数回到達しうる |
-| Timeout | Cloud Tasks の dispatch deadline 内に完了 (default 10 min, max 30 min) |
-| Poison message 処理 | Permanent error は 2xx で返しつつ failure を記録 ([Section 3.1.3](infrastructure-3-async.md#313-task-lifecycle--terminal-failure-handling)) |
-| Authentication | OIDC token (service account) で認証 |
+| Success: return 2xx | Anything other than 2xx is retried |
+| Idempotency | Delivery is at-least-once, so the same task may arrive more than once |
+| Timeout | Complete within the Cloud Tasks dispatch deadline (default 10 min, max 30 min) |
+| Poison message handling | Return 2xx for a permanent error while recording the failure ([Section 3.1.3](infrastructure-3-async.md#313-task-lifecycle--terminal-failure-handling)) |
+| Authentication | Authenticate with an OIDC token (service account) |
 
 ### 10.2.5 Structured Logging
 
-Cloud Logging との統合のため、stdout に JSON structured log を出力する。
+For integration with Cloud Logging, emit JSON structured logs to stdout.
 
 | Field | Purpose |
 |-------|---------|
-| `severity` | Cloud Logging の severity mapping (INFO, WARNING, ERROR) |
+| `severity` | Maps to Cloud Logging severity (INFO, WARNING, ERROR) |
 | `message` | Human-readable message |
-| `logging.googleapis.com/trace` | Request trace ID (Cloud Run header から取得) |
+| `logging.googleapis.com/trace` | Request trace ID (taken from the Cloud Run header) |
 
 ### 10.2.6 Async Processing Pattern
 
@@ -131,7 +134,7 @@ Cloud Logging との統合のため、stdout に JSON structured log を出力�
                           +--> Cloud Tasks -> Backend callback endpoint (async)
 ```
 
-Response time が 数秒を超える処理は async path を使用する。
+Processing whose response time exceeds a few seconds uses the async path.
 
 ## 10.3 Frontend Constraints (Web)
 
@@ -142,56 +145,58 @@ Response time が 数秒を超える処理は async path を使用する。
 | Output mode | Next.js standalone (`output: 'standalone'`) |
 | Container runtime | Cloud Run (port 3000) |
 | Static assets | Next.js `_next/static` (self-served from Cloud Run) |
-| Image optimization | `next/image` の loader 設定 (Cloud Run 上で動作) |
+| Image optimization | `next/image` loader configuration (runs on Cloud Run) |
 
 ### 10.3.2 Authentication
 
 | Constraint | Detail |
 |------------|--------|
-| Firebase Auth SDK | Client-side sign-in (Google, Apple, Email 等) |
-| ID Token 取得 | `getIdToken()` で取得し、Backend への request に `Authorization: Bearer` で付与 |
-| Token refresh | Firebase SDK が自動で refresh (1 hour expiry) |
-| Auth state listener | `onAuthStateChanged` で session 状態を reactive に管理 |
+| Firebase Auth SDK | Client-side sign-in (Google, Apple, Email, and so on) |
+| ID token acquisition | Obtain it with `getIdToken()` and attach it to backend requests as `Authorization: Bearer` |
+| Token refresh | The Firebase SDK refreshes automatically (1 hour expiry) |
+| Auth state listener | Manage session state reactively with `onAuthStateChanged` |
 
 ### 10.3.3 Firestore Direct Access & Real-time Sync
 
-Client SDK から Firestore に直接 read/write する場合、Security Rules の制約を受ける。
-一方で、**WebSocket / SSE / Polling を自前実装することなく** real-time sync が得られる。
+Reading and writing Firestore directly from the client SDK is subject to the
+constraints of Security Rules.
+In return, real-time sync is obtained **without implementing WebSocket / SSE /
+polling yourself**.
 
 | Constraint | Detail |
 |------------|--------|
-| Firebase Client SDK 必須 | Real-time listener (`onSnapshot`) は Firebase SDK でのみ利用可能。REST API では不可 |
-| 認証必須 | `request.auth != null` が前提 |
-| Own data only | `request.auth.uid == resource.data.uid` パターンが基本 |
-| Write validation | Security Rules で field type / value を検証 |
-| Listener cost | Active listener は document read として課金。大量 listener はコスト注意 |
-| Offline persistence | SDK が offline cache を保持。offline write は online 復帰時に自動 sync。conflict は last-write-wins |
+| Firebase Client SDK required | The real-time listener (`onSnapshot`) is available only through the Firebase SDK, not through the REST API |
+| Authentication required | `request.auth != null` is a precondition |
+| Own data only | The `request.auth.uid == resource.data.uid` pattern is the baseline |
+| Write validation | Validate field type and value in Security Rules |
+| Listener cost | An active listener is billed as a document read. Watch the cost of large numbers of listeners |
+| Offline persistence | The SDK keeps an offline cache. Offline writes sync automatically once back online. Conflicts are last-write-wins |
 
 | Benefit | Detail |
 |---------|--------|
-| Real-time push (zero infra) | サーバー側の変更が `onSnapshot` で自動通知。WebSocket server 不要 |
-| Optimistic UI | Write はローカルキャッシュに即反映。server 確認は非同期 |
-| Automatic reconnection | Network 切断後の再接続と差分同期を SDK が自動処理 |
+| Real-time push (zero infra) | Server-side changes are notified automatically through `onSnapshot`. No WebSocket server needed |
+| Optimistic UI | Writes are reflected in the local cache immediately; server confirmation is asynchronous |
+| Automatic reconnection | The SDK handles reconnection after a network drop and the delta sync automatically |
 
-> 詳細は [infrastructure-2-data.md Section 2.1.5](infrastructure-2-data.md#215-real-time-synchronization) を参照。
+> For details, see [infrastructure-2-data.md Section 2.1.5](infrastructure-2-data.md#215-real-time-synchronization).
 
 ### 10.3.4 Cloud Storage Upload
 
 | Constraint | Detail |
 |------------|--------|
 | Firebase Storage SDK | Client-side upload with resumable upload support |
-| Security Rules | Upload 可能なユーザー / ファイルサイズ / content type を制限 |
-| CORS | Bucket に CORS 設定が必要 ([Section 9.4.2](infrastructure-9-network.md#942-cloud-storage-cors)) |
+| Security Rules | Restrict which users may upload, plus file size and content type |
+| CORS | The bucket needs CORS configuration ([Section 9.4.2](infrastructure-9-network.md#942-cloud-storage-cors)) |
 
 ### 10.3.5 Environment Variables
 
 | Prefix | Exposure |
 |--------|----------|
-| `NEXT_PUBLIC_*` | Client bundle に含まれる (public) |
-| それ以外 | Server-side only (SSR / API routes) |
+| `NEXT_PUBLIC_*` | Included in the client bundle (public) |
+| Anything else | Server-side only (SSR / API routes) |
 
-Sensitive value は `NEXT_PUBLIC_` prefix を付けない。
-Firebase config (apiKey, authDomain 等) は public で問題ない。
+Do not give a sensitive value the `NEXT_PUBLIC_` prefix.
+Firebase config (apiKey, authDomain, and so on) is fine to expose publicly.
 
 ## 10.4 Mobile Constraints (iOS / Android)
 
@@ -200,56 +205,58 @@ Firebase config (apiKey, authDomain 等) は public で問題ない。
 | Constraint | Detail |
 |------------|--------|
 | Firebase Auth SDK | Native SDK (iOS: FirebaseAuth, Android: firebase-auth) |
-| ID Token | `getIDToken()` で取得し Backend に送信 |
-| Token refresh | SDK が自動管理 |
-| Biometric auth | Firebase Auth とは独立。local authentication framework で実装 |
+| ID Token | Obtain it with `getIDToken()` and send it to the backend |
+| Token refresh | Managed automatically by the SDK |
+| Biometric auth | Independent of Firebase Auth. Implemented with the local authentication framework |
 
 ### 10.4.2 Firestore Real-time Sync & Offline Support
 
-Mobile SDK は real-time listener (`onSnapshot`) と offline persistence をデフォルトで有効化する。
-WebSocket / SSE / Polling の実装なしで、サーバー側の変更がリアルタイムに端末に反映される。
+The mobile SDK enables the real-time listener (`onSnapshot`) and offline
+persistence by default.
+Server-side changes reach the device in real time with no WebSocket / SSE /
+polling implementation.
 
 | Benefit | Detail |
 |---------|--------|
-| Real-time push | `onSnapshot` でサーバー変更を自動受信。Push infra 不要 |
-| Offline read | Cache からの read が可能 (network 不要) |
-| Offline write | Local に queue され、online 復帰時に自動 sync |
-| Optimistic UI | Write は即座にローカル反映 |
+| Real-time push | Receive server changes automatically with `onSnapshot`. No push infrastructure needed |
+| Offline read | Reads can be served from the cache (no network needed) |
+| Offline write | Queued locally and synced automatically once back online |
+| Optimistic UI | Writes are reflected locally right away |
 
 | Constraint | Detail |
 |------------|--------|
-| Firebase Client SDK 必須 | Real-time listener は Firebase SDK でのみ利用可能 |
-| Conflict resolution | Last-write-wins (server timestamp が優先) |
+| Firebase Client SDK required | The real-time listener is available only through the Firebase SDK |
+| Conflict resolution | Last-write-wins (the server timestamp takes precedence) |
 | Cache size | Default 100 MiB (configurable) |
-| Listener cost | Active listener は document read として課金 |
+| Listener cost | An active listener is billed as a document read |
 
-Offline write の pending 状態をユーザーに明示する UI 設計が必要。
+The UI design must make the pending state of offline writes visible to the user.
 
 ### 10.4.3 API Client Generation
 
-Backend の OpenAPI spec から Mobile 用の API client を自動生成する。
+Generate the mobile API client automatically from the backend OpenAPI spec.
 
 | Platform | Generator | Output |
 |----------|-----------|--------|
 | iOS | OpenAPI Generator (Swift5) | Swift Codable models + URLSession client |
 | Android | OpenAPI Generator (Kotlin) | Kotlin data classes + Retrofit client |
 
-生成コードを手動編集しない。Backend の spec 変更時に再生成する。
+Do not edit the generated code by hand. Regenerate it when the backend spec changes.
 
 ### 10.4.4 Push Notification (Optional)
 
 | Service | Detail |
 |---------|--------|
 | Firebase Cloud Messaging (FCM) | Cross-platform push notification |
-| Token management | Device token を Firestore に保存し、Backend から FCM API で送信 |
+| Token management | Store the device token in Firestore and send from the backend through the FCM API |
 
 ### 10.4.5 Binary Size & Startup
 
 | Constraint | Detail |
 |------------|--------|
 | Firebase SDK size | iOS: ~10 MiB, Android: ~5 MiB (Auth + Firestore + Storage) |
-| Lazy initialization | FirebaseApp.configure() を app startup で 1 回のみ |
-| Network dependency | 初回起動時に Firebase Auth / Firestore への接続が必要 |
+| Lazy initialization | Call FirebaseApp.configure() exactly once at app startup |
+| Network dependency | The first launch requires a connection to Firebase Auth / Firestore |
 
 ## 10.5 Constraints Summary Matrix
 
@@ -260,7 +267,7 @@ Backend の OpenAPI spec から Mobile 用の API client を自動生成する�
 | Firebase Auth token verification | Required | N/A (SDK handles) | N/A (SDK handles) |
 | Firebase Auth token acquisition | N/A | Required | Required |
 | Firestore Security Rules | Bypass (Admin SDK) | Subject to rules | Subject to rules |
-| Firestore real-time sync | N/A (write side) | `onSnapshot` (Firebase SDK 必須) | `onSnapshot` (Firebase SDK 必須) |
+| Firestore real-time sync | N/A (write side) | `onSnapshot` (Firebase SDK required) | `onSnapshot` (Firebase SDK required) |
 | Firestore offline support | N/A | Optional | Default enabled |
 | Health check endpoint | Required | Required | N/A |
 | Structured logging (JSON) | Required | Recommended | N/A |

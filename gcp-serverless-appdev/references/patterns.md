@@ -1,7 +1,8 @@
 # Implementation Patterns
 
-GCP サービスを使った実装パターン集。全て言語非依存の pseudocode であり、
-実際のプロジェクトの言語 (Python, Go, Rust, Swift, Kotlin, TypeScript 等) に合わせて具体化すること。
+A collection of implementation patterns using GCP services. All of them are
+language-independent pseudocode; make them concrete in the language of the actual
+project (Python, Go, Rust, Swift, Kotlin, TypeScript, etc.).
 
 ## Table of Contents
 
@@ -24,7 +25,7 @@ GCP サービスを使った実装パターン集。全て言語非依存の pse
 
 ## 1. Firebase Auth Token Verification
 
-Backend で Firebase ID Token を検証する。
+Verify a Firebase ID Token in the backend.
 
 ```
 FUNCTION verify_firebase_token(request) -> UserInfo:
@@ -44,7 +45,7 @@ ENDPOINT GET /me (user = verify_firebase_token(request)):
 
 ## 2. Firestore CRUD via Admin SDK
 
-Backend から Firestore にアクセスする (server-side, Admin SDK)。
+Access Firestore from the backend (server-side, Admin SDK).
 
 ```
 db = Firestore.client()
@@ -83,8 +84,8 @@ FUNCTION transfer(from_id, to_id, amount):
 
 ## 3. Firestore Real-time Listener
 
-Client (Web/iOS/Android) から Firestore の変更をリアルタイムに受信する (Client SDK)。
-WebSocket / SSE / Polling の自前実装は不要。
+Receive Firestore changes in real time on the client (Web/iOS/Android) (Client SDK).
+There is no need to implement WebSocket / SSE / polling yourself.
 
 ```
 // Client-side: framework hook or callback pattern
@@ -105,8 +106,8 @@ FUNCTION use_items(user_id) -> { items, loading }:
     RETURN { items, loading, unsubscribe }
 ```
 
-**Constraint**: Firebase Client SDK (Web/iOS/Android) が必要。
-Server-side rendering ではリアルタイム listener は使用不可。
+**Constraint**: the Firebase Client SDK (Web/iOS/Android) is required.
+Real-time listeners cannot be used with server-side rendering.
 
 ## 4. Firestore Security Rules Patterns
 
@@ -153,7 +154,7 @@ service cloud.firestore {
 
 ## 5. Cloud Tasks Enqueue
 
-非同期処理を Cloud Tasks にエンキューする。
+Enqueue async processing into Cloud Tasks.
 
 ```
 tasks_client = CloudTasks.client()
@@ -190,7 +191,7 @@ FUNCTION enqueue_task(
 
 ## 6. Cloud Tasks Callback Handler
 
-Cloud Tasks からの HTTP callback を処理する。**冪等性が必須**。
+Handle the HTTP callback from Cloud Tasks. **Idempotency is mandatory**.
 
 ```
 ENDPOINT POST /tasks/process-order (request):
@@ -223,12 +224,12 @@ ENDPOINT POST /tasks/process-order (request):
 **Key rules**:
 - 2xx response = task complete (no retry)
 - 4xx/5xx response = retry with exponential backoff
-- Permanent error → return 2xx + log failure
-- task_ttl default 31 days, max_attempts OR max_retry_duration のいずれかで retry 停止
+- Permanent error -> return 2xx + log failure
+- task_ttl default 31 days; retries stop on either max_attempts or max_retry_duration
 
 ## 7. Pub/Sub Publish
 
-1:N fan-out でイベントを配信する。
+Deliver events with 1:N fan-out.
 
 ```
 publisher = PubSub.publisher_client()
@@ -247,7 +248,7 @@ FUNCTION publish_event(topic_name, event_type, data) -> message_id:
 
 ## 8. Pub/Sub Push Handler
 
-Pub/Sub push subscription からのメッセージを処理する。
+Handle messages from a Pub/Sub push subscription.
 
 ```
 ENDPOINT POST /pubsub/user-events (request):
@@ -277,7 +278,7 @@ ENDPOINT POST /pubsub/user-events (request):
 
 ## 9. Eventarc Firestore Trigger
 
-Firestore document の変更に反応する Cloud Function。
+A Cloud Function that reacts to Firestore document changes.
 
 ```
 // Cloud Functions (Gen 2 / Cloud Run functions)
@@ -294,7 +295,7 @@ FUNCTION on_document_created(cloud_event):
 
 ## 10. Cloud Scheduler Job
 
-定期実行ジョブの設定。
+Configuration of a scheduled job.
 
 ```bash
 # Create a scheduler job that calls Cloud Run service
@@ -309,7 +310,7 @@ gcloud scheduler jobs create http daily-cleanup \
 
 ## 11. Structured Logging
 
-Cloud Logging と統合する構造化ログパターン。
+A structured logging pattern that integrates with Cloud Logging.
 
 ```
 // Configure structured JSON logging
@@ -325,7 +326,7 @@ logger.info("order_processed", { order_id: "123", amount: 500 })
 
 ## 12. Health Check
 
-Cloud Run health check endpoint。
+A Cloud Run health check endpoint.
 
 ```
 ENDPOINT GET /health:
@@ -344,7 +345,7 @@ gcloud run deploy backend \
 
 ## 13. Firestore Vector Search
 
-Embedding vector を使った semantic search。
+Semantic search using embedding vectors.
 
 ```
 // Store embedding
@@ -364,7 +365,7 @@ FUNCTION vector_search(query_embedding, limit=10) -> List[Document]:
     RETURN results.get()
 ```
 
-**Requires**: Vector index の作成
+**Requires**: creating a vector index
 ```bash
 gcloud firestore indexes composite create \
   --collection-group=documents \
@@ -374,7 +375,7 @@ gcloud firestore indexes composite create \
 
 ## 14. Firestore Geo Query
 
-地理的な近傍検索 (lat/lng 直接 range query 推奨)。
+Geographic proximity search (a direct lat/lng range query is recommended).
 
 ```
 // Recommended: direct lat/lng range query

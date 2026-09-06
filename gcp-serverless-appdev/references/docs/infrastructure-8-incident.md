@@ -4,17 +4,17 @@
 
 ### 8.1.1 Sentry Alerts
 
-Sentry は unhandled exception 発生時に即座に通知を行う。
+Sentry notifies immediately when an unhandled exception occurs.
 
 | Condition | Action |
 |-----------|--------|
-| New error (初見の例外) | Alert (Slack / Email) |
-| Regression (修正済みエラーの再発) | Alert |
-| Spike (短時間での error 急増) | Alert |
+| New error (an exception seen for the first time) | Alert (Slack / Email) |
+| Regression (an already-fixed error recurring) | Alert |
+| Spike (a sharp increase in errors over a short period) | Alert |
 
-### 8.1.2 Cloud Monitoring Alerts (設定推奨)
+### 8.1.2 Cloud Monitoring Alerts (Recommended Setup)
 
-Cloud Run の built-in metrics に対して alerting policy を設定する。
+Set an alerting policy on the built-in metrics of Cloud Run.
 
 | Metric | Threshold (recommended) | Severity |
 |--------|------------------------|----------|
@@ -24,23 +24,24 @@ Cloud Run の built-in metrics に対して alerting policy を設定する。
 | Memory utilization | > 90% | Warning |
 | Container startup latency | > 10s | Warning |
 
-### 8.1.3 Uptime Check (設定推奨)
+### 8.1.3 Uptime Check (Recommended Setup)
 
-Cloud Monitoring の Uptime Check で health check endpoint を外部から定期的に監視する。
+Use a Cloud Monitoring Uptime Check to monitor the health check endpoint
+periodically from outside.
 
 | Item | Value |
 |------|-------|
 | Target | `GET /health` on Cloud Run service URL |
 | Interval | 60s |
 | Timeout | 10s |
-| Alert | Consecutive failure (3 回連続) で通知 |
+| Alert | Notify on consecutive failures (3 in a row) |
 
 ## 8.2 Rollback
 
 ### 8.2.1 Cloud Run Revision Rollback
 
-Cloud Run は deploy ごとに immutable な revision を作成する。
-障害発生時は traffic を前の revision に instant switch できる。
+Cloud Run creates an immutable revision for every deploy.
+When an incident occurs, traffic can be switched instantly to the previous revision.
 
 ```
 gcloud run services update-traffic {service} \
@@ -48,20 +49,21 @@ gcloud run services update-traffic {service} \
   --region={region}
 ```
 
-**Rollback 所要時間**: 数秒 (DNS propagation 不要、instant traffic switch)
+**Time required for rollback**: a few seconds (no DNS propagation needed, instant traffic switch)
 
-### 8.2.2 Revision 確認
+### 8.2.2 Checking Revisions
 
 ```
 gcloud run revisions list --service={service} --region={region}
 ```
 
-直近の revision 一覧が表示され、各 revision の image tag / 作成日時を確認できる。
+This shows a list of the most recent revisions, with the image tag and creation
+time of each revision.
 
 ### 8.2.3 Firestore Security Rules / Indexes Rollback
 
-Firebase Security Rules には version 管理がないため、
-rollback は git から前バージョンの rules file を取得して再 deploy する。
+Firebase Security Rules have no version management, so a rollback means fetching
+the previous version of the rules file from git and deploying it again.
 
 ```
 git show HEAD~1:firestore.rules > /tmp/firestore.rules.prev
@@ -72,19 +74,19 @@ firebase deploy --only firestore:rules
 
 ### 8.3.1 Firebase Remote Config
 
-Firebase Remote Config の `maintenance` parameter で
-クライアント側の maintenance mode を制御する。
-Backend の deploy やデータ移行中にクライアントからのリクエストを抑止する。
+The `maintenance` parameter of Firebase Remote Config controls client-side
+maintenance mode.
+It suppresses requests from clients during a backend deploy or a data migration.
 
 | Parameter | Type | Default | Effect |
 |-----------|------|---------|--------|
-| `maintenance` | boolean | `false` | `true` で client UI に maintenance 画面を表示 |
+| `maintenance` | boolean | `false` | `true` shows a maintenance screen in the client UI |
 
-**操作**: Firebase Console > Remote Config > `maintenance` を `true` に変更 > Publish
+**Operation**: Firebase Console > Remote Config > change `maintenance` to `true` > Publish
 
 ### 8.3.2 Cloud Run Traffic Control
 
-段階的なリリースが必要な場合、Cloud Run の traffic splitting を使用する。
+When a gradual release is needed, use Cloud Run traffic splitting.
 
 ```
 gcloud run services update-traffic {service} \
@@ -96,8 +98,8 @@ gcloud run services update-traffic {service} \
 
 ### 8.4.1 k6
 
-OpenAPI spec から k6 test script を生成し、
-Cloud Run service に対して load test を実行する。
+Generate a k6 test script from the OpenAPI spec and run a load test against the
+Cloud Run service.
 
 | Item | Detail |
 |------|--------|
@@ -108,8 +110,8 @@ Cloud Run service に対して load test を実行する。
 
 ### 8.4.2 runn Scenario Test
 
-API の正常系フローを scenario として定義し、
-deploy 後の smoke test として実行する。
+Define the happy-path flow of the API as a scenario and run it as a smoke test
+after deploy.
 
 | Item | Detail |
 |------|--------|
@@ -118,7 +120,7 @@ deploy 後の smoke test として実行する。
 | Protocol | HTTP / JSON-RPC 2.0 |
 | Execution | CI pipeline (post-deploy) |
 
-## 8.5 Incident Response Flow (推奨)
+## 8.5 Incident Response Flow (Recommended)
 
 ```
 1. Detection
@@ -127,13 +129,13 @@ deploy 後の smoke test として実行する。
    |
 2. Triage
    |
-   +--> Cloud Logging で error log 確認
-   +--> Sentry で stack trace / breadcrumbs 確認
-   +--> Cloud Monitoring で metrics 確認 (latency, error rate)
+   +--> Check error logs in Cloud Logging
+   +--> Check stack trace / breadcrumbs in Sentry
+   +--> Check metrics in Cloud Monitoring (latency, error rate)
    |
 3. Mitigation
    |
-   +--> [Option A] Cloud Run revision rollback (即座)
+   +--> [Option A] Cloud Run revision rollback (immediate)
    +--> [Option B] Maintenance mode ON (Firebase Remote Config)
    +--> [Option C] Hotfix deploy (build -> push -> deploy)
    |
@@ -145,23 +147,23 @@ deploy 後の smoke test として実行する。
    |
 5. Post-Mortem
    |
-   +--> Timeline 記録
-   +--> Root cause 分析
-   +--> 再発防止策
+   +--> Record the timeline
+   +--> Analyze the root cause
+   +--> Define recurrence prevention measures
 ```
 
 ## 8.6 Backup & Recovery
 
-### 8.6.1 RPO / RTO 定義
+### 8.6.1 RPO / RTO Definitions
 
-| Store | Tier | RPO (目標復旧時点) | RTO (目標復旧時間) | 根拠 |
+| Store | Tier | RPO (recovery point objective) | RTO (recovery time objective) | Rationale |
 |-------|------|-------------------|-------------------|------|
-| Firestore | Core | 1 hour (PITR) | 1 hour | PITR 有効化で最大 7 日前まで任意時点復元 |
-| Cloud Storage | Core | 0 (versioning) | 30 min | Object versioning で即時復元 |
-| Cloud Spanner | Extension | 1 hour (version GC) | 1 hour | Version GC policy 内の PITR |
-| Neo4j (AuraDB) | Extension | Continuous | 1 hour | Managed backup (AuraDB 自動) |
-| Qdrant (Qdrant Cloud) | Extension | Continuous | 1 hour | Managed snapshot (Qdrant Cloud 自動) |
-| Elasticsearch (Elastic Cloud) | Extension | Continuous | 1 hour | Managed snapshot (Elastic Cloud 自動) |
+| Firestore | Core | 1 hour (PITR) | 1 hour | With PITR enabled, restore to any point up to 7 days back |
+| Cloud Storage | Core | 0 (versioning) | 30 min | Immediate restore through object versioning |
+| Cloud Spanner | Extension | 1 hour (version GC) | 1 hour | PITR within the version GC policy |
+| Neo4j (AuraDB) | Extension | Continuous | 1 hour | Managed backup (automatic in AuraDB) |
+| Qdrant (Qdrant Cloud) | Extension | Continuous | 1 hour | Managed snapshot (automatic in Qdrant Cloud) |
+| Elasticsearch (Elastic Cloud) | Extension | Continuous | 1 hour | Managed snapshot (automatic in Elastic Cloud) |
 
 ### 8.6.2 Firestore
 
@@ -170,14 +172,14 @@ deploy 後の smoke test として実行する。
 | Managed Export | `gcloud firestore export gs://{bucket}` |
 | Import | `gcloud firestore import gs://{bucket}/{export-path}` |
 | Frequency | Daily scheduled export (Cloud Scheduler -> Cloud Functions) |
-| Point-in-Time Recovery | Firestore PITR (最大 7 日前まで復元可能、要有効化) |
+| Point-in-Time Recovery | Firestore PITR (can restore up to 7 days back; must be enabled) |
 
 ### 8.6.3 Cloud Storage
 
 | Method | Detail |
 |--------|--------|
-| Object Versioning | Bucket-level versioning で上書き・削除前の version を保持 |
-| Lifecycle Policy | N 日後の古い version を自動削除 |
+| Object Versioning | Bucket-level versioning retains the version from before an overwrite or delete |
+| Lifecycle Policy | Automatically delete old versions after N days |
 
 ### 8.6.4 Cloud Spanner [Extension]
 
@@ -185,20 +187,20 @@ deploy 後の smoke test として実行する。
 |--------|--------|
 | Managed Backup | `gcloud spanner backups create` |
 | Restore | `gcloud spanner databases restore` |
-| PITR | Version GC policy (default 1 hour) 内の任意時点に復元可能 |
+| PITR | Can restore to any point within the version GC policy (default 1 hour) |
 
 ### 8.6.5 Neo4j / Qdrant / Elasticsearch [Extension]
 
-本番環境では各 managed service (AuraDB, Qdrant Cloud, Elastic Cloud) を使用するため、
-backup は各 provider の managed backup 機能に委譲する。
+Production uses the managed service for each of these (AuraDB, Qdrant Cloud,
+Elastic Cloud), so backup is delegated to each provider's managed backup feature.
 
 | Service | Managed Backup | Restore Method |
 |---------|---------------|----------------|
-| Neo4j AuraDB | Automatic daily snapshot | Console / API から restore |
-| Qdrant Cloud | Automatic snapshot | Console から restore |
+| Neo4j AuraDB | Automatic daily snapshot | Restore from the console or API |
+| Qdrant Cloud | Automatic snapshot | Restore from the console |
 | Elastic Cloud | Automatic snapshot | Snapshot and Restore API |
 
-Local development (Docker Compose) では volume snapshot または dump command で対応:
+In local development (Docker Compose), use a volume snapshot or a dump command:
 
 | Service | Local Backup Command |
 |---------|---------------------|
@@ -206,11 +208,11 @@ Local development (Docker Compose) では volume snapshot または dump command
 | Qdrant | Snapshot API (`POST /collections/{name}/snapshots`) |
 | Elasticsearch | Snapshot and Restore API |
 
-### 8.6.6 復元演習
+### 8.6.6 Restore Drill
 
-| 項目 | 方針 |
+| Item | Policy |
 |------|------|
-| 頻度 | 四半期に 1 回 |
-| 対象 | Core tier の全データストア (Firestore, Cloud Storage) |
-| 検証内容 | Backup からの restore 実行、データ整合性確認、RTO 内完了の確認 |
-| 記録 | 実施日・結果・改善事項を記録 |
+| Frequency | Once per quarter |
+| Scope | All Core tier data stores (Firestore, Cloud Storage) |
+| What to verify | Run a restore from backup, check data integrity, confirm completion within RTO |
+| Record | Record the date performed, the result, and improvement items |

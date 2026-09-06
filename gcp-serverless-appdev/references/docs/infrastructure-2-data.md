@@ -1,47 +1,47 @@
 # 2. Data Persistence / Object Storage / Search
 
-> Section 2.1, 2.6 は **Core** (初期リリース必須)。
-> Section 2.2〜2.5 は **Extension** (必要に応じて追加)。
-> Backup / RPO / RTO は [infrastructure-8-incident.md Section 8.6](infrastructure-8-incident.md#86-backup--recovery) を参照。
+> Sections 2.1 and 2.6 are **Core** (required for the initial release).
+> Sections 2.2 through 2.5 are **Extension** (add them as needed).
+> For backup / RPO / RTO, see [infrastructure-8-incident.md Section 8.6](infrastructure-8-incident.md#86-backup--recovery).
 
 ## 2.1 Document Database: Cloud Firestore
 
 **Service**: [Google Cloud Firestore](https://cloud.google.com/firestore)
 
-Serverless な document-oriented database。内部的に Cloud Spanner をストレージ基盤として使用しており、
-全てのクエリで strong consistency を保証する（結果整合性は過去の仕様）。
-Real-time listener によるクライアントへの push 通知、offline persistence を提供する。
-日本リージョン固定方針に基づき `asia-northeast1` (Tokyo) に配置する。
+A serverless document-oriented database. Internally it uses Cloud Spanner as its storage layer,
+and it guarantees strong consistency for every query (eventual consistency is the old behavior).
+It offers push notification to clients through real-time listeners, and offline persistence.
+Following the policy of staying in a Japanese region, it is placed in `asia-northeast1` (Tokyo).
 
-Firestore は「コレクション > ドキュメント > サブコレクション」の階層構造を持つ。
+Firestore has a hierarchy of collection > document > subcollection.
 
 > **Ref**: [Firestore Editions](https://firebase.google.com/docs/firestore/editions),
 > [Firestore Pipeline Operations](https://firebase.blog/posts/2026/01/firestore-enterprise-pipeline-operations/)
 
 ### 2.1.1 Editions
 
-Firestore は **Standard** と **Enterprise** の 2 edition を提供する。
+Firestore comes in 2 editions: **Standard** and **Enterprise**.
 
 | Aspect | Standard | Enterprise |
 |--------|----------|-----------|
 | Query engine | Core operations | Core + **Pipeline operations** (180+ stages/operators) |
-| Indexing | Single-field: 自動 / Composite: 明示定義必須 | **Optional indexing** (index なしでもクエリ可能) |
-| Pipeline operations | 不可 | Array unnest, aggregation, regex, chained stages |
-| MongoDB 互換 | なし | MongoDB compatibility API サポート (3.6〜8.0) |
-| Query Explain | **あり** (基本分析) | **あり** (analyze mode 含む高度な分析) |
-| VPC Service Controls | なし | あり |
-| CMEK | **あり** | あり |
-| Pricing | Read/Write/Delete 個別課金 | Write + Delete 統合課金、data chunk ベース |
+| Indexing | Single-field: automatic / Composite: must be declared explicitly | **Optional indexing** (queries work without an index) |
+| Pipeline operations | Not available | Array unnest, aggregation, regex, chained stages |
+| MongoDB compatibility | None | MongoDB compatibility API supported (3.6 to 8.0) |
+| Query Explain | **Yes** (basic analysis) | **Yes** (advanced analysis including analyze mode) |
+| VPC Service Controls | No | Yes |
+| CMEK | **Yes** | Yes |
+| Pricing | Read/Write/Delete billed separately | Write + Delete billed together, based on data chunks |
 
-**Edition 選定方針**: 初期は Standard で開始し、Pipeline operations や optional indexing が
-必要になった段階で Enterprise に移行する。既存クエリは互換性が維持される。
+**Edition selection policy**: start with Standard, and move to Enterprise once Pipeline operations
+or optional indexing become necessary. Existing queries remain compatible.
 
 ### 2.1.2 Key Characteristics
 
 | Property | Detail |
 |----------|--------|
-| Consistency | **Strong consistency (全クエリ)** |
-| Internal Engine | Cloud Spanner ベース |
+| Consistency | **Strong consistency (all queries)** |
+| Internal Engine | Cloud Spanner based |
 | Region | `asia-northeast1` (single-region) |
 | Transactions | ACID across multiple documents (max 500 docs/tx) |
 | Max Document Size | 1 MiB |
@@ -52,54 +52,54 @@ Firestore は **Standard** と **Enterprise** の 2 edition を提供する。
 | Capability | Standard | Enterprise |
 |------------|----------|-----------|
 | Equality filter | Unlimited fields | Same |
-| Inequality / range filter | **複数フィールドに対応** (最大 10 フィールド) | Same |
-| `array-contains` / `array-contains-any` | 1 query に 1 つ | Same |
-| `in` | 最大 30 disjunction values | Same |
-| `not-in` | 最大 **10** values | Same |
+| Inequality / range filter | **Multiple fields supported** (up to 10 fields) | Same |
+| `array-contains` / `array-contains-any` | One per query | Same |
+| `in` | Up to 30 disjunction values | Same |
+| `not-in` | Up to **10** values | Same |
 | `OR` query | Supported | Same |
-| Order by | Composite index 定義に依存 | Optional indexing |
+| Order by | Depends on the composite index definition | Optional indexing |
 | Aggregation (count, sum, avg) | Supported (server-side) | Enhanced (Pipeline) |
-| Array unnest | 不可 | **Pipeline operations で可能** |
-| Regex matching | 不可 | **Pipeline operations で可能** |
-| Chained transformations | 不可 | **Pipeline operations で可能** |
-| **Geo query** | Geohash ベースの range query | Same |
-| **Vector search (KNN)** | `find_nearest` (最大 2048 次元) | Same |
+| Array unnest | Not available | **Available with Pipeline operations** |
+| Regex matching | Not available | **Available with Pipeline operations** |
+| Chained transformations | Not available | **Available with Pipeline operations** |
+| **Geo query** | Geohash-based range query | Same |
+| **Vector search (KNN)** | `find_nearest` (up to 2048 dimensions) | Same |
 
-> **Note**: 過去の制限「inequality filter は 1 field のみ」は撤廃済み。
-> 現在は最大 10 フィールドに対して range / inequality filter を適用可能。
+> **Note**: the old restriction "inequality filter on one field only" has been removed.
+> Range / inequality filters can now be applied to up to 10 fields.
 
 #### Geo Query
 
-Firestore は GIS 専用演算子を持たないが、2 つの方式で地理検索を実現できる。
+Firestore has no GIS-specific operators, but geographic search can be done in two ways.
 
-**方式 A: Geohash (従来方式)**
-
-| Property | Detail |
-|----------|--------|
-| Encoding | Geohash (緯度・経度を文字列にエンコード) |
-| Query method | Geohash prefix による range query (bounding box) |
-| Precision | Geohash 文字数で制御 (長いほど狭い範囲) |
-| Limitation | Bounding box ベースのため、クライアント側の距離フィルタリングが必要。余分な read が発生する |
-
-**方式 B: 複数フィールド range query (推奨、2024-03〜)**
+**Approach A: Geohash (the traditional approach)**
 
 | Property | Detail |
 |----------|--------|
-| Query method | `latitude` / `longitude` field に対する直接 range query |
-| Precision | 任意の bounding box を指定可能 |
-| Advantage | Geohash 比で約 **5.4 倍** read 効率が良い |
-| Requirement | Multiple inequality filter 対応 (2024-03 GA) |
+| Encoding | Geohash (encodes latitude and longitude into a string) |
+| Query method | Range query on the geohash prefix (bounding box) |
+| Precision | Controlled by the geohash length (longer means a narrower area) |
+| Limitation | Because it is bounding-box based, distance filtering on the client is required. Extra reads occur. |
 
-> **推奨**: 新規実装では方式 B (lat/lng 直接 range query) を使用する。
-> Geohash は既存実装の互換性維持のみ。
+**Approach B: multi-field range query (recommended, since 2024-03)**
+
+| Property | Detail |
+|----------|--------|
+| Query method | Direct range query on the `latitude` / `longitude` fields |
+| Precision | Any bounding box can be specified |
+| Advantage | About **5.4x** better read efficiency than geohash |
+| Requirement | Multiple inequality filter support (GA in 2024-03) |
+
+> **Recommendation**: use approach B (direct lat/lng range query) for new implementations.
+> Keep geohash only for compatibility with existing implementations.
 >
 > **Ref**: [Firestore Geo queries](https://firebase.google.com/docs/firestore/solutions/geoqueries)
 
 #### Vector Search (KNN)
 
-Firestore は document field に embedding vector を格納し、
-`find_nearest` API による K-Nearest Neighbor (KNN) 検索を native にサポートする。
-Semantic search や recommendation の基本的なユースケースに対応できる。
+Firestore stores embedding vectors in document fields and natively supports
+K-Nearest Neighbor (KNN) search through the `find_nearest` API.
+It covers the basic use cases of semantic search and recommendation.
 
 | Property | Detail |
 |----------|--------|
@@ -107,33 +107,33 @@ Semantic search や recommendation の基本的なユースケースに対応で
 | Max dimensions | 2048 |
 | Max results | 1000 |
 | Distance measures | Euclidean, Cosine, Dot product |
-| Pre-filtering | 通常の Firestore filter と組み合わせ可能 |
-| Index | Vector index の作成が必要 (`gcloud firestore indexes composite create`) |
-| Integration | LangChain, LlamaIndex との統合をサポート |
+| Pre-filtering | Can be combined with normal Firestore filters |
+| Index | A vector index must be created (`gcloud firestore indexes composite create`) |
+| Integration | Integration with LangChain and LlamaIndex is supported |
 
 > **Ref**: [Firestore Vector search](https://firebase.google.com/docs/firestore/vector-search)
 
-**Qdrant との使い分け**: Firestore vector search は小〜中規模の embedding 検索に適する。
-大規模 (数百万〜) の vector workload、高度な filtering、HNSW チューニングが必要な場合は
-[Qdrant (Section 2.4)](#24-extension-vector-search-engine-qdrant) を使用する。
+**Choosing between this and Qdrant**: Firestore vector search suits small to medium
+embedding search. For large vector workloads (millions or more), advanced filtering, or when
+HNSW tuning is required, use [Qdrant (Section 2.4)](#24-extension-vector-search-engine-qdrant).
 
 ### 2.1.4 Indexing
 
 **Standard edition**:
-- Single-field index は自動作成される
-- Multi-field (composite) index は `firestore.indexes.json` で宣言管理し、
-  `firebase deploy --only firestore:indexes` で適用
+- Single-field indexes are created automatically
+- Multi-field (composite) indexes are declared in `firestore.indexes.json` and applied with
+  `firebase deploy --only firestore:indexes`
 
 **Enterprise edition**:
-- Index はデフォルトで作成されない (optional indexing model)
-- 開発者が Query Explain / Query Insights を基に必要な index のみを作成
-- Index なしでもクエリは実行可能 (大規模コレクションでは性能トレードオフ)
+- Indexes are not created by default (optional indexing model)
+- Developers create only the indexes they need, based on Query Explain / Query Insights
+- Queries run even without an index (with a performance trade-off on large collections)
 
 ### 2.1.5 Real-time Synchronization
 
-Firestore Native Mode は、client SDK に組み込まれた real-time listener (`onSnapshot`) により、
-**WebSocket / Polling / SSE を自前で実装することなく**、サーバー側のデータ変更を
-クライアントに即座に push 通知できる。
+With the real-time listener (`onSnapshot`) built into the client SDK, Firestore Native Mode can
+push server-side data changes to clients immediately,
+**without implementing WebSocket, polling, or SSE yourself**.
 
 ```
 Client A: write document
@@ -149,25 +149,25 @@ Firestore (server)
 
 | Benefit | Detail |
 |---------|--------|
-| Real-time push (zero infra) | WebSocket server / Pub/Sub -> Push の構築が不要 |
-| Offline-first | Client SDK がローカルキャッシュを保持し、offline 時も read 可能。online 復帰時に自動 sync |
-| Optimistic UI | Write はローカルキャッシュに即反映され、UI が即座に更新される (server 確認は非同期) |
-| Multi-platform 統一 | Web / iOS / Android / Flutter で同一の real-time API |
-| Automatic reconnection | Network 切断後の再接続と差分同期を SDK が自動処理 |
+| Real-time push (zero infra) | No need to build a WebSocket server or a Pub/Sub -> Push path |
+| Offline-first | The client SDK keeps a local cache, so reads work while offline. It syncs automatically when back online. |
+| Optimistic UI | Writes are applied to the local cache immediately, so the UI updates at once (server confirmation is asynchronous) |
+| Unified across platforms | The same real-time API on Web / iOS / Android / Flutter |
+| Automatic reconnection | The SDK handles reconnection after a network drop and the delta sync automatically |
 
 #### Constraints
 
 | Constraint | Detail |
 |------------|--------|
-| Firebase Client SDK 必須 | Real-time listener は Firebase SDK (`firebase/firestore`) でのみ利用可能。REST API / Admin SDK からは利用不可 |
-| Security Rules 適用 | Client SDK からのアクセスは Security Rules を経由する。Backend 経由の write も listener に通知される |
-| Listener cost | Active listener は document read として課金される。大量の listener は cost に注意 |
-| Fan-out limit | 単一 document への同時 listener 数に実質的な上限がある (数万 connections/document) |
-| Query listener | Collection query に対する listener は query 条件に一致する変更のみ通知する |
+| Firebase Client SDK required | Real-time listeners are available only through the Firebase SDK (`firebase/firestore`). They cannot be used from the REST API or the Admin SDK |
+| Security Rules apply | Access from the client SDK goes through Security Rules. Writes made through the backend are also delivered to listeners |
+| Listener cost | Active listeners are billed as document reads. Watch the cost when there are many listeners |
+| Fan-out limit | There is a practical limit on the number of concurrent listeners on a single document (tens of thousands of connections per document) |
+| Query listener | A listener on a collection query is notified only of changes that match the query conditions |
 
 #### Architecture Implication
 
-Firestore real-time listener の存在により、以下のアーキテクチャパターンが成立する:
+Because Firestore has real-time listeners, the following architecture patterns are possible:
 
 ```
 [Pattern A: Direct sync (recommended for simple state)]
@@ -178,36 +178,36 @@ Firestore real-time listener の存在により、以下のアーキテクチャ
   Client --> Backend (Cloud Run) --> Firestore write
                                         |
   Client <-- onSnapshot listener -------+
-  (backend が business logic を経由して write, client は listener で即座に反映を受け取る)
+  (the backend writes via its business logic; the client is updated at once by the listener)
 ```
 
-Pattern B により、Backend で validation / transformation を行いつつ、
-client には WebSocket server なしで real-time update を配信できる。
+With pattern B, the backend can perform validation and transformation while still delivering
+real-time updates to clients without a WebSocket server.
 
 ### 2.1.6 Security Rules
 
-Firestore Security Rules により、client SDK からの直接アクセスに対して
-field-level の access control を宣言的に定義する。
-Backend (Admin SDK) からのアクセスは Security Rules を bypass する。
+Firestore Security Rules declaratively define field-level access control
+for direct access from the client SDK.
+Access from the backend (Admin SDK) bypasses Security Rules.
 
 ---
 
 ## Extension (Optional)
 
-以下のデータストアは GraphRAG / RAG / 高度な検索要件が発生した場合に導入する。
-初期リリースには不要。
+Introduce the data stores below when GraphRAG, RAG, or advanced search requirements come up.
+They are not needed for the initial release.
 
 ## 2.2 [Extension] Distributed Relational Database: Cloud Spanner
 
 **Service**: [Google Cloud Spanner](https://cloud.google.com/spanner)
 
-Globally-distributed, strongly-consistent relational database。
-水平スケーリングと ACID transaction を両立する。
-PostgreSQL 互換 dialect を提供し、既存の PostgreSQL client library / ORM から接続可能。
+A globally-distributed, strongly-consistent relational database.
+It combines horizontal scaling with ACID transactions.
+It offers a PostgreSQL-compatible dialect, so existing PostgreSQL client libraries and ORMs can connect.
 
-Firestore との使い分け: Firestore は flexible schema の document store であり、
-rapid prototyping やクライアント直接アクセスに適する。
-Spanner は strict schema, complex query, cross-row transaction が必要な場合に使用する。
+Choosing between this and Firestore: Firestore is a flexible-schema document store, well suited to
+rapid prototyping and direct client access.
+Use Spanner when you need a strict schema, complex queries, or cross-row transactions.
 
 ### 2.2.1 Key Characteristics
 
@@ -215,15 +215,15 @@ Spanner は strict schema, complex query, cross-row transaction が必要な場�
 |----------|--------|
 | Consistency | External consistency (linearizability) |
 | Dialect | PostgreSQL-compatible (via pgAdapter) |
-| Scaling | Horizontal (node 追加で throughput 向上) |
+| Scaling | Horizontal (adding nodes raises throughput) |
 | Transactions | Fully ACID, distributed |
 | Schema | Strongly typed, DDL-managed |
 | Interleaving | Parent-child table co-location for performance |
 
 ### 2.2.2 pgAdapter
 
-Cloud Spanner に PostgreSQL wire protocol でアクセスするための proxy。
-Standard PostgreSQL driver (asyncpg, psycopg2 等) をそのまま使用できる。
+A proxy for accessing Cloud Spanner over the PostgreSQL wire protocol.
+Standard PostgreSQL drivers (asyncpg, psycopg2, and so on) can be used as they are.
 
 | Item | Value |
 |------|-------|
@@ -232,19 +232,19 @@ Standard PostgreSQL driver (asyncpg, psycopg2 等) をそのまま使用でき�
 
 ### 2.2.3 Local Emulation
 
-Cloud Spanner Emulator (`gcr.io/cloud-spanner-emulator/emulator`) を使用。
-pgAdapter 経由で PostgreSQL client から接続する。
+Use the Cloud Spanner Emulator (`gcr.io/cloud-spanner-emulator/emulator`).
+Connect from a PostgreSQL client through pgAdapter.
 
 ## 2.3 [Extension] Graph Database: Neo4j
 
 **Service**: [Neo4j](https://neo4j.com/)
 
-Property graph model の graph database。
-Node と Relationship で構成されるグラフ構造のデータに対して、
-Cypher query language による traversal / pattern matching を実行する。
+A graph database based on the property graph model.
+For data with a graph structure made of nodes and relationships, it runs
+traversal and pattern matching through the Cypher query language.
 
-Entity 間の関係性探索（N-hop traversal, shortest path, community detection 等）が
-RDB の recursive JOIN より桁違いに高速。
+Exploring relationships between entities (N-hop traversal, shortest path, community detection,
+and so on) is orders of magnitude faster than a recursive JOIN in an RDB.
 
 ### 2.3.1 Key Characteristics
 
@@ -259,15 +259,15 @@ RDB の recursive JOIN より桁違いに高速。
 | Environment | Hosting | Detail |
 |-------------|---------|--------|
 | Local | Docker Compose | `neo4j:5-community` (self-hosted) |
-| Production | **Neo4j AuraDB** (managed) | Neo4j 社提供の fully-managed service。GCP 上で稼働し、backup / scaling / patching が自動化される |
+| Production | **Neo4j AuraDB** (managed) | A fully-managed service from Neo4j. It runs on GCP, and backup / scaling / patching are automated |
 
 ## 2.4 [Extension] Vector Search Engine: Qdrant
 
 **Service**: [Qdrant](https://qdrant.tech/)
 
-High-performance な vector similarity search engine。
-Embedding vector に対する nearest neighbor search を提供し、
-semantic search, recommendation, RAG (Retrieval-Augmented Generation) の retrieval 層として機能する。
+A high-performance vector similarity search engine.
+It provides nearest neighbor search over embedding vectors and acts as the retrieval layer for
+semantic search, recommendation, and RAG (Retrieval-Augmented Generation).
 
 ### 2.4.1 Key Characteristics
 
@@ -284,27 +284,27 @@ semantic search, recommendation, RAG (Retrieval-Augmented Generation) の retrie
 | Environment | Hosting | Detail |
 |-------------|---------|--------|
 | Local | Docker Compose | `qdrant/qdrant:latest` (self-hosted) |
-| Production | **Qdrant Cloud** (managed) | Qdrant 社提供の fully-managed service。GCP 上に deploy 可能。Backup, scaling, monitoring が自動化される |
+| Production | **Qdrant Cloud** (managed) | A fully-managed service from Qdrant. It can be deployed on GCP. Backup, scaling, and monitoring are automated |
 
 ### 2.4.3 Alternative: pgvector
 
-PostgreSQL extension として vector search を提供する pgvector も選択肢。
-Cloud Spanner (pgAdapter) と同じ PostgreSQL ecosystem 内で vector search を統合できるが、
-専用 engine (Qdrant) と比較して large-scale での throughput は劣る。
+pgvector, which provides vector search as a PostgreSQL extension, is another option.
+It can integrate vector search inside the same PostgreSQL ecosystem as Cloud Spanner (pgAdapter),
+but its throughput at large scale is lower than a dedicated engine (Qdrant).
 
 | Item | Value |
 |------|-------|
 | Image | `pgvector/pgvector:pg18` |
 | Port | 55432 |
-| Usage | Small-scale vector search / Spanner 統合が不要な場合 |
+| Usage | Small-scale vector search / when Spanner integration is not needed |
 
 ## 2.5 [Extension] Full-Text Search Engine: Elasticsearch
 
 **Service**: [Elasticsearch](https://www.elastic.co/elasticsearch/)
 
-Distributed full-text search and analytics engine。
-Inverted index による高速な全文検索と、aggregation による分析クエリを提供する。
-日本語を含む多言語の形態素解析 (analyzer) をサポートする。
+A distributed full-text search and analytics engine.
+It provides fast full-text search through an inverted index, and analytical queries through aggregations.
+It supports morphological analysis (analyzers) for many languages, including Japanese.
 
 ### 2.5.1 Key Characteristics
 
@@ -320,16 +320,16 @@ Inverted index による高速な全文検索と、aggregation による分析�
 | Environment | Hosting | Detail |
 |-------------|---------|--------|
 | Local | Docker Compose | `elasticsearch:8+` (self-hosted, single-node) |
-| Production | **Elastic Cloud** (managed) | Elastic 社提供の fully-managed service。GCP 上に deploy 可能。Cross-cluster replication, snapshot, monitoring が自動化される |
+| Production | **Elastic Cloud** (managed) | A fully-managed service from Elastic. It can be deployed on GCP. Cross-cluster replication, snapshots, and monitoring are automated |
 
 ## 2.6 Object Storage: Cloud Storage (via Firebase Storage)
 
 **Service**: [Google Cloud Storage](https://cloud.google.com/storage) (Firebase Storage interface)
 
-Exabyte-scale の object storage。
-Firebase SDK wrapper を通じてクライアントから直接 upload/download が可能。
-Firebase Security Rules によるアクセス制御を適用できる。
-Backend からは Google Cloud Storage client library で直接操作する。
+Exabyte-scale object storage.
+Clients can upload and download directly through the Firebase SDK wrapper.
+Access control can be applied with Firebase Security Rules.
+The backend operates on it directly with the Google Cloud Storage client library.
 
 ### 2.6.1 Key Characteristics
 
@@ -338,7 +338,7 @@ Backend からは Google Cloud Storage client library で直接操作する。
 | Storage Class | Standard (frequently accessed data) |
 | Access Control | Firebase Security Rules (client) / IAM (backend) |
 | CORS | Explicit configuration required for browser-origin requests |
-| Lifecycle | Object lifecycle policies で自動削除・class 変更が可能 |
+| Lifecycle | Object lifecycle policies can delete objects or change their class automatically |
 | Max Object Size | 5 TiB |
 
 ### 2.6.2 Bucket Naming Convention
@@ -351,7 +351,7 @@ Backend からは Google Cloud Storage client library で直接操作する。
 
 | Use Case | Service | Tier | Rationale |
 |----------|---------|------|-----------|
-| User profile, session, flexible schema | Firestore | Core | Client SDK 直接アクセス、real-time sync |
+| User profile, session, flexible schema | Firestore | Core | Direct client SDK access, real-time sync |
 | File / media storage | Cloud Storage | Core | Object storage at scale |
 | Strict schema, complex query, distributed tx | Cloud Spanner | Extension | ACID + horizontal scale |
 | Entity relationship traversal | Neo4j | Extension | Graph traversal performance |
