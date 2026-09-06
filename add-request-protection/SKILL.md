@@ -19,8 +19,8 @@ Read https://docs.arcjet.com/llms.txt for comprehensive SDK documentation coveri
 The Arcjet CLI is the primary tool for authenticating, managing sites, configuring remote rules, and verifying protection. Install it if not already available:
 
 ```bash
-# Via npx (no install required)
-npx @arcjet/cli --help
+# Via bunx (no install required)
+bunx @arcjet/cli --help
 
 # Or install globally via bun
 bun add -g @arcjet/cli
@@ -244,7 +244,7 @@ arcjet analyze ip --site-id <site-id> --ip 1.2.3.4
 
 | Task | Command |
 | ---- | ------- |
-| Install/run CLI | `npx @arcjet/cli` or `brew install arcjet` |
+| Install/run CLI | `bunx @arcjet/cli` or `brew install arcjet` |
 | Authenticate | `arcjet auth login` |
 | Check auth status | `arcjet auth status` |
 | List teams | `arcjet teams list` |

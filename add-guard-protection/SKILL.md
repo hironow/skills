@@ -15,8 +15,8 @@ Arcjet Guard provides rate limiting, prompt injection detection, sensitive infor
 The Arcjet CLI is the primary tool for authenticating, managing sites, configuring remote rules, and monitoring traffic. Install it if not already available:
 
 ```bash
-# Via npx (no install required)
-npx @arcjet/cli --help
+# Via bunx (no install required)
+bunx @arcjet/cli --help
 
 # Or install globally via bun
 bun add -g @arcjet/cli
@@ -55,8 +55,8 @@ Add the key to your environment file (`.env`, `.env.local`, etc.) as `ARCJET_KEY
 
 Check the project for language indicators:
 
-- `package.json` → JavaScript/TypeScript → `npm install @arcjet/guard` (requires `@arcjet/guard` >= 1.4.0)
-- `requirements.txt` / `pyproject.toml` → Python → `pip install arcjet` (requires `arcjet` >= 0.7.0; Guard is included)
+- `package.json` → JavaScript/TypeScript → `bun add @arcjet/guard` (requires `@arcjet/guard` >= 1.4.0)
+- `requirements.txt` / `pyproject.toml` → Python → `uv add arcjet` (requires `arcjet` >= 0.7.0; Guard is included)
 - `go.mod`, `Cargo.toml`, `pom.xml`, or other languages → **Guard is not available**. Tell the user that Arcjet Guard currently only supports JavaScript/TypeScript and Python. Do not create a hand-rolled imitation or hallucinate a package that doesn't exist. Suggest they reach out to Arcjet with their use case.
 
 ## Step 2: Read the Language Reference
@@ -127,7 +127,7 @@ Once the `arcjet guards` CLI subcommand ships, use `arcjet guards watch --site-i
 
 | Task | Command |
 | ---- | ------- |
-| Install/run CLI | `npx @arcjet/cli` or `brew install arcjet` |
+| Install/run CLI | `bunx @arcjet/cli` or `brew install arcjet` |
 | Authenticate | `arcjet auth login` |
 | Check auth status | `arcjet auth status` |
 | List teams | `arcjet teams list` |
