@@ -1,6 +1,6 @@
 # Handover
 
-**Last updated:** 2026-09-06 22:21 (JST)
+**Last updated:** 2026-09-07 00:40 (JST)
 **Updated by:** claude (session 777ca0b0, working in hironow/dotfiles)
 
 ## Current State
@@ -35,7 +35,7 @@ Nothing on a branch. `docs/intent.md` is Accepted (#11; the requester confirmed 
 ## Known Risks / Blockers
 
 - dotfiles retired the `skills/` submodule (dotfiles ADR 0043, 2026-09-06): this repository reaches the homes only through the `bunx skills` CLI store and dotfiles' `just skills-place` / `skills-update`; there is no gitlink to bump any more, and a home copy that differs from the store is never overwritten silently (it is reported by `skills-place`).
-- History was rewritten on 2026-09-06 before publishing (`git filter-repo`: only paths in the current tree kept; an organisation name and a personal name scrubbed from old blobs and messages; 58 → 38 commits, HEAD tree unchanged). Every clone must re-fetch (`git fetch && git reset --hard origin/main`). The old commits stay reachable behind the merged pull-request refs on GitHub until Support purges them — do not switch the repository to public before that purge is confirmed. dotfiles tracks the rewritten history since hironow/dotfiles#354.
+- Public since 2026-09-07. Before that the history was rewritten (`git filter-repo`: only paths in the current tree kept; an organisation name and a personal name scrubbed) and the repository was recreated under the same name so no old commit is reachable through pull-request refs; the previous repository lives on as `hironow/skills-archive` (private, archived). Skills that must stay private are in `hironow/skills-private`.
 - `bunx skills check` and `update` rewrite the store copy of any skill the CLI tracks, including forks it once installed. Do not run them before comparing a fork against its upstream; compare against a scratch clone of the upstream instead.
 - CI runs `just check` on every pull request, but `just audit-consumers` (are the agent homes up to date?) can only run on the machine that hosts them; run it by hand after every submodule bump.
 
