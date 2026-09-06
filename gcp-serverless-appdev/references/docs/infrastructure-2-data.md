@@ -296,7 +296,7 @@ but its throughput at large scale is lower than a dedicated engine (Qdrant).
 |------|-------|
 | Image | `pgvector/pgvector:pg18` |
 | Port | 55432 |
-| Usage | Small-scale vector search / when Spanner integration is not needed |
+| Usage | Small-scale vector search, or when the vectors do not need to live in Spanner (a standalone PostgreSQL with pgvector is enough) |
 
 ## 2.5 [Extension] Full-Text Search Engine: Elasticsearch
 

@@ -39,5 +39,5 @@ Keep one curated set of reusable agent skills that hironow's agents (Claude Code
 
 ## Open Questions
 
-- [ ] `infrastructure-2-data.md` §2.4.3 の pgvector の一文 (「Spanner 統合が不要な場合」) の意図
+- [x] `infrastructure-2-data.md` §2.4.3 の pgvector の一文 (「Spanner 統合が不要な場合」) の意図 — 「ベクタを Spanner に持たなくてよい場合 (素の PostgreSQL + pgvector で足りる)」で確定 (2026-09-06)
 - [ ] この repository を public にするか (2026-09-06 の公開可否判定は「条件付き可」: 削除済みファイル履歴の secret 様の値、`sibyl/` の本人プロファイル、`consume-hub-actions/` の組織内部 CI、origin 未確認 24 skill、repo 自身の LICENSE 無し)

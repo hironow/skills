@@ -28,7 +28,7 @@ Nothing on a branch. `docs/intent.md` is Accepted (#11; the requester confirmed 
 ## Next Actions
 
 1. Nothing is blocked on the requester for the tooling; the remaining items below are content decisions.
-2. Decide on the one passage the translators could not resolve: `gcp-serverless-appdev/references/docs/infrastructure-2-data.md` §2.4.3, "Small-scale vector search / when Spanner integration is not needed" (原文「Spanner 統合が不要な場合」) — translated literally; the surrounding paragraph suggests the intended meaning may differ.
+2. (resolved 2026-09-06) The pgvector Usage row in `gcp-serverless-appdev/references/docs/infrastructure-2-data.md` §2.4.3 now says what the requester meant: small-scale vector search, or when the vectors do not need to live in Spanner (a standalone PostgreSQL with pgvector is enough).
 3. `develop-web-game` ships an Apache-2.0 LICENSE.txt whose origin is unknown (`upstream: unknown`); name the source if it ever turns up.
 4. Visibility: the public-readiness blockers were resolved on 2026-09-06 (requester's decisions) — the secret-looking value in the history of a deleted file is a campaign key already present in openai/skills' public history (7fc1e3f), so it was accepted; the operator's personal profile skill moved to hironow/skills-private; the organisation-internal CI hub skill moved to that organisation's own skills repository; the remaining origin-unconfirmed skills were marked `provenance: original` after a first-commit trace and a public code search found no upstream; `LICENSE` (MIT) added. The switch to public itself is still the requester's call.
 
