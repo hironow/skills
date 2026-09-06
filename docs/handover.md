@@ -34,6 +34,7 @@ Nothing on a branch. `docs/intent.md` is Accepted (#11; the requester confirmed 
 
 ## Known Risks / Blockers
 
+- History was rewritten on 2026-09-06 before publishing (`git filter-repo`: only paths in the current tree kept; an organisation name and a personal name scrubbed from old blobs and messages; 58 → 38 commits, HEAD tree unchanged). Every clone must re-fetch (`git fetch && git reset --hard origin/main`). The old commits stay reachable behind the merged pull-request refs on GitHub until Support purges them — do not switch the repository to public before that purge is confirmed.
 - `just sync-agents` treats `skills` as additive: a changed skill is not re-copied into an agent home that already has it. After merging a change here, refresh the home copies by hand (rsync from the submodule at the bumped commit); otherwise agents keep reading the old version while the repository says otherwise.
 - `bunx skills check` and `update` rewrite the store copy of any skill the CLI tracks, including forks it once installed. Do not run them before comparing a fork against its upstream; compare against a scratch clone of the upstream instead.
 - CI runs `just check` on every pull request, but `just audit-consumers` (are the agent homes up to date?) can only run on the machine that hosts them; run it by hand after every submodule bump.
