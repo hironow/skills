@@ -4,9 +4,9 @@ A personal collection of agent skills: 44 skills, one directory each, with a `SK
 
 ## How this repository is used
 
-This repository is the `skills/` submodule of [hironow/dotfiles](https://github.com/hironow/dotfiles). `just sync-agents` there copies each skill directory into the agent homes (`~/.claude*/skills`, `~/.codex/skills`, `~/.gemini/skills`, `~/.agents/skills`; pi reads `~/.agents/skills` directly). The copy is additive: it adds skills that are missing and never overwrites or deletes an existing one, so after changing a skill here the home copies have to be refreshed once the change is merged and the submodule pointer is bumped in dotfiles. Use the command under [Maintaining](#refreshing-the-agent-homes): a plain `rsync` of the whole repository would also copy the tooling and `.venv/` into the homes, and the additive sync would never remove them again.
+Every agent home consumes this repository through the [`bunx skills`](https://skills.sh/) CLI, like any other skills source: `bunx skills add hironow/skills -g -s '*' -y -a universal` puts the skills into the CLI store (`~/.agents/skills`, which pi reads directly), and [hironow/dotfiles](https://github.com/hironow/dotfiles) declares them in `dump/harness/skill-lock.json` and links each one into `~/.claude*/skills`, `~/.codex/skills`, and `~/.gemini/skills` with `just skills-place` (relative symlinks into the store; tracked copies where symlinks are unavailable). After a change merges here, `just skills-update` in dotfiles refreshes the store and re-places the homes. When a third-party skill has the same name as one of ours, ours wins (dotfiles ADR 0043). dotfiles no longer carries this repository as a submodule.
 
-Third-party skills are not vendored here. They are installed with `bunx skills` and declared in `dump/harness/skill-lock.json` in dotfiles; a lock-managed name must never reappear in this repository (`just skills-lock-check` fails). The few skills here that started as a copy of an upstream skill record the compared upstream commit in `metadata.upstream` so the next comparison has a baseline.
+Third-party skills are not vendored here; they are declared in the same lock. The skills here that started as a copy of an upstream skill record the compared upstream revision in `metadata.upstream` so the next comparison has a baseline (see [Credits](#credits)).
 
 ## Conventions
 
@@ -22,7 +22,7 @@ Third-party skills are not vendored here. They are installed with `bunx skills` 
 
 1. Branch, edit, and run `just check` (see [Maintaining](#maintaining)). After adding, removing, or re-sourcing a skill, run `just readme-index` and commit the regenerated tables with the change.
 2. Open a pull request here (`main` is not pushed to directly); CI runs the same `just check` once the pull request is marked ready for review (drafts do not run CI); pull requests are squash-merged.
-3. Bump the `skills` submodule pointer in dotfiles and refresh the home copies (`just audit-consumers` shows which homes still hold an older copy).
+3. In dotfiles run `just skills-update` (store refresh + re-place); `just audit-consumers` here shows whether every home resolves to the new bytes.
 4. When a skill overlaps with an installed third-party skill, compare the two (`just compare <fork> <upstream-clone>`, then an independent reader) and keep one, or make the two descriptions mutually exclusive.
 
 ## Maintaining
@@ -33,7 +33,7 @@ The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/
 |---|---|
 | `just check` | the local gate CI runs: `lint` + `test` + `audit` + `readme-check` |
 | `just audit` | structural audit of every skill: frontmatter (`name` = directory, `description` ≤ 1024 chars, parseable YAML), relative links and `#anchors`, balanced code fences, emoji markers, the language rule, and the provenance contract (`metadata.provenance` / `upstream` / `upstream-license` / `changes`, bundled LICENSE) |
-| `just audit-consumers` | the audit plus a byte comparison against every agent home that holds a copy, and dangling-symlink detection; depends on the machine, so it is not part of `check` |
+| `just audit-consumers` | the audit plus a byte comparison against every agent home (through the symlinks the dotfiles `skills-place` recipe creates), and dangling-symlink detection; depends on the machine, so it is not part of `check` |
 | `just readme-index` / `just readme-check` | regenerate the generated blocks below from frontmatter / fail if they are stale |
 | `just compare <dir>...` | quantitative comparison of skill versions (fork first, then upstream copies): sizes, description length, tooling-rule violations, body diff |
 | `just test`, `just lint`, `just fmt` | the tooling's own unit tests, ruff + mypy (strict), ruff format |
@@ -42,19 +42,7 @@ The procedure around these recipes (judging a fork against its upstream, retirin
 
 ### Refreshing the agent homes
 
-Only skill directories belong in the homes; `scripts/`, `tests/`, `docs/`, the project files, and `.venv/` do not. From the repository root, after the submodule pointer is bumped:
-
-```sh
-for skill in */SKILL.md; do
-  d=${skill%/SKILL.md}
-  for home in ~/.claude ~/.claude-work-{a,b,c,d} ~/.codex ~/.gemini ~/.agents; do
-    [ -d "$home/skills" ] && [ ! -L "$home/skills/$d" ] && rsync -a --delete "$d/" "$home/skills/$d/"
-  done
-done
-just audit-consumers
-```
-
-Symlinked entries are skipped on purpose: they belong to the `bunx skills` CLI. `just audit-consumers` then confirms every home holds a byte-identical copy.
+The homes are symlinks into the CLI store, so nothing is copied by hand: `just skills-update` in dotfiles (or `bunx skills update -g -y` followed by `just skills-place`) brings every home to the merged revision. `just audit-consumers` then confirms that each home resolves every skill to bytes identical to this checkout and reports dangling links.
 
 ## Skills
 
