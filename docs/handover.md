@@ -17,9 +17,10 @@ Since 2026-09-02 (`main` 749791a → 0bf2e29, PRs #2–#13):
 
 dotfiles side: submodule pointer bumped to 328c2d8 and the declared skill lock re-dumped (hironow/dotfiles #346); Claude's `skillOverrides` no longer hides `xcodebuildmcp-cli`, `create-mcp-app`, `migrate-oai-app`, `jupyter-notebook` (#345). hironow/dotfiles #347 adds the spoke `docs/agents/skills-maintenance.md` (the procedure around the recipes) and thin wrappers (`just skills-audit` etc.) that delegate into this repository's `justfile`. All eight agent homes hold byte-identical copies of every skill at 0bf2e29.
 
+Tooling history: #14 moved the tooling here from dotfiles; #15 hardened it after an independent review (Windows shell prelude in the justfile, pytest `pythonpath` instead of a `sys.path` hack, a test pinning the Flatt PyPI index and a raw-pypi-free lock, the exact per-skill rsync for refreshing agent homes); #16 stops CI on draft pull requests (`ready_for_review` starts it). dotfiles #347 (merged) consumes the recipes through thin wrappers and denylists `scripts/` and `tests/` in its skills sync.
+
 ## In Progress
 
-- #14 (`feat/tooling`): the maintenance tooling moved here from dotfiles (this handover update is part of it). After it merges, dotfiles #347 is reworked to the thin-wrapper form and bumps the submodule pointer.
 - #11 (`docs/readme-and-handover`): `docs/intent.md` redraft, awaiting the requester's confirmation (see Next Actions).
 
 ## Next Actions

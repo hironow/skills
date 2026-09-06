@@ -21,7 +21,7 @@ Third-party skills are not vendored here. They are installed with `bunx skills` 
 ## Changing a skill
 
 1. Branch, edit, and run `just check` (see [Maintaining](#maintaining)). After adding, removing, or re-sourcing a skill, run `just readme-index` and commit the regenerated tables with the change.
-2. Open a pull request here (`main` is not pushed to directly); CI runs the same `just check`; pull requests are squash-merged.
+2. Open a pull request here (`main` is not pushed to directly); CI runs the same `just check` once the pull request is marked ready for review (drafts do not run CI); pull requests are squash-merged.
 3. Bump the `skills` submodule pointer in dotfiles and refresh the home copies (`just audit-consumers` shows which homes still hold an older copy).
 4. When a skill overlaps with an installed third-party skill, compare the two (`just compare <fork> <upstream-clone>`, then an independent reader) and keep one, or make the two descriptions mutually exclusive.
 

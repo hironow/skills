@@ -7,6 +7,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # ready_for_review is not in the default set; without it a draft that is
+    # marked ready would not get a run until its next push.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +18,9 @@ concurrency:
 jobs:
   check:
     name: lint + test + audit
+    # Draft pull requests do not run CI; the run starts when the PR is marked
+    # ready for review (or on the next push after that).
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
 
     steps:
