@@ -1,46 +1,46 @@
-# RUBRIC — 決定記録（ADR/PDR）の品質ルーブリック
+# RUBRIC — quality rubric for decision records (ADR/PDR)
 
-決定記録の**中身の質**を判定する評価基準表。フォーマット（必須ヘッダ・必須セクションの有無）は [REFERENCE.md](REFERENCE.md) §2/§4 で検査し、本ルーブリックは「書かれている内容が決裁に耐えるか」を測る。
+Criteria for judging the **substance** of a decision record. Format (required header fields and sections) is checked against [REFERENCE.md](REFERENCE.md) §2/§4; this rubric measures whether what is written can stand up to an approval decision.
 
-## 使い方（2つのゲート）
+## How to use it (two gates)
 
-- **起票ゲート**: 起票（作る）の完了前に全観点を採点。**0 が1つでもあれば起票完了としない**（Slack で決裁依頼する場合も投稿前に直す）。
-- **確定ゲート**: `status` を `Accepted`/`Rejected` にする前に再採点。**確定時必須観点（★印）がすべて 2 でなければ確定しない**。
-- 採点は `0 = 欠落/不合格`、`1 = あるが不十分`、`2 = 合格`。採点結果はユーザーへの報告に含める（例: `R1:2 R2:2 R3:1 …`）。
+- **Filing gate**: score every criterion before a record's filing (workflow A) is complete. **A single 0 means the filing is not complete** (fix it before posting an approval request to Slack, too).
+- **Settling gate**: score again before changing `status` to `Accepted` or `Rejected`. **Do not settle unless every gate criterion (marked "gate") is at 2.**
+- Scores: `0 = missing / fail`, `1 = present but insufficient`, `2 = pass`. Include the scores in the report to the user (for example `R1:2 R2:2 R3:1 …`).
 
-## 評価観点
+## Criteria
 
-| # | 観点 | 0（欠落） | 1（不十分） | 2（合格） |
+| # | criterion | 0 (missing) | 1 (insufficient) | 2 (pass) |
 |---|---|---|---|---|
-| R1 | **ヘッダ完全性** | 必須フィールド欠落／author がいるのに `author-slack` なし | 全フィールドあるが形式違反（採番重複・ファイル名不一致・ID が `<@U` 形式でない） | 全フィールドが REFERENCE §2 の規則どおり。author→`<@U…>` 対応済み |
-| R2 | **Context が事実** | 背景の記述なし | 意見・希望（「〜したい」「〜のほうが良さそう」）が事実に混在／結論が先に書かれている | 「なぜ今決める必要があるか」が検証可能な事実（実装と仕様の食い違い・障害・要望の出所）だけで書かれている |
-| R3 | **Decision の一意性** ★ | Decision セクションが空（Proposed の定型文も無い） | 「なるべく」「基本的に」「原則として（例外定義なし）」等の曖昧語／複数の独立決定が番号なしで混在 | 確定後は MUST/SHALL の一意な文。複数決定は D1/D2… 番号付き。Proposed 中は定型文「（Proposed。確定後に MUST 文で記述。）」 |
-| R4 | **Options の網羅と却下理由** ★ | 選択肢が1つ（=結論の追認）／セクションなし | 選択肢は複数あるが却下理由なし・比較軸（利点/コスト）なし／PDR なのに特定案へ誘導する書き方 | 現実的な選択肢が2つ以上、各案に利点/コストあり。確定時は不採用案すべてに却下理由あり。PDR は中立に併記 |
-| R5 | **Consequences の誠実さ** | セクションなし／Positive のみ | Negative が空・形だけ（「特になし」）／Positive/Negative/Neutral の区別なし | 採用案の代償（コスト・リスク・運用負担）が具体的に書かれている。3区分が明示されている |
-| R6 | **やさしい説明** | PDR なのにセクションなし | 専門用語が言い換えなしで残る／本文を読まないと要点が分からない | 非エンジニアがそこだけ読んで「何を・なぜ決めるか」が分かる（PDR 必須・ADR 推奨。ADR で省略時は 1 扱いまで） |
-| R7 | **読みやすさ（日本語主体）** | 本文が英語主体 | 英語専門用語の初出に日本語の言い換えなし／一文が長く非エンジニアに追えない | 日本語主体・初出用語に言い換え併記（例:「supersede（置き換え）」）・短文 |
-| R8 | **トレーサビリティ** ★ | queue 未登録／supersede なのに `supersedes:` なし | `related` が空同然／反転なのに `## 反転記録 (Reversal)` が none のまま／queue 行とヘッダの不一致 | queue・README 索引・supersession チェーン・反転記録がすべて整合。関連 OQ/gap/他記録にリンクあり |
-| R9 | **決定（記入待ち）の実行可能性** | セクションなし（Proposed なのに） | 選択肢チェックボックスだけで「決定後のアクション」なし／決定者・日付欄なし | 選択肢＋決定者/日付欄＋選択肢ごとの決定後アクションが揃い、決裁者がその場で記入できる |
-| R10 | **DR 間整合** ★ | 整合検査（REFERENCE §10）未実施／検出を黙殺・相談なしで起票・確定した | 検査が `related` 周辺のみで全件走査なし／検出はしたが矛盾先の関係者を巻き込まず処理した | 5分類で全 DR と照合済み。検出ゼロ、または検出ごとに関係者相談（Slack）を経て人間が裁定し、痕跡（スレッド・commit）が残っている |
+| R1 | **Header completeness** | A required field is missing, or there is an author but no `author-slack` | All fields present but a rule is broken (duplicate number, file name mismatch, ID not in `<@U` form) | Every field follows REFERENCE §2; the author is mapped to `<@U…>` |
+| R2 | **Context is factual** | No background | Opinions or wishes ("we'd like to", "seems better") mixed into the facts, or the conclusion written first | Why a decision is needed now is stated only in verifiable facts (a gap between implementation and spec, an incident, the source of a request) |
+| R3 | **Decision is unambiguous** (gate) | The Decision section is empty (not even the Proposed placeholder) | Hedges such as "preferably", "basically", "in principle" (with no exception defined), or several independent decisions mixed without numbers | Once settled: a single unambiguous MUST/SHALL statement; multiple decisions numbered D1, D2, …. While Proposed: the placeholder "（Proposed。確定後に MUST 文で記述。）" |
+| R4 | **Options are complete, rejections reasoned** (gate) | Only one option (the conclusion restated), or no section | Several options but no rejection reasons and no comparison axes (benefits/costs); a PDR written to steer toward one option | Two or more realistic options, each with benefits and costs; once settled, every rejected option has a reason; PDRs present options neutrally |
+| R5 | **Consequences are honest** | No section, or Positive only | Negative empty or perfunctory ("none in particular"); Positive/Negative/Neutral not distinguished | The cost of the chosen option (effort, risk, operational burden) is concrete, and the three categories are explicit |
+| R6 | **Plain-language explanation** | A PDR without the section | Jargon left unexplained; the gist cannot be understood without reading the body | A non-engineer can read just this section and understand what is being decided and why (mandatory for PDRs, recommended for ADRs; an ADR that omits it scores at most 1) |
+| R7 | **Readability (Japanese-first)** | The body is mostly English | English technical terms without a Japanese gloss on first use; sentences too long for a non-engineer to follow | Japanese-first, terms glossed on first use (for example「supersede（置き換え）」), short sentences |
+| R8 | **Traceability** (gate) | Not registered in the queue, or a supersede without `supersedes:` | `related` effectively empty; a reversal whose `## 反転記録 (Reversal)` is still `none`; queue row and header disagree | Queue, README index, supersession chain, and reversal record all consistent; links to related open questions, gaps, and other records |
+| R9 | **The pending-decision section is actionable** | Missing while Proposed | Option checkboxes only, with no follow-up actions, or no decision-maker/date fields | Options, decision-maker and date fields, and a follow-up action per option, so the approver can fill it in on the spot |
+| R10 | **Cross-DR consistency** (gate) | The consistency check (REFERENCE §10) was not run, or a finding was ignored and the record filed or settled without consultation | The check covered only the `related` neighbourhood, not a full scan; or a finding was handled without involving the people behind the conflicting record | Compared against every DR on all five categories. No findings, or every finding went through a Slack consultation with the people involved, a human ruled, and the trace (thread, commit) exists |
 
-★ = 確定ゲートで 2 必須（R3・R4・R8・R10）。
+Gate criteria (must be 2 at the settling gate): R3, R4, R8, R10.
 
-## 良い例 / 悪い例（R3 Decision）
+## Good and bad examples (R3 Decision)
 
-- ❌ 0点: 「（あとで書く）」
-- ⚠️ 1点: 「エラーレスポンスはなるべく統一フォーマットにする」（曖昧語・強制力なし）
-- ✅ 2点: 「D1. エラーレスポンスは `{error:{code,message}, meta}` 形式に統一しなければならない（MUST）。D2. HTTP ステータスは仕様の8系統に従う（MUST）。」
+- Score 0: 「（あとで書く）」
+- Score 1: 「エラーレスポンスはなるべく統一フォーマットにする」(a hedge, no force)
+- Score 2: 「D1. エラーレスポンスは `{error:{code,message}, meta}` 形式に統一しなければならない（MUST）。D2. HTTP ステータスは仕様の8系統に従う（MUST）。」
 
-## 良い例 / 悪い例（R4 Options）
+## Good and bad examples (R4 Options)
 
-- ❌ 0点: 「A) 統一する」（対案なし＝決裁ではなく事後報告）
-- ⚠️ 1点: 「A) 統一する B) 現状維持」（比較軸なし・却下理由なし）
-- ✅ 2点: 「A) envelope 統一 — 利点: 契約テスト基準が定まる／コスト: フロント同時修正。B) 現状維持 — 利点: 工数ゼロ／却下: 152 件の契約テスト失敗の判定基準が定まらないため却下。」
+- Score 0: 「A) 統一する」(no alternative: a report after the fact, not a decision)
+- Score 1: 「A) 統一する B) 現状維持」(no comparison axes, no rejection reason)
+- Score 2: 「A) envelope 統一 — 利点: 契約テスト基準が定まる／コスト: フロント同時修正。B) 現状維持 — 利点: 工数ゼロ／却下: 152 件の契約テスト失敗の判定基準が定まらないため却下。」
 
-## 採点の運用
+## Scoring in practice
 
-1. 作る（ワークフロー A）の完了前（Slack で決裁依頼する場合はその投稿前）に R1〜R10 を採点し、0 があれば修正してから先へ進む。
-2. 更新する（ワークフロー B）の status 変更直前に再採点し、★観点（R3/R4/R8/R10）が 2 でなければ確定処理を止めてユーザーに不足を報告する。
-3. 上書きする（ワークフロー C・supersede/反転）では新記録に対して同じゲートを適用する（R8 は supersession チェーン整合まで含めて見る）。
-4. R10 は「検出ゼロ」か「全検出が関係者相談（Slack）を経て裁定済み」のときだけ 2。相談を省略した処理は 0。
-5. 採点で迷ったら低い方を付ける（甘い自己採点が drift の入口）。
+1. Before completing a filing (workflow A) — and before posting an approval request to Slack — score R1–R10 and fix every 0 before continuing.
+2. Right before the status change in an update (workflow B), score again; if any gate criterion (R3/R4/R8/R10) is below 2, stop the settlement and report what is missing to the user.
+3. For a supersede or reversal (workflow C), apply the same gates to the new record (R8 includes the consistency of the supersession chain).
+4. R10 is 2 only when there are no findings or every finding has been ruled on after a Slack consultation with the people involved. A finding handled without consultation scores 0.
+5. When in doubt, give the lower score (lenient self-scoring is how drift starts).

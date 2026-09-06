@@ -1,56 +1,56 @@
 ---
 name: update-submodule-changelog
 description: |
-  サブモジュール（protocols/*, payments/*, gcloud/*）更新後に docs/changelogs.md を更新する。
-  「サブモジュール更新」「changelog更新」「プロトコル変更まとめ」などのキーワードで自動適用。
-  git submodule update 後や、依存関係の変更ドキュメント化に使用。
-argument-hint: [対象サブモジュール名（省略時は全て）]
+  Update docs/changelogs.md after submodules under protocols/*, payments/*, or gcloud/* change.
+  Applies automatically on keywords such as "サブモジュール更新", "changelog更新", "プロトコル変更まとめ",
+  after git submodule update, or whenever dependency changes need to be documented.
+argument-hint: [submodule name (all when omitted)]
 allowed-tools: Read, Write, Bash(git:*), Grep, Glob, Agent
 ---
 
 # Submodule Changelog Update Skill
 
-サブモジュール更新後に `docs/changelogs.md` を更新するためのワークフロー。
+The workflow for updating `docs/changelogs.md` after submodules change.
 
-## 概要
+## Overview
 
-このスキルは以下を行う：
-1. サブモジュールの変更を検出
-2. 各サブモジュールの CHANGELOG.md や git log から変更内容を収集
-3. `docs/changelogs.md` を適切なフォーマットで更新
+This skill:
+1. Detects which submodules changed
+2. Collects the changes from each submodule's CHANGELOG.md or git log
+3. Updates `docs/changelogs.md` in the agreed format
 
-**重要**: このchangelogは**各プロジェクトの最新リリース情報**を記録するもの。サブモジュールの実際のチェックアウト状態（`git submodule status`）ではなく、各リポジトリの最新タグ・リリースを調査して記載する。
+**Important**: this changelog records **each project's latest release**, not the submodule's checked-out state. Look up each repository's latest tag or release rather than trusting `git submodule status`.
 
-## ワークフロー
+## Workflow
 
-### Step 1: サブモジュール変更の検出
+### Step 1: Detect changed submodules
 
 ```bash
-# 変更されたサブモジュールを確認
+# Which submodules changed
 git status
 
-# 各サブモジュールの最新コミットを確認
+# Latest commit of each submodule
 git submodule status
 ```
 
-### Step 2: 変更内容の収集
+### Step 2: Collect the changes
 
-各サブモジュールについて以下を調査：
+For each submodule:
 
 ```bash
-# サブモジュールディレクトリに移動して最近のコミットを確認
+# Enter the submodule and look at recent commits
 cd <submodule-path>
 git log --oneline -10
 
-# CHANGELOG.md があれば読む
+# Read CHANGELOG.md if there is one
 cat CHANGELOG.md | head -100
 ```
 
-**調査対象**: `git submodule status` に出るサブモジュールのうち、外部ライブラリ／仕様のリポジトリ。自作・非ライブラリの `skills` / `knowledge-work-plugins` / `guardrails/**` / `tools/**` は除く。`git submodule status` は対象の**列挙にのみ**使い、記載するバージョンは各リポジトリの最新タグ・リリースを調べる（上記「重要」参照）。現在の配置は `protocols/`（プロトコル仕様）、`payments/`（決済系プロトコル）、`gcloud/`（Google Cloud / ADK）。
+**Scope**: the submodules listed by `git submodule status` that are external libraries or specifications. Exclude the self-authored, non-library ones: `skills` / `knowledge-work-plugins` / `guardrails/**` / `tools/**`. Use `git submodule status` **only to enumerate** the targets; the version you record is each repository's latest tag or release (see "Important" above). Current layout: `protocols/` (protocol specifications), `payments/` (payment protocols), `gcloud/` (Google Cloud / ADK).
 
-### Step 3: changelogs.md の更新
+### Step 3: Update changelogs.md
 
-`docs/changelogs.md` を以下の構造で更新：
+Update `docs/changelogs.md` with this structure (the document is written in Japanese; keep the headings as they are):
 
 ```markdown
 # プロトコル変更ログ
@@ -102,63 +102,63 @@ cat CHANGELOG.md | head -100
 - **対象**: 説明
 ```
 
-## フォーマット規約
+## Format conventions
 
-### バージョン表記
+### Version notation
 - semver: `v1.2.3`
-- 日付ベース: `YYYY-MM-DD`
-- 初期リリース: `初期リリース`
-- 最新追従: `latest`
+- date-based: `YYYY-MM-DD`
+- first release: `初期リリース`
+- tracking the tip: `latest`
 
-### 変更点の書き方
-- **太字**で機能名を記載
-- コロン `:` の後に説明
-- コード参照は `` ` `` で囲む
-- PR/Issue 番号は `(#123)` 形式
+### Writing a change entry
+- Feature name in **bold**
+- A colon `:` followed by the description
+- Code references in backticks
+- PR and issue numbers as `(#123)`
 
-### 破壊的変更
-- 必ず「破壊的変更」セクションに記載
-- 影響範囲を明記
-- 移行方法があれば記載
+### Breaking changes
+- Always listed under the breaking-changes section
+- State the affected area
+- Include the migration path if there is one
 
-## 調査のヒント
+## Research tips
 
-### 最新リリースの確認方法
+### Finding the latest release
 ```bash
-# リポジトリの最新タグを確認（チェックアウト状態とは異なる可能性あり）
+# Latest tags of the repository (may differ from the checked-out state)
 cd <submodule-path>
 git fetch --tags
 git tag -l --sort=-v:refname | head -5
 
-# CHANGELOG.md から最新リリースを読む
+# Latest release from CHANGELOG.md
 cat CHANGELOG.md | head -100
 ```
 
-**注意**: `git submodule status` はチェックアウト状態を表示する。最新リリースを確認するには `git tag` や CHANGELOG.md を見ること。
+**Note**: `git submodule status` shows the checked-out state. Use `git tag` or CHANGELOG.md to find the latest release.
 
-### CHANGELOG.md がない場合
+### When there is no CHANGELOG.md
 ```bash
-# 最近のコミットから変更を推測
+# Infer the changes from recent commits
 git log --oneline -20
 git log --pretty=format:"%s" -10
 
-# タグから最新バージョンを確認
+# Latest version from tags
 git describe --tags --abbrev=0
 git tag -l | tail -5
 ```
 
-## チェックリスト
+## Checklist
 
-更新完了前に確認：
+Before declaring the update done:
 
-- [ ] 最終更新日が今日の日付になっている
-- [ ] **バージョンが各リポジトリの最新リリースを反映している**（チェックアウト状態ではない）
-- [ ] 新規追加プロトコルが「注目ポイント」に記載されている
-- [ ] 破壊的変更が一覧表にまとめられている
-- [ ] 各セクションの参考リンクが有効
-- [ ] 日本語が自然である
-- [ ] 古い情報が削除されている（重要な後方互換情報は除く）
+- [ ] 最終更新 shows today's date
+- [ ] **Versions reflect each repository's latest release** (not the checked-out state)
+- [ ] Newly added protocols appear under 注目ポイント
+- [ ] Breaking changes are collected in the summary table
+- [ ] Every reference link in each section resolves
+- [ ] The Japanese reads naturally
+- [ ] Stale information is removed (except backward-compatibility notes that still matter)
 
-## コミットしない
+## Do not commit
 
-変更の確認はユーザーに任せる。コミットはユーザーの指示を待つ。
+Leave reviewing the change to the user. Wait for the user's instruction before committing.

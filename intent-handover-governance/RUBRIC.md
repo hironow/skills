@@ -1,65 +1,52 @@
-# RUBRIC — intent.md / handover.md の品質ルーブリック
+# RUBRIC — quality rubric for intent.md / handover.md
 
-**中身の質**を判定する評価基準表。フォーマット（必須ヘッダ・必須セクションの有無）は
-[REFERENCE.md](REFERENCE.md) §2/§3 で検査し、本ルーブリックは「次の担い手・依頼者の
-役に立つか」を測る。
+Criteria for judging the **substance** of the two files. Format (required header fields and sections) is checked against [REFERENCE.md](REFERENCE.md) §2/§3; this rubric measures whether the file is useful to the next actor and to the requester.
 
-## 使い方（2つのゲート）
+## How to use it (two gates)
 
-- **intent ゲート**: `docs/intent.md` の新規作成・更新の書込み前に I1〜I5 を採点。
-  **0 が1つでもあれば書込みしない**。加えて**人間の draft 承認が必須**（採点 2 でも
-  未承認なら書込み禁止）。
-- **handover ゲート**: `docs/handover.md` の書込み前に H1〜H6 を採点。
-  **★観点（H1/H3/H5）がすべて 2 でなければ書込みしない**。
-- 採点は `0 = 欠落/不合格`、`1 = あるが不十分`、`2 = 合格`。採点結果はユーザーへの
-  報告に含める（例: `I1:2 I2:1 … / H1:2 H2:2 …`）。
-- 採点で迷ったら低い方を付ける（甘い自己採点が drift の入口）。
+- **Intent gate**: score I1–I5 before creating or updating `docs/intent.md`. **A single 0 means no write.** In addition, **the human must approve the draft** (a perfect score without approval still means no write).
+- **Handover gate**: score H1–H6 before writing `docs/handover.md`. **Do not write unless every gate criterion (H1/H3/H5) is at 2.**
+- Scores: `0 = missing / fail`, `1 = present but insufficient`, `2 = pass`. Include the scores in the report to the user (for example `I1:2 I2:1 … / H1:2 H2:2 …`).
+- When in doubt, give the lower score (lenient self-scoring is how drift starts).
 
-## intent の評価観点
+## Intent criteria
 
-| # | 観点 | 0（欠落） | 1（不十分） | 2（合格） |
+| # | criterion | 0 (missing) | 1 (insufficient) | 2 (pass) |
 |---|---|---|---|---|
-| I1 | **意図の出所** | 人間に確認せず AI が推測で書いた箇所がある | 確認したが曖昧な回答のまま埋めた／仮定が仮定と明示されていない | 全項目が人間の回答・明示指示に由来し、未確定は Open Questions に隔離されている |
-| I2 | **Goal の一意性** | Goal が無い／手段の列挙だけで結果が書かれていない | 複数の独立した目的が混在／読む人によって解釈が割れる | 依頼者が求める**結果**が1〜2文で一意に読める |
-| I3 | **Success Criteria の検証可能性** | 無い | 「良くなる」「速くなる」等の観測不能な表現 | 各項目が観測・検証可能（テスト・数値・成果物の存在で判定できる） |
-| I4 | **Scope 境界** | In/Out の区別が無い | In scope のみで non-goals が空／境界が曖昧で拡大解釈できる | やらないこと（non-goals）が明記され、作業中の判断に使える境界になっている |
-| I5 | **鮮度** | `Last updated` が無い／相対日付がある | 日付はあるが intent の変化が反映されていない疑い | 絶対日付で、現在の work unit と一致している |
+| I1 | **Provenance of the intent** | Some part was guessed by the AI without asking the human | The human was asked but a vague answer was filled in as is, or an assumption is not marked as one | Every item comes from the human's answers or explicit instructions; anything unsettled is isolated in Open Questions |
+| I2 | **Goal is unambiguous** | No Goal, or only a list of means with no result | Several independent goals mixed together, or readers would interpret it differently | The **result** the requester wants reads unambiguously in one or two sentences |
+| I3 | **Success criteria are verifiable** | None | Unobservable wording such as "better" or "faster" | Every item is observable and verifiable (a test, a number, the existence of an artifact) |
+| I4 | **Scope boundary** | No in/out distinction | In scope only, with empty non-goals, or a boundary vague enough to stretch | Non-goals are explicit and usable as a boundary for judgement calls during the work |
+| I5 | **Freshness** | No `Last updated`, or a relative date | A date exists but the intent may not reflect a change | An absolute date that matches the current work unit |
 
-## handover の評価観点
+## Handover criteria
 
-| # | 観点 | 0（欠落） | 1（不十分） | 2（合格） |
+| # | criterion | 0 (missing) | 1 (insufficient) | 2 (pass) |
 |---|---|---|---|---|
-| H1 | **Current State の事実性** ★ | 無い／未検証の希望的観測（「動くはず」） | 事実と推測が混在し区別が無い | 検証済みの事実のみ（テスト結果・merge 状態・実測）。推測は推測と明示 |
-| H2 | **2分で読める** | 全体を読むのに5分超／過去ログの堆積がある | 読めるが冗長・他 artifact の内容をコピーしている | 簡潔で、詳細はパス/URL/ID 参照に逃がしてある |
-| H3 | **Next Actions の実行可能性** ★ | 無い／「続きをやる」レベル | 方向はあるが着手に追加調査が要る | 次の担い手が**そのまま着手できる**粒度（コマンド・パス・skill 名まで） |
-| H4 | **リスク・待ちの明示** | Known Risks が無い／外部待ちが暗黙 | 項目はあるが緩和策・待ち先が無い | リスクに緩和策、外部待ちに「誰の・何を・いつから」がある |
-| H5 | **整合検査済み** ★ | 整合検査（REFERENCE §5）未実施／検出を黙殺して書いた | 検査したが branch/PR の実在確認を省いた | 5分類で照合済み。検出ゼロ、または検出ごとに人間の裁定を得て痕跡が残っている |
-| H6 | **重複排除** | intent の Goal を再掲している | PR/ADR にある内容の要約超えのコピーがある | intent・他 artifact は参照のみ。handover 固有の情報だけが本文にある |
+| H1 | **Current State is factual** (gate) | Missing, or unverified hopes ("should work") | Facts and guesses mixed without distinction | Verified facts only (test results, merge state, measurements); guesses marked as guesses |
+| H2 | **Readable in two minutes** | Takes more than five minutes, or accumulated old logs | Readable but verbose, or copies content from other artifacts | Concise; detail pushed out to path/URL/ID references |
+| H3 | **Next Actions are actionable** (gate) | Missing, or at the level of "continue" | A direction exists but starting needs more investigation | The next actor can **start directly** (down to commands, paths, and skill names) |
+| H4 | **Risks and waits are explicit** | No Known Risks, or an implicit external wait | Items exist but lack a mitigation or the party being waited on | Every risk has a mitigation; every external wait names who, what, and since when |
+| H5 | **Consistency check done** (gate) | The check (REFERENCE §5) was not run, or a finding was ignored and the file written anyway | The check ran but skipped confirming that branches and PRs exist | Compared on all five categories; no findings, or every finding has a human ruling with a trace |
+| H6 | **No duplication** | Restates the intent's Goal | Copies more than a summary of what is already in a PR or ADR | The intent and other artifacts are only referenced; only handover-specific information is in the body |
 
-★ = handover ゲートで 2 必須（H1・H3・H5）。
+Gate criteria (must be 2 at the handover gate): H1, H3, H5.
 
-## 良い例 / 悪い例（H3 Next Actions）
+## Good and bad examples (H3 Next Actions)
 
-- ❌ 0点: 「1. 残りを実装する」
-- ⚠️ 1点: 「1. テストを直す」（どのテスト？何が原因？）
-- ✅ 2点: 「1. `tests/unit/test_sync.py::test_additive` の赤を直す —
-  原因は `ADDITIVE_DIRECTORIES` に `skills` 追加後の fixture 未更新
-  （`scripts/sync_agents.py:142` 参照）。直したら `just ci`。」
+- Score 0: 「1. 残りを実装する」
+- Score 1: 「1. テストを直す」(which test? what is the cause?)
+- Score 2: 「1. `tests/unit/test_sync.py::test_additive` の赤を直す — 原因は `ADDITIVE_DIRECTORIES` に `skills` 追加後の fixture 未更新（`scripts/sync_agents.py:142` 参照）。直したら `just ci`。」
 
-## 良い例 / 悪い例（I3 Success Criteria）
+## Good and bad examples (I3 Success Criteria)
 
-- ❌ 0点: （セクションなし）
-- ⚠️ 1点: 「- 引き継ぎがスムーズになる」
-- ✅ 2点: 「- 新しいセッションが docs/handover.md だけを読んで、質問なしで
-  Next Actions の1番に着手できる」
+- Score 0: (no section)
+- Score 1: 「- 引き継ぎがスムーズになる」
+- Score 2: 「- 新しいセッションが docs/handover.md だけを読んで、質問なしで Next Actions の1番に着手できる」
 
-## 採点の運用
+## Scoring in practice
 
-1. intent の書込み（ワークフロー A）前に I1〜I5 を採点し、0 を直し、draft を人間に
-   提示して承認を得る。承認なしの書込みは採点に関係なく禁止。
-2. handover の書込み（ワークフロー B）前に H1〜H6 を採点し、★（H1/H3/H5）が 2 で
-   なければ直してから提示する。
-3. 引き継ぎ（ワークフロー C）では採点は不要だが、REFERENCE §6 のチェックリストを
-   完了してから作業に入る。
-4. H5 は「検出ゼロ」か「全検出が人間の裁定済み」のときだけ 2。**黙殺・自動修正は
-   0 扱い**（そもそも禁止）。
+1. Before writing the intent (workflow A), score I1–I5, fix every 0, then present the draft to the human and obtain approval. Writing without approval is forbidden regardless of the score.
+2. Before writing the handover (workflow B), score H1–H6; if any gate criterion (H1/H3/H5) is below 2, fix it before presenting.
+3. Handing over (workflow C) needs no scoring, but complete the checklist in REFERENCE §6 before starting work.
+4. H5 is 2 only when there are no findings or every finding has a human ruling. **Ignoring or auto-fixing a finding scores 0** (and is forbidden in the first place).

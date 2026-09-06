@@ -1,95 +1,97 @@
-# REFERENCE — 決定記録・decision queue・Slack 連携の詳細仕様
+# REFERENCE — decision records, the decision queue, and Slack integration
 
-Nygard 流 ADR を厳密化した決定記録ガバナンス（不変・supersede・反転記録）に基づく運用ルールの詳細。
+Detailed rules for decision-record governance: Nygard-style ADRs made strict (immutable records, supersession, reversal records).
 
-## 目次
+## Contents
 
-1. [用語](#1-用語)
-2. [決定記録の必須ヘッダ](#2-決定記録の必須ヘッダ全項目必須空欄禁止)
-3. [ステータス語彙とライフサイクル](#3-ステータス語彙とライフサイクルこの語彙以外禁止遷移は一方向)
-4. [決定記録の必須セクション](#4-決定記録の必須セクション)
-5. [Decision Queue ファイルの仕様](#5-decision-queue-ファイルの仕様)
-6. [Slack メンション ID の取り扱い](#6-slack-メンション-id-の取り扱い)
-7. [Slack メッセージテンプレ](#7-slack-メッセージテンプレ)
-8. [Slack API 投稿の具体例](#8-slack-api-投稿の具体例slack_bot_token-がある場合)
-9. [README 連動更新](#9-readme-連動更新確定supersede-時)
-10. [DR 間整合検査](#10-dr-間整合検査cross-consistency-check--検出は必須裁定は人間)
+1. [Terms](#1-terms)
+2. [Required header fields](#2-required-header-fields-every-field-mandatory-no-blanks)
+3. [Status vocabulary and lifecycle](#3-status-vocabulary-and-lifecycle-no-other-words-transitions-are-one-way)
+4. [Required sections](#4-required-sections)
+5. [The decision queue file](#5-the-decision-queue-file)
+6. [Slack mention IDs](#6-slack-mention-ids)
+7. [Slack message templates](#7-slack-message-templates)
+8. [Posting with the Slack API](#8-posting-with-the-slack-api-when-slack_bot_token-is-available)
+9. [README updates](#9-readme-updates-on-settlement-and-supersede)
+10. [Cross-DR consistency check](#10-cross-dr-consistency-check--detection-is-mandatory-the-ruling-is-human)
 
-## 1. 用語
+## 1. Terms
 
-- **ADR** (Architecture Decision Record): 技術・設計・アーキテクチャの決定記録。`docs/adr/`。決める人はエンジニア/アーキテクト。
-- **PDR** (Product Decision Record): プロダクト・UX・業務仕様の決定記録。`docs/pdr/`。決める人はプロダクト/運用/ビジネス。
-- **Decision Queue**: 未承認決定（Proposed）の決裁待ち一覧 md ファイル（既定パス: `docs/decision-queue.md`）。「誰が・何を・いつ決めるか」と Slack 連携状態の SSoT（唯一の正）。
-- **supersede（置き換え）**: 既存の決定を新しい記録で置換すること。旧記録は削除せず残す。
-- **reversal（反転）**: 旧決定と実質逆の結論で supersede すること。反転記録セクションが必須。
+- **ADR** (Architecture Decision Record): a technical, design, or architecture decision. Lives in `docs/adr/`. Decided by engineers or architects.
+- **PDR** (Product Decision Record): a product, UX, or business-rule decision. Lives in `docs/pdr/`. Decided by product, operations, or business owners.
+- **Decision queue**: the markdown list of undecided (`Proposed`) records awaiting approval (default path `docs/decision-queue.md`). The single source of truth for who decides what by when, and for the Slack thread state.
+- **Supersede**: replace an existing decision with a new record. The old record is kept, never deleted.
+- **Reversal**: a supersede whose conclusion is effectively the opposite of the old decision. A reversal section is mandatory.
 
-## 2. 決定記録の必須ヘッダ（全項目必須・空欄禁止）
+## 2. Required header fields (every field mandatory, no blanks)
 
-| field | 規則 |
+| field | rule |
 |---|---|
-| `id` | `ADR-NNNN` / `PDR-NNNN`（4桁ゼロ詰・連番・再利用/重複/欠番埋め禁止） |
-| `title` | 決定内容が一意に分かる名詞句/動詞句。ファイル名 `NNNN-kebab-title.md` と一致 |
-| `status` | 下記ステータス語彙のみ |
-| `date` | 起票日（ISO 8601） |
-| `decided-date` | Accepted/Rejected 化した日。Proposed の間は `—` |
-| `decision-maker` | 実名/ロール。Accepted では必須（Proposed は `TBD` 可） |
-| `author` | 起票者。存在する場合は次の `author-slack` が必須 |
-| `author-slack` | 作者の Slack メンション ID（`<@UXXXXXXXX>`）。**author がいる限り空欄・省略禁止** |
-| `supersedes` | 旧記録 ID。無ければ `none` |
-| `superseded-by` | 後続記録 ID。無ければ `none` |
-| `related` | 関連 OQ / gap-ID / 他の決定記録への cross-ref |
+| `id` | `ADR-NNNN` / `PDR-NNNN` (four digits, zero-padded, sequential; never reused, duplicated, or back-filled) |
+| `title` | A noun or verb phrase that identifies the decision unambiguously. Matches the file name `NNNN-kebab-title.md` |
+| `status` | One of the status words in §3 only |
+| `date` | Filing date (ISO 8601) |
+| `decided-date` | Date the record became Accepted or Rejected. `—` while Proposed |
+| `decision-maker` | Real name or role. Mandatory once Accepted (`TBD` is allowed while Proposed) |
+| `author` | Who filed the record. If present, `author-slack` is mandatory |
+| `author-slack` | The author's Slack mention ID (`<@UXXXXXXXX>`). **Never blank or omitted while there is an author** |
+| `supersedes` | ID of the record this one replaces, or `none` |
+| `superseded-by` | ID of the record that replaced this one, or `none` |
+| `related` | Cross-references to related open questions, gap IDs, or other decision records |
 
-## 3. ステータス語彙とライフサイクル（この語彙以外禁止・遷移は一方向）
+## 3. Status vocabulary and lifecycle (no other words; transitions are one-way)
 
 ```
-Proposed ──▶ Accepted ──▶ Superseded   (後継記録に置換)
-        │            └──▶ Deprecated   (廃止・後継なし)
+Proposed ──▶ Accepted ──▶ Superseded   (replaced by a successor record)
+        │            └──▶ Deprecated   (retired, no successor)
         ├──▶ Rejected
-        └──▶ Deferred ──▶ Proposed     (再起票時のみ)
+        └──▶ Deferred ──▶ Proposed     (only when re-filed)
 ```
 
-- `Accepted → Proposed` への差し戻し禁止。変更は新規起票＋supersede。
-- 各遷移に日付＋実行者を残す（`decided-date` ＋ commit）。
+- `Accepted → Proposed` is forbidden. Change means a new record plus supersede.
+- Every transition leaves a date and an actor (`decided-date` plus the commit).
 
-## 4. 決定記録の必須セクション
+## 4. Required sections
 
-- `## Context` — 背景・なぜ決めるか（事実のみ）。
-- `## Decision` — 唯一の確定文。MUST/SHALL で一意に。複数決定は D1/D2… と番号付与。Proposed の間は「（Proposed。確定後に MUST 文で記述。）」と書く。
-- `## Options Considered` — 採用案＋却下案を全列挙し、却下理由必須。
-- `## Consequences` — `Positive` / `Negative` / `Neutral` を明示。
-- `## 反転記録 (Reversal)` — 反転 supersede のときのみ必須。それ以外は `none`。
-- `## やさしい説明` — 非エンジニア向け（PDR 必須・ADR 推奨）。専門用語なしで要点が分かるように。
-- `## 決定（記入待ち）` — Proposed のとき必須。選択肢チェックボックス＋決定者/日付欄＋決定後のアクション。
+- `## Context` — the background and why a decision is needed now (facts only).
+- `## Decision` — the single settled statement, unambiguous, in MUST/SHALL form. Number multiple decisions D1, D2, …. While Proposed, write the placeholder "（Proposed。確定後に MUST 文で記述。）".
+- `## Options Considered` — every option, chosen and rejected, each rejected one with its reason.
+- `## Consequences` — explicit `Positive` / `Negative` / `Neutral`.
+- `## 反転記録 (Reversal)` — mandatory only for a reversal supersede; otherwise `none`.
+- `## やさしい説明` — a plain-language explanation for non-engineers (mandatory for PDRs, recommended for ADRs). The gist must be clear without jargon.
+- `## 決定（記入待ち）` — mandatory while Proposed: option checkboxes, decision-maker and date fields, and the follow-up actions per option.
 
-本文は日本語主体。英語専門用語は初出時に日本語の言い換えを併記する。
+Record bodies are written primarily in Japanese (the templates are Japanese). Give a Japanese gloss for every English technical term on first use.
 
-## 5. Decision Queue ファイルの仕様
+## 5. The decision queue file
 
-- 既定パス: `docs/decision-queue.md`（リポジトリによって異なる場合はユーザーに確認）。
-- 構成: ①使い方 ②早見表（決裁待ち） ③決定済みログ。テンプレ: [templates/decision-queue.md](templates/decision-queue.md)。
-- 早見表の必須列: `ID` / `何を決める（ひとことで）` / `種別` / `作者` / `作者 Slack` / `決める人` / `決裁者 Slack` / `期限` / `状態` / `Slack スレッド` / `最終催促日` / `備考` / `元ファイル`。`備考` には整合検査の裁定結果（§10.3）や特記事項を残す。
-- **検証ルール（登録・更新のたびに確認）**:
-  1. `作者` 列に値がある行は `作者 Slack` 列に `<@U` で始まるメンション ID が必ずある。
-  2. queue の行と決定記録ヘッダ（`status` / `author-slack` 等）が一致している。
-  3. `Proposed` でない記録が早見表に残っていない（決定済みログへ移す）。
-  4. 早見表の全行に対応する記録ファイルが実在する。
-- 決定済みログへ移す際は `決定日` / `決定者` / `結論（Accepted/Rejected/Deferred＋要約）` を追記する。
+- Default path: `docs/decision-queue.md` (confirm with the user if the repository differs).
+- Structure: (1) how to use, (2) the summary table of records awaiting approval, (3) the decided log. Template: [templates/decision-queue.md](templates/decision-queue.md).
+- Required columns of the summary table: `ID` / `何を決める（ひとことで）` / `種別` / `作者` / `作者 Slack` / `決める人` / `決裁者 Slack` / `期限` / `状態` / `Slack スレッド` / `最終催促日` / `備考` / `元ファイル`. `備考` (notes) holds consistency-check rulings (§10.3) and anything else worth noting.
+- **Validation rules (check on every registration and update)**:
+  1. Every row with a value in `作者` (author) has a mention ID starting with `<@U` in `作者 Slack`.
+  2. The queue row and the record header agree (`status`, `author-slack`, and so on).
+  3. No record that is no longer `Proposed` remains in the summary table (move it to the decided log).
+  4. Every row in the summary table has an existing record file.
+- When moving a row to the decided log, add `決定日` (decided date), `決定者` (decision-maker), and `結論` (Accepted/Rejected/Deferred plus a summary).
 
-## 6. Slack メンション ID の取り扱い
+## 6. Slack mention IDs
 
-- 形式は `<@UXXXXXXXX>`（メンバー ID）。表示名や `@name` 文字列はメンションにならないため不可。
-- ID の入手方法（優先順）:
-  1. ユーザーに直接確認（Slack プロフィール →「メンバー ID をコピー」）。
-  2. `$SLACK_BOT_TOKEN` があれば `users.lookupByEmail` で引く:
+- The form is `<@UXXXXXXXX>` (member ID). Display names and `@name` strings do not produce a mention and are not acceptable.
+- How to obtain one, in order:
+  1. Ask the user directly (Slack profile → "Copy member ID").
+  2. With `$SLACK_BOT_TOKEN`, look it up with `users.lookupByEmail`:
      `curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" "https://slack.com/api/users.lookupByEmail?email=<email>"`
-  3. 既存の queue・決定記録・git log から同一人物の ID を再利用。
-- **見つからない場合は登録をブロックしてユーザーに確認する。推測・捏造は禁止。**
+  3. Reuse the same person's ID from the existing queue, records, or git log.
+- **If it cannot be found, block the registration and ask the user. Guessing or fabricating is forbidden.**
 
-## 7. Slack メッセージテンプレ
+## 7. Slack message templates
 
-> Slack は「決めた人・作者に聞く／依頼する／催促する」相談の場。決裁依頼・催促・確定報告は必要時に、**整合検査検出時の関係者相談は必須**（テンプレは §10.3）に使う。記録の作成・更新・上書きそのものは常にリポジトリ内の md ファイルで完結させる（Slack の発言は決定の根拠メモであって SSoT ではない）。
+> Slack is where you ask, request, and remind the decision-maker and the author. Approval requests, reminders, and settlement notices are posted when needed; **consulting the people involved about a consistency-check finding is mandatory** (template in §10.3). Creating, updating, and superseding records always happens in the markdown files in the repository — a Slack message is supporting evidence for a decision, never the source of truth.
 
-### 起票通知（決裁依頼）
+The message bodies below are in Japanese because that is the language of the teams that read them; keep them as they are.
+
+### Filing notice (approval request)
 ```
 :bell: 決裁依頼 {ID}「{title}」
 起票: {author-slack} ／ 決裁者: {decider-slack} ／ 期限: {YYYY-MM-DD}
@@ -99,13 +101,13 @@ Proposed ──▶ Accepted ──▶ Superseded   (後継記録に置換)
 このスレッドで「Accept / 修正のうえ Accept / Reject / Deferred」を返信してください。
 ```
 
-### 催促
+### Reminder
 ```
 :alarm_clock: リマインド {ID}「{title}」（期限 {YYYY-MM-DD}{超過 n 日}）
 {decider-slack} 決裁をお願いします。選択肢と詳細は上記（または {リンク}）。
 ```
 
-### 確定報告
+### Settlement notice
 ```
 :white_check_mark: 決定 {ID}「{title}」→ {Accepted/Rejected/Deferred}
 決定者: {decision-maker} ／ 決定日: {YYYY-MM-DD}
@@ -113,67 +115,67 @@ Proposed ──▶ Accepted ──▶ Superseded   (後継記録に置換)
 {author-slack} 後続アクション: {決定後にやること}
 ```
 
-### supersede / 反転通知
+### Supersede / reversal notice
 ```
 :arrows_counterclockwise: 決定の置換 {新ID} が {旧ID} を supersede（{反転あり/なし}）
 理由: {要約} ／ 詳細: {リンク}
 ```
 
-## 8. Slack API 投稿の具体例（`$SLACK_BOT_TOKEN` がある場合）
+## 8. Posting with the Slack API (when `$SLACK_BOT_TOKEN` is available)
 
 ```bash
-# チャンネルへ投稿（返り値の ts をスレッド ID として queue に記録する）
+# Post to a channel (record the returned ts in the queue as the thread ID)
 curl -s -X POST https://slack.com/api/chat.postMessage \
   -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
   -H "Content-Type: application/json; charset=utf-8" \
-  -d '{"channel": "{#channel または C…ID}", "text": "{テンプレ本文}"}'
+  -d '{"channel": "{#channel or C…ID}", "text": "{template body}"}'
 
-# スレッドへ返信（催促・確定報告）
+# Reply in the thread (reminders, settlement notices)
 curl -s -X POST https://slack.com/api/chat.postMessage \
   -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
   -H "Content-Type: application/json; charset=utf-8" \
-  -d '{"channel": "{C…}", "thread_ts": "{queue に記録した ts}", "text": "{本文}"}'
+  -d '{"channel": "{C…}", "thread_ts": "{ts recorded in the queue}", "text": "{body}"}'
 ```
 
-- 投稿成功時は `ok: true` を確認し、`ts` を queue の `Slack スレッド` 列に `{channel}/{ts}` 形式で記録する。
-- `ok: false` ならエラー（`channel_not_found` / `not_in_channel` 等）をユーザーに報告し、リトライ前に原因を解消する。
-- メンションを有効にするため本文はプレーンテキストの `<@U…>` をそのまま含める（エスケープしない）。
+- On success, confirm `ok: true` and record `ts` in the queue's `Slack スレッド` column as `{channel}/{ts}`.
+- On `ok: false`, report the error (`channel_not_found`, `not_in_channel`, …) to the user and resolve the cause before retrying.
+- Keep `<@U…>` as plain text in the body (do not escape it) so the mention works.
 
-## 9. README 連動更新（確定・supersede 時）
+## 9. README updates (on settlement and supersede)
 
-- `docs/adr/README.md` / `docs/pdr/README.md` の索引に新記録を追記。
-- supersede/反転時は README 末尾の `## 決定変更ログ (Decision Change Log)` に
-  `YYYY-MM-DD: {旧ID}「A」→ {新ID}「B」（理由）` 形式で1行追記。
+- Add the new record to the index in `docs/adr/README.md` / `docs/pdr/README.md`.
+- On supersede or reversal, append one line to `## 決定変更ログ (Decision Change Log)` at the end of the README in the form
+  `YYYY-MM-DD: {旧ID}「A」→ {新ID}「B」（理由）`.
 
-## 10. DR 間整合検査（cross-consistency check）— 検出は必須・裁定は人間
+## 10. Cross-DR consistency check — detection is mandatory, the ruling is human
 
-ADR/PDR を**作る・更新する・上書きする前に必ず**、対象記録を他の全 DR（ADR ∪ PDR）と照合する。
-**1件でも検出したら作業を止めて指摘し、矛盾先 DR の関係者を巻き込んだ相談（§10.3）を必ず実施する。解消方法は相談を経て人間が決める。**
+**Before creating, updating, or superseding any ADR/PDR**, compare the record against every other DR (ADR ∪ PDR).
+**If even one finding comes up, stop, report it, and run the consultation with the people behind the conflicting DR (§10.3). A human decides the resolution after that consultation.**
 
-### 10.1 検査の5分類
+### 10.1 The five categories
 
-| 分類 | 定義 | 検出例 |
+| category | definition | example |
 |---|---|---|
-| **矛盾 (contradiction)** | 対象の Decision が、既存の `Accepted` 記録の Decision と両立しない（supersedes 宣言なしで） | ADR-0031 が「cross-aggregate tx 禁止（allowlist 外）」なのに、新 ADR が allowlist 外の tx を MUST で許可 |
-| **重複 (duplication)** | 同じ決定対象を扱う既存記録が存在する（1決定=1記録違反・二重決裁の危険・採番重複も含む） | 同一論点の ADR と PDR が並立／`0024` が2件のような採番衝突 |
-| **誤解 (misreading)** | 他 DR の内容を誤って引用・要約・前提にしている | Context に「ADR-0027 は X を許可している」と書くが、実際の 0027 は X を禁止 |
-| **関連の誤謬 (false relation)** | `related` に挙げた DR/OQ/gap が実際は無関係、または明らかに関連する記録が `related` から欠落 | tx 境界の新 ADR が ADR-0031 を related に持たない |
-| **関係の錯誤 (mistaken relationship)** | supersession チェーンや記録間の関係種別の誤り | 「補足」なのに `supersedes` と宣言／反転なのに反転記録なしの通常 supersede／`supersedes` と旧記録側 `superseded-by` の双方向不一致 |
+| **Contradiction** | The record's Decision cannot coexist with the Decision of an existing `Accepted` record (without declaring `supersedes`) | ADR-0031 forbids cross-aggregate transactions outside an allowlist, and the new ADR permits one outside the allowlist with a MUST |
+| **Duplication** | An existing record already covers the same decision (a "one decision = one record" violation, a risk of double approval; includes numbering collisions) | An ADR and a PDR on the same question side by side; two records both numbered `0024` |
+| **Misreading** | Another DR is quoted, summarised, or relied on incorrectly | The Context says "ADR-0027 permits X" when 0027 actually forbids X |
+| **False relation** | A DR, open question, or gap listed in `related` is actually unrelated, or an obviously related record is missing from `related` | A new ADR on transaction boundaries does not list ADR-0031 in `related` |
+| **Mistaken relationship** | The supersession chain or the kind of relationship between records is wrong | A "supplement" declared as `supersedes`; a reversal filed as a plain supersede without a reversal section; `supersedes` and the old record's `superseded-by` do not match |
 
-### 10.2 検査手順
+### 10.2 Procedure
 
-1. **全件走査**: `docs/adr/` と `docs/pdr/` の全ファイルのタイトル・ヘッダ（`status`/`supersedes`/`superseded-by`/`related`）を一覧化する（grep で可）。
-2. **候補抽出**: 対象記録のキーワード・対象領域（例: tx、API、暗号鍵、承認フロー）で既存記録を検索し、関連候補を挙げる。
-3. **精読照合**: 関連候補と、対象記録の `related`/`supersedes` に挙がっている記録は**全文を読み**、5分類それぞれで照合する。引用・前提の正誤は原文と突き合わせる（誤解の検出）。
-4. **チェーン検証**: supersession の双方向リンク（`supersedes` ⇄ `superseded-by`）と status の整合（Superseded なのに後継なし等）を確認する（錯誤の検出）。
-5. **検出ゼロなら**その旨を採点報告に含めて先へ進む。**検出があれば 10.3 の報告を行い、人間の裁定まで該当作業（起票完了・Accepted 化・supersede 確定）を停止する。**
+1. **Scan everything**: list the title and header (`status` / `supersedes` / `superseded-by` / `related`) of every file in `docs/adr/` and `docs/pdr/` (grep is fine).
+2. **Shortlist candidates**: search the existing records for the new record's keywords and area (transactions, API, encryption keys, approval flow, …).
+3. **Read and compare**: read the full text of every candidate and of every record the new one lists in `related` / `supersedes`, and compare on all five categories. Check quotations and premises against the source text (misreading).
+4. **Validate the chain**: check that supersession links are bidirectional (`supersedes` ⇄ `superseded-by`) and consistent with status (for example, `Superseded` with no successor) (mistaken relationship).
+5. **No findings**: say so in the score report and continue. **Any finding**: report as in 10.3 and halt the affected step (completing the filing, moving to Accepted, settling the supersede) until a human rules.
 
-### 10.3 指摘の報告と関係者相談（必須）
+### 10.3 Reporting findings and consulting the people involved (mandatory)
 
-検出ごとにまずユーザーへ次の形式で報告する:
+For each finding, first report to the user in this form (the report is in the user's language, Japanese by default):
 
 ```
-⚠️ DR 間整合検査: {n} 件検出（対象: {ID}「{title}」）
+DR 間整合検査: {n} 件検出（対象: {ID}「{title}」）
 
 1. [{分類}] {相手の ID・status}
    - 該当箇所: {対象側の引用} ⇔ {相手側の引用}
@@ -185,16 +187,16 @@ ADR/PDR を**作る・更新する・上書きする前に必ず**、対象記�
      c) {例: 相手記録側の supersede を別途起票する（本件は保留）}
 ```
 
-そのうえで次のフローを**必ず**通す（省略・短絡は不可）:
+Then follow this flow **without exception or shortcut**:
 
-1. **関係者の特定**: 矛盾先（相手）DR の `decision-maker`・`author` を特定し、Slack メンション ID を確認する（不明なら §6 の手順、それでも不明ならユーザーに確認）。
-2. **相談必須**: 関係者を巻き込んだ相談なしに先へ進むことは**禁止**。**「矛盾を承知でこのまま進める」という選択肢は提示しない・求められても受け付けない**（その求め自体を相談の議題にする）。相談場所が Slack というだけで、本質は「元の決定の関係者を巻き込むこと」。
-3. **Slack で相談スレッドを立てる**（手段は §8。下のテンプレ使用）: 検出内容＋選択肢を関係者メンション付きで投稿し、スレッドを queue の備考に記録する。Slack が一切使えない場合は相談文面を生成してユーザーに相談の実施を依頼する（**相談そのものの省略は不可**）。
-4. **裁定**: 相談の結果として人間（関係者＋決裁者）が a/b/c 等から決める。AI は決めない。推奨を示すなら理由つきで1つだけ・中立に。
-5. **痕跡**: 裁定結果を対象記録の `related` / `## Context`、queue の備考、commit message に記録する:
-   「{分類} を {誰} が {日付} に {選択肢} と裁定（相談スレッド: {channel}/{ts}）」。
+1. **Identify the people involved**: the `decision-maker` and `author` of the conflicting DR, and their Slack mention IDs (§6 if unknown; if still unknown, ask the user).
+2. **Consultation is mandatory**: proceeding without consulting them is **forbidden**. **Never offer "proceed knowing there is a contradiction" as an option, and do not accept it if asked** — make that request itself a topic of the consultation. Slack is only the venue; the point is to involve the people behind the original decision.
+3. **Open a consultation thread on Slack** (means in §8; template below): post the finding and the options with the people mentioned, and record the thread in the queue's notes column. If Slack is unavailable, generate the message and ask the user to hold the consultation (**skipping the consultation itself is not allowed**).
+4. **Ruling**: the humans (the people involved plus the approver) choose among a/b/c and so on. The AI does not decide. If you recommend, recommend one option, with reasons, neutrally.
+5. **Trace**: record the ruling in the record's `related` / `## Context`, the queue's notes column, and the commit message:
+   「{分類} を {誰} が {日付} に {選択肢} と裁定（相談スレッド: {channel}/{ts}）」.
 
-相談メッセージテンプレ:
+Consultation message template (Japanese, as posted):
 ```
 :warning: DR 整合相談 — {対象ID}「{title}」が {相手ID}「{相手title}」と {分類} の疑い
 {関係者メンション} 元の決定に関わった方の確認・相談が必要です（このスレッドで）。

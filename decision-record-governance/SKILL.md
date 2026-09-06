@@ -1,59 +1,59 @@
 ---
 name: decision-record-governance
-description: ADR（技術決定）/ PDR（プロダクト決定）のディシジョンレコードを作成・更新・上書き（supersede/反転）し、decision-queue.md（決裁待ち一覧）と品質ルーブリックで統治する。他 DR との矛盾・重複・誤解・関連の誤謬・関係の錯誤を必ず検査し、検出時は矛盾先の関係者を巻き込む Slack 相談を必須として人間に裁定させる。Use when the user mentions ADR, PDR, decision record, decision queue, 決定記録, 意思決定の起票・更新・supersede・反転, DR の矛盾・整合性チェック, 決裁の相談・催促, or wants to manage architecture/product decisions.
+description: Create, update, and supersede (or reverse) decision records — ADRs for technical decisions and PDRs for product decisions — governed by decision-queue.md (the list of decisions awaiting approval) and a quality rubric. Always checks every other DR for contradiction, duplication, misreading, false relation, and mistaken relationship, and when anything is found, requires a Slack consultation that involves the people behind the conflicting record so a human rules on it. Use when the user mentions ADR, PDR, decision record, decision queue, 決定記録, 意思決定の起票・更新・supersede・反転, DR の矛盾・整合性チェック, 決裁の相談・催促, or wants to manage architecture or product decisions.
 ---
 
-# Decision Record Governance（ADR/PDR × Queue × ルーブリック × 整合検査 × Slack 相談）
+# Decision Record Governance (ADR/PDR × queue × rubric × consistency check × Slack consultation)
 
-**中心は DR（Decision Record = ADR ∪ PDR）を「作る・更新する・上書きする」こと**。Slack は相談の場 — 決裁依頼・確認・催促（必要時）と、整合検査で矛盾等を検出したときの関係者相談（必須）に使う。
+**The core job is to create, update, and supersede decision records (DR = ADR ∪ PDR).** Slack is the place for consultation: approval requests, confirmation, and reminders when needed, and — mandatory — consulting the people involved whenever the consistency check finds a problem.
 
-- **作る** = 起票（`Proposed`）して queue に登録
-- **更新する** = 決定の確定（`Accepted`/`Rejected`/`Deferred`）・記入待ちの記入・README 連動更新
-- **上書きする** = supersede（置き換え）/ 反転。既存記録は編集せず新記録で置換
+- **Create** = file the record as `Proposed` and register it in the queue
+- **Update** = settle the decision (`Accepted` / `Rejected` / `Deferred`), fill in the pending fields, update the README index
+- **Supersede** = replace or reverse. Never edit the existing record; replace it with a new one
 
-## 絶対ルール（違反したら作業を止めてユーザーに確認）
+## Absolute rules (stop and ask the user on any violation)
 
-1. **decision queue 必須**: ADR/PDR を起票したら必ず `docs/decision-queue.md` に登録する。なければ [templates/decision-queue.md](templates/decision-queue.md) から作成。queue が「未承認決定の SSoT（唯一の正）」。
-2. **作者がいる場合は Slack メンション ID 必須**: 作者（起票者）が存在する記録は、queue の行と記録ヘッダに **`<@UXXXXXXXX>` 形式の Slack メンション ID が必ず存在する**こと。不明なら登録を進めず確認する。**捏造禁止**（取得方法は [REFERENCE.md](REFERENCE.md) §6）。
-3. **不変性**: `Accepted`/`Rejected` の記録本文は編集禁止。変更・反転は新記録で supersede。queue から消さず「決定済みログ」へ移す。
-4. **1決定 = 1記録**。採番は append-only（4桁ゼロ詰・再利用/欠番埋め禁止）。ファイル名 `NNNN-kebab-title.md`。
-5. **ルーブリックゲート**: 起票完了前・確定前に [RUBRIC.md](RUBRIC.md) で採点する。起票ゲートは 0 点観点ゼロ、確定ゲートは★観点（R3/R4/R8/R10）すべて 2 が条件。採点結果はユーザーに報告。
-6. **DR 間整合検査・関係者相談・裁定は人間**: 作る・更新する・上書きする前に他の全 DR と照合し、矛盾・重複・誤解・関連の誤謬・関係の錯誤（[REFERENCE.md](REFERENCE.md) §10 の5分類）を検査する。1件でも検出したら作業を止めて指摘し、矛盾先 DR の関係者（決定者・作者）を巻き込んで相談する（場は Slack。巻き込みが本質）。解消方法は相談を経て人間が決める。AI が解消・修正・黙殺することも、「矛盾を承知で進める」ことも選択肢にしない。
-7. **Slack 投稿は外部公開**: 用途は決裁依頼・確認・催促（必要時）と、**整合検査検出時の関係者相談（必須）**。初回投稿前にチャンネルと文面をユーザーに確認する。
+1. **The decision queue is mandatory**: every ADR/PDR you file must be registered in `docs/decision-queue.md`. If the file does not exist, create it from [templates/decision-queue.md](templates/decision-queue.md). The queue is the single source of truth for undecided decisions.
+2. **A Slack mention ID is mandatory when the record has an author**: any record with an author (the person who filed it) must carry a Slack mention ID in the `<@UXXXXXXXX>` form, both on the queue row and in the record header. If you cannot find it, do not proceed with registration — ask. **Never fabricate one** (how to obtain it: [REFERENCE.md](REFERENCE.md) §6).
+3. **Immutability**: the body of an `Accepted` or `Rejected` record is never edited. Changes and reversals are new records that supersede the old one. Do not delete queue rows; move them to the "decided" log.
+4. **One decision = one record.** Numbering is append-only (four digits, zero-padded; never reuse a number or fill a gap). File name: `NNNN-kebab-title.md`.
+5. **Rubric gate**: score the record with [RUBRIC.md](RUBRIC.md) before filing is complete and again before it is settled. The filing gate requires no criterion at 0; the settling gate requires every gate criterion (R3/R4/R8/R10) at 2. Report the scores to the user.
+6. **Cross-DR consistency check, consultation with the people involved, and a human ruling**: before creating, updating, or superseding, compare the record against every other DR for contradiction, duplication, misreading, false relation, and mistaken relationship (the five categories in [REFERENCE.md](REFERENCE.md) §10). If even one is found, stop, report it, and consult the people behind the conflicting DR (its decision-maker and author) — Slack is the venue, involving them is the point. A human decides how to resolve it after that consultation. The AI resolving, patching, or ignoring the finding is not an option, and neither is "proceed knowing there is a contradiction".
+7. **Slack posts are outward-facing (visible beyond this conversation)**: use them for approval requests, confirmation, and reminders when needed, and — mandatory — for consulting the people involved when the consistency check finds something. Before the first post, confirm the channel and the wording with the user.
 
-## ワークフロー
+## Workflow
 
-### A. 作る（起票）
-1. 種別判定: 技術/アーキ判断 → ADR（`docs/adr/`）、プロダクト/UX/業務判断 → PDR（`docs/pdr/`）。
-2. 既存の最大番号から次番号を採番し、[templates/adr-template.md](templates/adr-template.md) / [templates/pdr-template.md](templates/pdr-template.md) で `Proposed` として作成。
-3. 作者の Slack メンション ID を確認（絶対ルール2）。
-4. **DR 間整合検査**（絶対ルール6・[REFERENCE.md](REFERENCE.md) §10）。検出したら停止し、関係者相談（§10.3）を経て人間の裁定を得てから続行。
-5. [RUBRIC.md](RUBRIC.md) の**起票ゲート**で採点（0 があれば直す）。
-6. `docs/decision-queue.md` の早見表に1行追加（列構成は [REFERENCE.md](REFERENCE.md) §5）。
-7. 決裁を依頼する必要があれば Slack に投稿し、スレッドを queue に記録（下記「Slack で相談する」）。
+### A. Create (file a record)
+1. Classify: technical or architectural decision → ADR (`docs/adr/`); product, UX, or business decision → PDR (`docs/pdr/`).
+2. Take the next number after the current maximum and create the record as `Proposed` from [templates/adr-template.md](templates/adr-template.md) or [templates/pdr-template.md](templates/pdr-template.md).
+3. Confirm the author's Slack mention ID (absolute rule 2).
+4. **Cross-DR consistency check** (absolute rule 6, [REFERENCE.md](REFERENCE.md) §10). On any finding, stop, run the consultation (§10.3), and continue only after a human ruling.
+5. Score with the **filing gate** in [RUBRIC.md](RUBRIC.md); fix anything at 0.
+6. Add one row to the summary table in `docs/decision-queue.md` (columns in [REFERENCE.md](REFERENCE.md) §5).
+7. If approval is needed, post to Slack and record the thread in the queue (see "Consulting on Slack" below).
 
-### B. 更新する（決定の確定）
-1. 決裁内容（誰が・いつ・どれを選んだか）を確認。**曖昧・未取得なら Slack で決めた人に聞く**。
-2. **DR 間整合検査を再実行**（絶対ルール6）。未裁定の検出が残ったまま `Accepted` 化しない。
-3. 記録の `## 決定（記入待ち）` にチェック・決定者・日付を記入。`Accepted` なら `## Decision` を MUST 文で確定し、却下案の却下理由を埋める。
-4. ヘッダの `status` / `decided-date` / `decision-maker` を更新。
-5. [RUBRIC.md](RUBRIC.md) の**確定ゲート**で採点（★が 2 未満なら確定を止めて報告）。
-6. queue の行を「決定済みログ」へ移動し、ADR/PDR の README（索引・決定変更ログ）を更新。
-7. 必要があれば Slack スレッドに確定報告（作者メンション付き）。
+### B. Update (settle the decision)
+1. Confirm the ruling: who chose what, and when. **If it is ambiguous or not yet obtained, ask the decision-maker on Slack.**
+2. **Re-run the cross-DR consistency check** (absolute rule 6). Never move a record to `Accepted` while a finding is still unresolved.
+3. Fill in the record's `## 決定（記入待ち）` section: the chosen option, the decision-maker, and the date. For `Accepted`, finalise `## Decision` as MUST statements and fill in the rejection reason for every rejected option.
+4. Update `status`, `decided-date`, and `decision-maker` in the header.
+5. Score with the **settling gate** in [RUBRIC.md](RUBRIC.md); if any gate criterion is below 2, stop and report.
+6. Move the queue row to the "decided" log and update the ADR/PDR README (index and decision change log).
+7. If useful, post a settlement notice in the Slack thread, mentioning the author.
 
-### C. 上書きする（supersede / 反転）
-1. 旧記録は本文編集せず、新記録を A の手順で起票（ヘッダ `supersedes:` 必須。A の整合検査で supersession チェーンも検証）。
-2. **旧記録の決定者・作者（関係者）への Slack 相談は必須**。supersede/反転は既存の `Accepted` 決定との意図的な矛盾なので、絶対ルール6 の相談フロー（[REFERENCE.md](REFERENCE.md) §10.3）を必ず通す。
-3. 旧記録は `status: Superseded` ＋ `superseded-by:` 追記のみ。反転なら新記録に `## 反転記録 (Reversal)` 必須。
-4. README 末尾の `## 決定変更ログ (Decision Change Log)` に1行追記し、queue にも新記録を登録。
+### C. Supersede (replace or reverse)
+1. Do not edit the old record. File a new one with workflow A (the `supersedes:` header is mandatory; the consistency check in A also validates the supersession chain).
+2. **Consulting the old record's decision-maker and author on Slack is mandatory.** A supersede or reversal is a deliberate contradiction of an existing `Accepted` decision, so it always goes through the consultation flow of absolute rule 6 ([REFERENCE.md](REFERENCE.md) §10.3).
+3. The only edits to the old record are `status: Superseded` and a `superseded-by:` line. A reversal requires a `## 反転記録 (Reversal)` section in the new record.
+4. Add one line to `## 決定変更ログ (Decision Change Log)` at the end of the README and register the new record in the queue.
 
-### D. queue のメンテ（棚卸し）
-1. queue と記録ファイルの整合を検査（[REFERENCE.md](REFERENCE.md) §5 の検証ルール）。
-2. **DR 間整合スイープ**: 全 DR を §10 の5分類で照合。検出したら絶対ルール6に従い関係者相談を起こす。
-3. `Proposed` のまま期限超過の項目を抽出し、必要があれば Slack で決裁者に催促。「最終催促日」を更新。
+### D. Queue maintenance (inventory)
+1. Check the queue against the record files (validation rules in [REFERENCE.md](REFERENCE.md) §5).
+2. **Cross-DR consistency sweep**: compare every DR against every other using the five categories of §10. On any finding, start the consultation required by absolute rule 6.
+3. List items still `Proposed` past their deadline and, if needed, remind the approver on Slack. Update the "last reminded" column.
 
-## Slack で相談する（相談場所が Slack なだけ・巻き込みが本質）
+## Consulting on Slack (Slack is only the venue; involving people is the point)
 
-使いどころ: ①決裁を依頼したい ②決定の意図・選択が曖昧で決めた人に確認したい ③期限超過の催促（①〜③は必要時）／**④整合検査で検出した矛盾等の関係者相談（必須・省略不可）**。
-手段の優先順: Slack MCP ツール（ToolSearch でロード）→ `$SLACK_BOT_TOKEN` で `chat.postMessage` → `$SLACK_WEBHOOK_URL` → 文面だけ生成して手動投稿を依頼。
-メッセージテンプレ・API 例・ヘッダ仕様・ステータス語彙は [REFERENCE.md](REFERENCE.md)、品質基準は [RUBRIC.md](RUBRIC.md) を参照。
+When: (1) requesting approval, (2) asking the decision-maker when the intent or choice is ambiguous, (3) reminding after a deadline — all three when needed — and **(4) consulting the people involved about a consistency-check finding — mandatory, never skipped**.
+Means, in order of preference: Slack MCP tools (load them with ToolSearch) → `chat.postMessage` with `$SLACK_BOT_TOKEN` → `$SLACK_WEBHOOK_URL` → generate the message text and ask the user to post it by hand.
+Message templates, API examples, header spec, and status vocabulary: [REFERENCE.md](REFERENCE.md). Quality criteria: [RUBRIC.md](RUBRIC.md).

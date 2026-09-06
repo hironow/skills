@@ -1,92 +1,59 @@
 ---
 name: intent-handover-governance
-description: docs/intent.md（なぜ今やるか＝人間の意図）と docs/handover.md（どこまで進み・次に何をするか）の2ファイルで開発の継続性を統治する。intent は人間が確定させ AI は推測で書かない。handover は毎セッション末に更新し2分で読める形を保つ。更新前に intent ⇄ handover ⇄ リポジトリ実状態の整合検査を必ず行い、乖離の裁定は人間に委ねる。Use when the user mentions intent.md, handover.md, 引き継ぎ（ハンドオーバー）, 意図の記録・確認, セッション終了・作業再開, work unit の開始/切替, or wants session continuity captured in docs.
+description: Govern development continuity with two files — docs/intent.md (why we are doing this now, the human's intent) and docs/handover.md (how far we got and what comes next). The intent is settled by a human and never guessed by the AI; the handover is updated at the end of every session and kept readable in two minutes. Before any update, check intent ⇄ handover ⇄ the repository's actual state for drift, and leave the ruling on any gap to a human. Use when the user mentions intent.md, handover.md, 引き継ぎ（ハンドオーバー）, 意図の記録・確認, セッション終了・作業再開, starting or switching a work unit, or wants session continuity captured in docs.
 ---
 
-# Intent / Handover Governance（intent × handover × ルーブリック × 整合検査）
+# Intent / Handover Governance (intent × handover × rubric × consistency check)
 
-**中心は2ファイルを「作る・更新する・引き継ぐ」こと**。2ファイルは独立していて
-合体しない — 当てはまる方だけを使う。
+**The core job is to create, update, and hand over two files.** The two files are independent and are never merged — use whichever applies.
 
-| ファイル | 答える問い | 所有者 | 更新タイミング |
+| file | question it answers | owner | when it changes |
 |---|---|---|---|
-| `docs/intent.md` | **なぜ今**この作業をするのか | **人間**（AI は書記係） | work unit の開始時・意図が変わったとき |
-| `docs/handover.md` | **どこまで**進み、**次に何**をするか | セッション（AI/人間どちらも） | 毎セッション末・大きな区切り |
+| `docs/intent.md` | **Why now** — why this work is being done | **A human** (the AI only takes dictation) | When a work unit starts, or when the intent changes |
+| `docs/handover.md` | **How far** we got and **what comes next** | The session (AI or human) | At the end of every session, and at major milestones |
 
-- **作る** = work unit 開始時に intent を確定させる／初回の handover を書く
-- **更新する** = 意図が変わったら intent を、セッション末に handover を更新
-- **引き継ぐ** = セッション開始時に両ファイルを読み、実状態と突き合わせて再開
+- **Create** = settle the intent when a work unit starts; write the first handover
+- **Update** = update the intent when the intent changes; update the handover at the end of a session
+- **Hand over** = at the start of a session, read both files, compare them with the actual state, and resume
 
-## 絶対ルール（違反したら作業を止めてユーザーに確認）
+## Absolute rules (stop and ask the user on any violation)
 
-1. **intent は人間の意図の写し・推測禁止**: goal / success criteria / scope /
-   non-goals / constraints / deadline / rollback 条件のどれかが曖昧なら、
-   **止めて人間に聞く**。人間の確認なしに `docs/intent.md` を新規作成・更新しない。
-   隙間を仮定で埋めない（[REFERENCE.md](REFERENCE.md) §2 の確認質問リスト）。
-2. **handover は draft → 提示 → 確認 → 書込み**: いきなり上書きしない。既存
-   handover がある場合は「何が変わるか」を要約してから上書きする。
-3. **重複禁止・参照主義**: handover に intent の再掲禁止（パス参照する）。
-   PR / ADR / issue / commit / plan に既にある内容はリンクや ID で参照し、
-   本文へコピーしない。
-4. **日付は絶対表記**（ISO 8601）。「昨日」「来週」等の相対日付は書いた瞬間から
-   腐るので禁止。
-5. **履歴はファイル内に持たない**: 旧版は git history が持つ。リポジトリが
-   これらを gitignore 運用している場合のみ dated backup
-   （`docs/handover-YYYY-MM-DD-<slug>.md`）で退避する。commit するか gitignore かは
-   リポジトリの方針に従い、初回に確認する（[REFERENCE.md](REFERENCE.md) §4）。
-6. **ルーブリックゲート**: 書込み前に [RUBRIC.md](RUBRIC.md) で採点。intent ゲートは
-   0 点観点ゼロ＋人間確認済みが条件、handover ゲートは★観点（H1/H3/H5）すべて 2 が
-   条件。採点結果はユーザーに報告。
-7. **整合検査必須・裁定は人間**: 作る・更新する・引き継ぐ前に必ず
-   intent ⇄ handover ⇄ リポジトリ実状態を照合し、**意図乖離・重複・幽霊参照・
-   鮮度切れ・実行不能**（[REFERENCE.md](REFERENCE.md) §5 の5分類）を検査する。
-   **意図乖離を検出したら AI が intent を直して整合させるのは禁止** — 実作業を
-   意図に合わせるか、意図の方が変わったのかは人間が決める。
-8. **秘匿情報は redact・名前は捏造しない**: API キー・パスワード・PII は書込み前に
-   除去。`Requester` / `Updated by` は確実に分かる場合のみ実名、不明なら
-   セッション ID を使う。
+1. **The intent is a transcript of the human's intent; guessing is forbidden**: if any of goal / success criteria / scope / non-goals / constraints / deadline / rollback conditions is unclear, **stop and ask the human**. Never create or update `docs/intent.md` without the human's confirmation. Do not fill gaps with assumptions (the question list in [REFERENCE.md](REFERENCE.md) §2).
+2. **The handover goes draft → present → confirm → write**: never overwrite outright. When a handover already exists, summarise what will change before overwriting it.
+3. **No duplication; reference instead**: never restate the intent in the handover (refer to the path). Anything already in a PR, ADR, issue, commit, or plan is referenced by link or ID, not copied into the body.
+4. **Dates are absolute** (ISO 8601). Relative dates such as "yesterday" or "next week" rot the moment they are written and are forbidden.
+5. **No history inside the file**: older versions live in git history. Only when the repository keeps these files gitignored, park the old version as a dated backup (`docs/handover-YYYY-MM-DD-<slug>.md`). Whether to commit or gitignore follows the repository's policy; confirm it the first time ([REFERENCE.md](REFERENCE.md) §4).
+6. **Rubric gate**: score with [RUBRIC.md](RUBRIC.md) before writing. The intent gate requires no criterion at 0 plus human confirmation; the handover gate requires every gate criterion (H1/H3/H5) at 2. Report the scores to the user.
+7. **The consistency check is mandatory; the ruling is human**: before creating, updating, or handing over, always compare intent ⇄ handover ⇄ the repository's actual state and check for **intent drift, duplication, stale references, staleness, and unactionable items** (the five categories in [REFERENCE.md](REFERENCE.md) §5). **When intent drift is found, the AI must not edit the intent to make things consistent** — whether the work is brought back in line with the intent, or the intent itself has changed, is the human's call.
+8. **Redact secrets; never invent names**: remove API keys, passwords, and PII before writing. Use a real name in `Requester` / `Updated by` only when it is certain; otherwise use the session ID.
 
-## ワークフロー
+## Workflow
 
-### A. intent を作る / 更新する（work unit 開始・意図の変化時）
-1. 既存 `docs/intent.md` の有無を確認。あれば読み、今回の作業が現 intent の
-   範囲内かを判定（範囲内なら更新不要 — そのまま作業へ）。
-2. 曖昧点を人間に質問して確定させる（絶対ルール1。質問リストは
-   [REFERENCE.md](REFERENCE.md) §2）。
-3. [templates/intent.md](templates/intent.md) で draft を作成し、
-   [RUBRIC.md](RUBRIC.md) の **intent ゲート**で採点（0 があれば直す）。
-4. draft を人間に提示し、**承認を得てから**書き込む。
-5. 実装詳細の変化では更新しない — 更新するのは「依頼者の意図」が変わったときだけ。
+### A. Create or update the intent (work unit starts, or the intent changes)
+1. Check whether `docs/intent.md` exists. If it does, read it and judge whether this work falls within the current intent (if so, no update is needed — go straight to the work).
+2. Ask the human about anything unclear and settle it (absolute rule 1; the question list is in [REFERENCE.md](REFERENCE.md) §2).
+3. Draft from [templates/intent.md](templates/intent.md) and score with the **intent gate** in [RUBRIC.md](RUBRIC.md); fix anything at 0.
+4. Present the draft to the human and **write it only after approval**.
+5. Do not update for changes in implementation detail — update only when the requester's intent changes.
 
-### B. handover を更新する（セッション末・大きな区切り）
-1. セッションの成果・進行中・次手を会話とリポジトリ実状態（branch / PR / テスト
-   結果）から集める。
-2. **整合検査**（絶対ルール7・[REFERENCE.md](REFERENCE.md) §5）。intent との乖離を
-   検出したら停止して人間に確認。
-3. [templates/handover.md](templates/handover.md) で draft を作成。intent と重複する
-   記述は参照に置換（絶対ルール3）。
-4. [RUBRIC.md](RUBRIC.md) の **handover ゲート**で採点（★ = H1/H3/H5 が 2 未満なら
-   直す）。
-5. draft を提示し、確認を得てから書き込む（絶対ルール2）。
+### B. Update the handover (end of session, major milestone)
+1. Gather the session's results, work in progress, and next steps from the conversation and the repository's actual state (branches, PRs, test results).
+2. **Consistency check** (absolute rule 7, [REFERENCE.md](REFERENCE.md) §5). On intent drift, stop and ask the human.
+3. Draft from [templates/handover.md](templates/handover.md); replace anything that duplicates the intent with a reference (absolute rule 3).
+4. Score with the **handover gate** in [RUBRIC.md](RUBRIC.md); fix any gate criterion (H1/H3/H5) below 2.
+5. Present the draft and write it only after confirmation (absolute rule 2).
 
-### C. 引き継いで再開する（セッション開始）
-1. `docs/intent.md` と `docs/handover.md` を読む（無ければ無いと報告し、必要なら
-   A から始める）。
-2. **鮮度と実在の確認**: handover の branch / PR / ファイル / コマンドが現存するか、
-   `Last updated` からリポジトリに大きな変化がないかを検証
-   （[REFERENCE.md](REFERENCE.md) §6 のチェックリスト）。
-3. 乖離があれば人間に報告してから作業に入る。なければ `Next Actions` の先頭から
-   再開する。
+### C. Hand over and resume (start of session)
+1. Read `docs/intent.md` and `docs/handover.md` (if either is missing, say so, and start from A if needed).
+2. **Verify freshness and existence**: check that the branches, PRs, files, and commands named in the handover still exist, and that the repository has not moved far since `Last updated` (the checklist in [REFERENCE.md](REFERENCE.md) §6).
+3. Report any gap to the human before starting work. If there is none, resume from the top of `Next Actions`.
 
-### D. 棚卸し（stale 検出）
-1. `Last updated` が古い・完了済みの項目が `In Progress` に残置・`Open Questions`
-   が未解決のまま放置 — を検出して報告。
-2. intent が現状と噛み合っていない疑いは人間に確認（AI が書き換えない）。
+### D. Inventory (stale detection)
+1. Detect and report: an old `Last updated`, completed items still under `In Progress`, and `Open Questions` left unresolved.
+2. If the intent seems out of step with reality, ask the human (the AI does not rewrite it).
 
-## このスキルが守備範囲にしないもの
+## Out of scope for this skill
 
-- 決定の記録（why we decided X）→ ADR/PDR（`decision-record-governance` skill）。
-  intent の「なぜ今」とは別物 — 決定が発生したら ADR/PDR に書き、intent /
-  handover からは ID で参照する。
-- 現状仕様の記述 → `docs/*.md`（docs-discipline に従う）。
-- 一時的な agent 間 handoff（temp-dir 行き・リポジトリに残さないもの）。
+- Recording decisions (why we decided X) → ADR/PDR (the `decision-record-governance` skill). That is different from the intent's "why now" — when a decision happens, write it as an ADR/PDR and reference it by ID from the intent or handover.
+- Describing the current specification → `docs/*.md` (follow docs-discipline).
+- Temporary agent-to-agent handoffs (things that go to a temp dir and never into the repository).

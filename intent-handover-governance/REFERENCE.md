@@ -1,131 +1,117 @@
-# REFERENCE — intent.md / handover.md の詳細仕様
+# REFERENCE — intent.md / handover.md in detail
 
-docs-discipline（4種のドキュメントと4つの問い）のうち、`docs/intent.md` と
-`docs/handover.md` の運用ルール詳細。
+The operating rules for `docs/intent.md` and `docs/handover.md`, two of the four document kinds (and four questions) in docs-discipline.
 
-## 目次
+## Contents
 
-1. [用語と使い分け](#1-用語と使い分け)
-2. [intent.md の仕様](#2-intentmd-の仕様)
-3. [handover.md の仕様](#3-handovermd-の仕様)
-4. [保存・履歴の規約](#4-保存履歴の規約)
-5. [整合検査の5分類](#5-整合検査の5分類検出は必須裁定は人間)
-6. [再開時チェックリスト](#6-再開時チェックリストワークフロー-c)
+1. [Terms and when to use which](#1-terms-and-when-to-use-which)
+2. [intent.md](#2-intentmd)
+3. [handover.md](#3-handovermd)
+4. [Storage and history](#4-storage-and-history)
+5. [The five categories of the consistency check](#5-the-five-categories-of-the-consistency-check-detection-is-mandatory-the-ruling-is-human)
+6. [Resume checklist](#6-resume-checklist-workflow-c)
 
-## 1. 用語と使い分け
+## 1. Terms and when to use which
 
-- **intent**（意図）: 依頼者＝人間が「なぜ今この作業をするか」を確定させた記録。
-  work unit（ひとまとまりの作業。issue / PR / キャンペーン等）に1つ。
-  **人間が所有** — AI は聞き取って書記するだけで、内容を発明しない。
-- **handover**（引き継ぎ）: 次の担い手（新しいエージェント・同僚・未来の自分）が
-  **2分で読んで再開できる**ことに最適化した現在地の記録。セッションが所有。
-- **どちらを使うか**: 意図が非自明な work unit を始める → intent。セッションを
-  跨いで作業が続く → handover。両方でも片方でもよい（合体はしない）。
-  handover は intent を**参照**する（再掲しない）。
+- **intent**: the record in which the requester — a human — has settled *why this work is being done now*. One per work unit (a coherent piece of work: an issue, a PR, a campaign, …). **Owned by the human** — the AI listens and transcribes; it never invents content.
+- **handover**: the record of where things stand, optimised so that the next actor (a new agent, a colleague, your future self) **can read it in two minutes and resume**. Owned by the session.
+- **Which one**: starting a work unit whose intent is not obvious → intent. Work that continues across sessions → handover. Either or both (never merged). The handover **references** the intent; it does not restate it.
 
-## 2. intent.md の仕様
+## 2. intent.md
 
-### 必須ヘッダ
+### Required header
 
-| field | 規則 |
+| field | rule |
 |---|---|
-| `Last updated` | ISO 8601（YYYY-MM-DD） |
-| `Requester` | 依頼者の実名/ロール。**確実に分かる場合のみ・捏造禁止** |
-| `Work unit` | 簡潔な識別子（issue ID / PR / キャンペーン名など） |
+| `Last updated` | ISO 8601 (YYYY-MM-DD) |
+| `Requester` | The requester's real name or role. **Only when certain; never fabricated** |
+| `Work unit` | A short identifier (issue ID, PR, campaign name, …) |
 
-### 必須セクション
+### Required sections
 
-- `## Goal` — 依頼者が求める結果を1〜2文で。
-- `## Success Criteria` — 観測可能・検証可能な条件の箇条書き。
-- `## Scope`（`### In scope` / `### Out of scope (Non-goals)`）— 境界を明示。
-- `## Constraints` — 技術・期限・予算・コンプライアンス上の制約。
-- `## Open Questions` — 実装前に解消すべき未決事項（チェックボックス）。
+- `## Goal` — the result the requester wants, in one or two sentences.
+- `## Success Criteria` — a bullet list of observable, verifiable conditions.
+- `## Scope` (`### In scope` / `### Out of scope (Non-goals)`) — explicit boundaries.
+- `## Constraints` — technical, deadline, budget, and compliance constraints.
+- `## Open Questions` — undecided items to resolve before implementation (checkboxes).
 
-### 起票・更新前の確認質問（曖昧なら STOP して人間に聞く）
+### Questions to settle before creating or updating (STOP and ask the human if any is unclear)
 
-1. 何が達成されたら「終わり」か（goal / success criteria）
-2. どこまでやるか・やらないか（scope / non-goals）
-3. 動かせない条件は何か（constraints / deadline）
-4. 影響するコンポーネントはどこか
-5. 失敗したらどう戻すか（rollback 条件）
+1. What has to be true for the work to be "done" (goal, success criteria)?
+2. How far does it go, and what is excluded (scope, non-goals)?
+3. Which conditions cannot move (constraints, deadline)?
+4. Which components are affected?
+5. How is it rolled back if it fails (rollback conditions)?
 
-### 更新トリガ
+### When to update
 
-- 更新するのは**依頼者の意図が変わったとき**（scope 拡大・goal 変更・制約追加）。
-- 実装詳細の変化・進捗では更新しない（それは handover の仕事）。
-- 更新も新規作成と同じく **人間の確認を経てから**書き込む。
+- Update **when the requester's intent changes** (scope grows, the goal changes, a constraint is added).
+- Do not update for implementation detail or progress (that is the handover's job).
+- Updates, like creation, are written **only after the human confirms**.
 
-## 3. handover.md の仕様
+## 3. handover.md
 
-### 必須ヘッダ
+### Required header
 
-| field | 規則 |
+| field | rule |
 |---|---|
-| `Last updated` | ISO 8601 ＋時刻＋タイムゾーン（例: `2026-07-02 18:30 (JST)`） |
-| `Updated by` | 人間の実名（確実な場合のみ）または AI セッション ID。捏造禁止 |
+| `Last updated` | ISO 8601 with time and time zone (for example `2026-07-02 18:30 (JST)`) |
+| `Updated by` | A human's real name (only when certain) or the AI session ID. Never fabricated |
 
-### 必須セクション
+### Required sections
 
-- `## Current State` — 完了していることを1段落で。**検証済みの事実のみ**
-  （テストが通った・merge された等。「たぶん動く」は書かない）。
-- `## In Progress` — 進行中の作業。branch 名・PR リンク・issue ID を含める。
-- `## Next Actions` — 番号付きの**具体的な**次手。次の担い手がそのまま着手できる
-  粒度（呼ぶべき skill・コマンドがあれば明記）。
-- `## Known Risks / Blockers` — リスクと緩和策。**「誰かの返事待ち」等の外部待ちも
-  必ずここに書く**（暗黙の待ちが一番危ない）。
-- `## Context the Next Actor Needs` — 非自明な罠・環境の癖・外部依存。
-- `## Relevant Files and Commands` — `パス — なぜ重要か` / `コマンド — 何をするか`。
+- `## Current State` — what is done, in one paragraph. **Verified facts only** (tests passed, merged, …; never "probably works").
+- `## In Progress` — work under way, with branch names, PR links, and issue IDs.
+- `## Next Actions` — numbered, **concrete** next steps, at a granularity the next actor can start on directly (name the skill or command if there is one).
+- `## Known Risks / Blockers` — risks with their mitigations. **Anything waiting on someone else goes here without fail** (an implicit wait is the most dangerous kind).
+- `## Context the Next Actor Needs` — non-obvious traps, quirks of the environment, external dependencies.
+- `## Relevant Files and Commands` — `path — why it matters` / `command — what it does`.
 
-### 分量と文体
+### Length and style
 
-- **2分で読み切れる**こと。長くなったら詳細を他 artifact に逃がして参照に置換。
-- 人間とエージェントの両方が読者。code reference（`path:line`）を活用する。
-- intent の再掲禁止 — `docs/intent.md 参照` と書く。
+- **Readable in two minutes.** When it grows, move detail into other artifacts and replace it with references.
+- Both humans and agents read it. Use code references (`path:line`).
+- Never restate the intent — write `see docs/intent.md`.
 
-### 更新トリガ
+### When to update
 
-- 意味のある作業セッションの終わり（セッション単位。commit 単位ではない）。
-- 中断・引き継ぎ・長期離脱の前。
+- At the end of a meaningful working session (per session, not per commit).
+- Before an interruption, a handover, or a long absence.
 
-## 4. 保存・履歴の規約
+## 4. Storage and history
 
-1. **既定は repo に commit**（コードと一緒に流れる）。ただしリポジトリによっては
-   gitignore 運用（ローカル専用）の場合がある — **初回に `.gitignore` を確認**し、
-   方針が読み取れなければユーザーに聞く。
-2. 旧版は**ファイル内に残さない**。commit 運用なら git history が履歴。
-3. gitignore 運用のリポジトリでは、work unit が切り替わって handover を書き直す
-   ときに旧版を `docs/handover-YYYY-MM-DD-<slug>.md` へ退避してよい（同 glob が
-   ignore されていることを確認）。intent も同様（`docs/intent-YYYY-MM-DD-<slug>.md`）。
-4. 秘匿情報（API キー・トークン・PII）は commit 運用・ローカル運用を問わず
-   書き込み前に redact する。
+1. **The default is to commit to the repository** (it travels with the code). Some repositories keep these files gitignored (local only) — **check `.gitignore` the first time**, and ask the user if the policy is not clear from it.
+2. Older versions are **not kept inside the file**. With the commit policy, git history is the history.
+3. In a gitignored repository, when the work unit switches and the handover is rewritten, the old version may be parked as `docs/handover-YYYY-MM-DD-<slug>.md` (confirm that glob is ignored). Same for the intent (`docs/intent-YYYY-MM-DD-<slug>.md`).
+4. Secrets (API keys, tokens, PII) are redacted before writing, whether the file is committed or local.
 
-## 5. 整合検査の5分類（検出は必須・裁定は人間）
+## 5. The five categories of the consistency check (detection is mandatory, the ruling is human)
 
-作る・更新する・引き継ぐ前に、intent ⇄ handover ⇄ リポジトリ実状態を照合する。
-**検出したら止めて報告し、人間の裁定を得てから続行する。**
+Before creating, updating, or handing over, compare intent ⇄ handover ⇄ the repository's actual state.
+**On any finding, stop, report, and continue only after a human ruling.**
 
-| 分類 | 定義 | 検出例 |
+| category | definition | example |
 |---|---|---|
-| **意図乖離 (intent drift)** | 実作業（または handover の記述）が intent の scope / non-goals / constraints と両立しない | intent が「リファクタのみ・挙動変更なし」なのに handover の Current State に新機能追加がある |
-| **重複 (duplication)** | handover が intent・PR・ADR・issue に既にある内容を再掲している | Goal の全文コピー／PR 説明と同じ変更一覧 |
-| **幽霊参照 (stale reference)** | 記載の branch / PR / ファイル / コマンドが実在しない・既に消えている | merge 済みで削除された branch が In Progress に残る／改名されたファイルパス |
-| **鮮度切れ (staleness)** | Current State がリポジトリの実状態と食い違う | 「テスト赤」と書いてあるが現在は緑／handover 更新後に main が大きく進んだ |
-| **実行不能 (unactionable)** | Next Actions が抽象的で、次の担い手がそのまま着手できない | 「続きをやる」「いい感じに仕上げる」だけの項目 |
+| **Intent drift** | The actual work (or the handover's account of it) cannot coexist with the intent's scope, non-goals, or constraints | The intent says "refactor only, no behaviour change" and the handover's Current State reports a new feature |
+| **Duplication** | The handover restates something already in the intent, a PR, an ADR, or an issue | The Goal copied verbatim; the same change list as the PR description |
+| **Stale reference** | A branch, PR, file, or command named in the file does not exist or is already gone | A merged and deleted branch still under In Progress; a renamed file path |
+| **Staleness** | Current State disagrees with the repository's actual state | "tests red" when they are now green; main moved far after the handover was written |
+| **Unactionable** | Next Actions are too abstract for the next actor to start on directly | Items like "continue", "polish it up" |
 
-### 検査手順
+### Procedure
 
-1. `docs/intent.md` / `docs/handover.md` の両方を読む（片方しか無ければその旨込みで）。
-2. 記載の branch / PR / ファイルの実在を確認する（`git branch` / `gh pr view` /
-   ファイル存在チェック）。
-3. Current State の主張（テスト結果・merge 状態）を可能な範囲で実測と突き合わせる。
-4. handover の各記述を intent の scope / non-goals と照合する（意図乖離の検出）。
-5. 検出ゼロならその旨を採点報告に含めて先へ進む。**検出があれば下の形式で報告し、
-   人間の裁定まで書込み（または再開）を保留する。**
+1. Read both `docs/intent.md` and `docs/handover.md` (if only one exists, say so).
+2. Confirm that the named branches, PRs, and files exist (`git branch` / `gh pr view` / file existence checks).
+3. Compare the claims in Current State (test results, merge state) with what you can measure.
+4. Check every statement in the handover against the intent's scope and non-goals (intent drift).
+5. No findings: say so in the score report and continue. **Any finding: report in the form below and hold the write (or the resume) until a human rules.**
 
-### 報告形式
+### Report format
+
+The report is in the user's language (Japanese by default):
 
 ```
-⚠️ intent/handover 整合検査: {n} 件検出
+intent/handover 整合検査: {n} 件検出
 
 1. [{分類}] {該当箇所の要約}
    - 記載: {ファイルの記述の引用}
@@ -136,15 +122,14 @@ docs-discipline（4種のドキュメントと4つの問い）のうち、`docs/
      c) {例: handover の記述を実測に合わせて修正する}
 ```
 
-**意図乖離の解消を AI が選んではならない**（絶対ルール7）。特に「intent を実作業に
-合わせて書き換える」は人間の明示承認がある場合のみ。
+**The AI must not choose how to resolve intent drift** (absolute rule 7). In particular, "rewrite the intent to match the actual work" happens only with the human's explicit approval.
 
-## 6. 再開時チェックリスト（ワークフロー C）
+## 6. Resume checklist (workflow C)
 
-- [ ] `docs/intent.md` を読んだ（無ければ「無い」と報告した）
-- [ ] `docs/handover.md` を読んだ（同上）
-- [ ] `Last updated` を確認し、それ以降の main / branch の動きを `git log` で把握した
-- [ ] In Progress の branch / PR が実在することを確認した
-- [ ] Next Actions の1番が今も有効であることを確認した
-- [ ] Open Questions（intent）に未解決の blocking がないか確認した
-- [ ] 乖離・疑問があれば作業前に人間へ報告した
+- [ ] Read `docs/intent.md` (or reported that it does not exist)
+- [ ] Read `docs/handover.md` (same)
+- [ ] Checked `Last updated` and used `git log` to see what moved on main and the branches since then
+- [ ] Confirmed that the In Progress branches and PRs exist
+- [ ] Confirmed that the first Next Action is still valid
+- [ ] Checked the intent's Open Questions for unresolved blockers
+- [ ] Reported any gap or doubt to the human before starting work
