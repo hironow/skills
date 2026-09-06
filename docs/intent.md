@@ -1,35 +1,43 @@
 # Intent
 
-**Last updated:** 2026-06-10
+**Last updated:** 2026-09-06
 **Requester:** hironow
-**Status:** DRAFT — AI が README / git 履歴から起草。requester 未確認
+**Status:** Accepted — 2026-09-06 のセッションで requester が決めた内容を書き起こし、同日 requester の merge 指示で確定
 **Work unit:** skills — personal collection of agent skills (SKILL.md directories) for AI coding agents
 
 ## Goal
 
-Maintain a personal collection of reusable agent skills — currently 69 top-level directories, each containing a `SKILL.md` with name/description frontmatter (some with `references/` and `assets/`) — covering cloud platforms (GCP, Cloudflare, Vercel), development workflows (tdd, diagnose, release, triage), and personal governance (sibyl). Inferred from directory contents and git history; no README exists.
+Keep one curated set of reusable agent skills that hironow's agents (Claude Code, pi, Codex, Gemini) share through the dotfiles `skills/` submodule, so that each capability exists exactly once, is written in English, and is kept deliberately in step with — or deliberately different from — its upstream where one exists.
 
 ## Success Criteria
 
-- 未定義 — Open Questions 参照 (no README, tests, or CI exist in this repo)
+- Every skill here is the only skill for its purpose across the agent homes: no installed third-party skill shares its trigger, or the two descriptions name each other and state what each is not for.
+- Skill instructions are English (Japanese-writing skills excepted); anything printed or filled in for a person stays in that person's language.
+- A skill that started from an upstream records its provenance in frontmatter (compared upstream commit, upstream license, what changed here), keeps the upstream license file, and is credited in the README, so nothing here is used without attribution; a comparison against upstream is repeatable (quantitative pass plus an independent reader).
+- After a change merges, the agent homes are refreshed and an agent's routing dry-run picks the intended skill without a same-purpose runner-up.
 
 ## Scope
 
 ### In scope
 
-- Skill directories with `SKILL.md` (and optional `references/` / `assets/`), added and updated incrementally (git history: "add skills", "add sibyl skill", "update skill")
+- Self-authored skills and forks that carry a deliberate local change (for example the bun/uv tooling rules).
+- The tooling that checks the skills (`scripts/`, `tests/`, `justfile`, CI running `just check`). It lives here so that skill maintenance does not span two repositories; dotfiles only wraps these recipes.
+- The repository README and these two docs.
 
 ### Out of scope (Non-goals)
 
-- 未確認 — no README documents non-goals. History shows "remove plugin-duplicated and unused skills" (6e41dcc), suggesting skills already provided by plugins are intentionally excluded, but this is unconfirmed
+- Vendoring skills that a plugin or `bunx skills` already provides (declared in dotfiles `dump/harness/skill-lock.json`); a lock-managed name must not reappear here.
+- Translating user-facing output templates (`templates/`, `assets/`, Slack messages, report formats, setup notices) — they stay in the reader's language.
+- Editing vendored reference material such as `cloudflare-deploy/references/` for style.
+- Hosting skill-maintenance scripts in dotfiles, or distributing the tooling directories to the agent homes (only skill directories are copied).
 
 ## Constraints
 
-- None evident from the repo (no tooling, lockfiles, or CI present)
+- Operator tooling rules apply inside skill text: `uv` only for Python, `bun` / `bunx` only for Node, `just` as the task runner, `.yaml` not `.yml`.
+- `main` is not pushed to directly; changes go through a pull request and are squash-merged, then the submodule pointer is bumped in dotfiles.
+- "Newest upstream" is not automatically "better": a fork that passed the 2026-09-02 de-cruft pass is compared on substance before anything is ported.
 
 ## Open Questions
 
-- [ ] requester による本ドラフトのレビュー
-- [ ] How this repo is consumed (e.g. symlinked/synced into an agent's skills directory) — not documented anywhere in the repo
-- [ ] Whether a README / skill index should be added
-- [ ] Naming and quality conventions for new skills (is `write-a-skill/` the intended style guide?)
+- [ ] `infrastructure-2-data.md` §2.4.3 の pgvector の一文 (「Spanner 統合が不要な場合」) の意図
+- [ ] この repository を public にするか (2026-09-06 の公開可否判定は「条件付き可」: 削除済みファイル履歴の secret 様の値、`sibyl/` の本人プロファイル、`consume-hub-actions/` の組織内部 CI、origin 未確認 24 skill、repo 自身の LICENSE 無し)

@@ -21,11 +21,11 @@ Tooling history: #14 moved the tooling here from dotfiles; #15 hardened it after
 
 ## In Progress
 
-- #11 (`docs/readme-and-handover`): `docs/intent.md` redraft, awaiting the requester's confirmation (see Next Actions).
+Nothing on a branch. `docs/intent.md` is Accepted (#11; the requester confirmed by directing the merge on 2026-09-06).
 
 ## Next Actions
 
-1. Requester confirms `docs/intent.md` (the 2026-09-06 decisions are drafted in; the open questions from June are answered there).
+1. Nothing is blocked on the requester for the tooling; the remaining items below are content decisions.
 2. Decide on the one passage the translators could not resolve: `gcp-serverless-appdev/references/docs/infrastructure-2-data.md` §2.4.3, "Small-scale vector search / when Spanner integration is not needed" (原文「Spanner 統合が不要な場合」) — translated literally; the surrounding paragraph suggests the intended meaning may differ.
 3. Confirm the origin of the 24 skills listed under "Origin not yet confirmed" in the README credits (set `metadata.provenance: original`, or name the upstream); `develop-web-game` ships an Apache-2.0 LICENSE.txt whose origin is unknown.
 4. Before any visibility change: the public-readiness assessment (2026-09-06, kept with the dotfiles session artifacts) found no live secret but four items for a human decision — a 64-hex `SECRET_KEY` in the history of a deleted file (`build-things/scripts/generate_merch_url.py`, commit 6821832), the operator's own profile in `sibyl/`, the `the-organisation` internal CI hub in `consume-hub-actions/`, and the 24 unconfirmed origins above. The repository also has no LICENSE of its own.
