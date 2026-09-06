@@ -1,6 +1,6 @@
 # skills
 
-A personal collection of agent skills: 46 directories, each with a `SKILL.md` (YAML frontmatter plus instructions) and, where useful, `references/`, `templates/`, `assets/`, or `scripts/`. They follow the [Agent Skills](https://agentskills.io/specification) layout and are read by Claude Code, pi, Codex, and Gemini.
+A personal collection of agent skills: 46 skills, one directory each, with a `SKILL.md` (YAML frontmatter plus instructions) and, where useful, `references/`, `templates/`, `assets/`, or `scripts/`. They follow the [Agent Skills](https://agentskills.io/specification) layout and are read by Claude Code, pi, Codex, and Gemini. The top-level `scripts/`, `tests/`, and `docs/` directories are not skills; they hold the maintenance tooling (see [Maintaining](#maintaining)) and the repository docs.
 
 ## How this repository is used
 
@@ -20,13 +20,29 @@ Third-party skills are not vendored here. They are installed with `bunx skills` 
 
 ## Changing a skill
 
-1. Branch, edit, and open a pull request here (`main` is not pushed to directly); pull requests are squash-merged.
-2. Bump the `skills` submodule pointer in dotfiles and refresh the home copies.
-3. When a skill overlaps with an installed third-party skill, compare the two (quantitatively and with an independent reader) and keep one, or make the two descriptions mutually exclusive.
+1. Branch, edit, and run `just check` (see [Maintaining](#maintaining)). After adding, removing, or re-sourcing a skill, run `just readme-index` and commit the regenerated tables with the change.
+2. Open a pull request here (`main` is not pushed to directly); CI runs the same `just check`; pull requests are squash-merged.
+3. Bump the `skills` submodule pointer in dotfiles and refresh the home copies (`just audit-consumers` shows which homes still hold an older copy).
+4. When a skill overlaps with an installed third-party skill, compare the two (`just compare <fork> <upstream-clone>`, then an independent reader) and keep one, or make the two descriptions mutually exclusive.
+
+## Maintaining
+
+The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds the dev tools (pytest, ruff, mypy) the `just` recipes use.
+
+| recipe | what it does |
+|---|---|
+| `just check` | the local gate CI runs: `lint` + `test` + `audit` + `readme-check` |
+| `just audit` | structural audit of every skill: frontmatter (`name` = directory, `description` ≤ 1024 chars, parseable YAML), relative links and `#anchors`, balanced code fences, emoji markers, the language rule, and the provenance contract (`metadata.provenance` / `upstream` / `upstream-license` / `changes`, bundled LICENSE) |
+| `just audit-consumers` | the audit plus a byte comparison against every agent home that holds a copy, and dangling-symlink detection; depends on the machine, so it is not part of `check` |
+| `just readme-index` / `just readme-check` | regenerate the generated blocks below from frontmatter / fail if they are stale |
+| `just compare <dir>...` | quantitative comparison of skill versions (fork first, then upstream copies): sizes, description length, tooling-rule violations, body diff |
+| `just test`, `just lint`, `just fmt` | the tooling's own unit tests, ruff + mypy (strict), ruff format |
+
+The procedure around these recipes (judging a fork against its upstream, retiring a skill from the agent homes, the provenance contract in detail) is documented in dotfiles as `docs/agents/skills-maintenance.md`.
 
 ## Skills
 
-Generated from each skill's frontmatter by `just skills-readme-index` in dotfiles; do not edit by hand.
+Generated from each skill's frontmatter by `just readme-index`; do not edit by hand.
 
 <!-- skills-index:start -->
 | skill | what it does | notes |

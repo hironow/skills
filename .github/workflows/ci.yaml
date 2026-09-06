@@ -1,0 +1,35 @@
+name: CI
+
+# The same gate as `just check` locally: ruff, mypy, the tooling's unit
+# tests, the structural audit of every skill, and the README index check.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint + test + audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # uv from the official installer; just via `uv tool` because the ubuntu
+      # apt package (1.21) is too old for the recipe syntax used here.
+      - name: Install uv and just
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/uv" tool install rust-just
+
+      - name: Sync dev environment
+        run: uv sync --locked
+
+      - name: just check
+        run: just check

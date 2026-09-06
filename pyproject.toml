@@ -1,0 +1,70 @@
+[project]
+name = "skills-tooling"
+version = "0.1.0"
+description = "Maintenance tooling for this skills repository: structural audit, README index, version comparison"
+readme = "README.md"
+requires-python = ">=3.12"
+# The scripts are stdlib-only on purpose: anyone who clones the repo can run
+# `python3 scripts/audit.py` without syncing an environment.
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19",
+    "pytest>=9.0",
+    "ruff>=0.15",
+]
+
+[tool.uv]
+# Supply-chain quarantine: only resolve distributions that have been public for
+# at least 7 days. Declared here (not only in a personal global uv config) so
+# every `uv lock` -- local and CI -- reproduces `exclude-newer-span = "P7D"` in
+# uv.lock instead of a lock that is valid on one machine and stale on another.
+exclude-newer = "7 days"
+
+# ADR 0028 (dotfiles): resolve through the malware-scanning PyPI mirror.
+[[tool.uv.index]]
+name = "flatt"
+url = "https://pypi.flatt.tech/simple/"
+default = true
+
+[tool.ruff]
+# Only the tooling is Python; the skills themselves may bundle example code
+# that is upstream material and is not ours to lint.
+include = ["pyproject.toml", "scripts/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+# see: https://docs.astral.sh/ruff/rules/
+select = [
+    "FAST", # FastAPI
+    "C90",  # mccabe
+    "NPY",  # numpy
+    "PD",   # pandas
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "DTZ",  # flake8-datetimez
+    "T20",  # flake8-print
+    "N",    # pep8-naming
+    "I",    # isort
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes
+    "PLE",  # Pylint errors
+    "PLR",  # Pylint refactor
+    "UP",   # pyupgrade
+    "FURB", # refurb
+    "RUF",  # Ruff-specific rules
+]
+extend-ignore = ["E501", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# The tests import the scripts after a sys.path insert, which is the
+# stdlib-only way to reach `scripts/` without packaging it.
+"tests/**/*.py" = ["E402"]
+
+[tool.mypy]
+strict = true
+files = ["scripts", "tests"]
+mypy_path = "scripts"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
