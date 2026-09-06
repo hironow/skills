@@ -2,7 +2,13 @@
 # with a SKILL.md is a skill; `scripts/` holds the stdlib-only tooling that
 # keeps them consistent. Conventions: README.md ("Maintaining").
 
-set dotenv-load := false
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+# Native Windows: WSL's System32 bash.exe shadows Git Bash for a bare `bash`,
+# while `sh` resolves to Git Bash; the prelude puts /usr/bin first so the
+# recipe's own commands resolve there too. Copied from the dotfiles justfile
+# (its comment explains the mechanism in full) because just settings do not
+# carry over into a nested `just --justfile` invocation.
+set windows-shell := ["sh", "-eu", "-o", "pipefail", "-c", 'PATH="/usr/bin:$PATH"; exec /usr/bin/sh -eu -o pipefail -c "$0"']
 
 # List recipes
 default:

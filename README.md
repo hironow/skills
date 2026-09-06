@@ -4,7 +4,7 @@ A personal collection of agent skills: 46 skills, one directory each, with a `SK
 
 ## How this repository is used
 
-This repository is the `skills/` submodule of [hironow/dotfiles](https://github.com/hironow/dotfiles). `just sync-agents` there copies each skill directory into the agent homes (`~/.claude*/skills`, `~/.codex/skills`, `~/.gemini/skills`, `~/.agents/skills`; pi reads `~/.agents/skills` directly). The copy is additive: it adds skills that are missing and never overwrites or deletes an existing one, so after changing a skill here the home copies have to be refreshed by hand (rsync) once the change is merged and the submodule pointer is bumped in dotfiles.
+This repository is the `skills/` submodule of [hironow/dotfiles](https://github.com/hironow/dotfiles). `just sync-agents` there copies each skill directory into the agent homes (`~/.claude*/skills`, `~/.codex/skills`, `~/.gemini/skills`, `~/.agents/skills`; pi reads `~/.agents/skills` directly). The copy is additive: it adds skills that are missing and never overwrites or deletes an existing one, so after changing a skill here the home copies have to be refreshed once the change is merged and the submodule pointer is bumped in dotfiles. Use the command under [Maintaining](#refreshing-the-agent-homes): a plain `rsync` of the whole repository would also copy the tooling and `.venv/` into the homes, and the additive sync would never remove them again.
 
 Third-party skills are not vendored here. They are installed with `bunx skills` and declared in `dump/harness/skill-lock.json` in dotfiles; a lock-managed name must never reappear in this repository (`just skills-lock-check` fails). The few skills here that started as a copy of an upstream skill record the compared upstream commit in `metadata.upstream` so the next comparison has a baseline.
 
@@ -39,6 +39,22 @@ The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/
 | `just test`, `just lint`, `just fmt` | the tooling's own unit tests, ruff + mypy (strict), ruff format |
 
 The procedure around these recipes (judging a fork against its upstream, retiring a skill from the agent homes, the provenance contract in detail) is documented in dotfiles as `docs/agents/skills-maintenance.md`.
+
+### Refreshing the agent homes
+
+Only skill directories belong in the homes; `scripts/`, `tests/`, `docs/`, the project files, and `.venv/` do not. From the repository root, after the submodule pointer is bumped:
+
+```sh
+for skill in */SKILL.md; do
+  d=${skill%/SKILL.md}
+  for home in ~/.claude ~/.claude-work-{a,b,c,d} ~/.codex ~/.gemini ~/.agents; do
+    [ -d "$home/skills" ] && [ ! -L "$home/skills/$d" ] && rsync -a --delete "$d/" "$home/skills/$d/"
+  done
+done
+just audit-consumers
+```
+
+Symlinked entries are skipped on purpose: they belong to the `bunx skills` CLI. `just audit-consumers` then confirms every home holds a byte-identical copy.
 
 ## Skills
 

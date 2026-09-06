@@ -56,11 +56,6 @@ select = [
 ]
 extend-ignore = ["E501", "RUF002", "RUF003"]
 
-[tool.ruff.lint.per-file-ignores]
-# The tests import the scripts after a sys.path insert, which is the
-# stdlib-only way to reach `scripts/` without packaging it.
-"tests/**/*.py" = ["E402"]
-
 [tool.mypy]
 strict = true
 files = ["scripts", "tests"]
@@ -68,3 +63,5 @@ mypy_path = "scripts"
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
+# `scripts/` is not a package; the tests import its modules directly.
+pythonpath = ["scripts"]

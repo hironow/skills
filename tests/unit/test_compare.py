@@ -6,13 +6,9 @@ violations in the body, and pairwise SKILL.md diff sizes. It is the first
 step of the fork-dedup playbook, before any judge model reads the files.
 """
 
-import sys
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
-
 from compare import diff_lines, main, metrics
 
 

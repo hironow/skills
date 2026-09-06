@@ -8,13 +8,9 @@ skills whose origin is unconfirmed; the confirmed originals). A derived skill
 that lacks the provenance contract is an error, never a blank cell.
 """
 
-import sys
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
-
 from readme_index import (
     MissingProvenanceError,
     SkillEntry,
