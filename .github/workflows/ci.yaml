@@ -1,6 +1,6 @@
 name: CI
 
-# The same gate as `just check` locally: ruff, mypy, the tooling's unit
+# The same gate as `just check` locally: ruff, ty, the tooling's unit
 # tests, the structural audit of every skill, and the README index check.
 on:
   push:

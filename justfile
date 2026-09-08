@@ -48,11 +48,11 @@ test:
 fmt:
     uv run ruff format
 
-# ruff (format check + lint) and mypy (strict)
+# ruff (format check + lint) and ty (type check; warnings fail, see pyproject)
 lint:
     uv run ruff format --check
     uv run ruff check
-    uv run mypy
+    uv run ty check
 
 # The full local gate; CI runs the same thing.
 check: lint test audit readme-check

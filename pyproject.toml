@@ -10,9 +10,10 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "mypy>=1.19",
     "pytest>=9.0",
     "ruff>=0.15",
+    # pre-1.0: pinned exactly, bumped deliberately (dotfiles ADR 0044)
+    "ty==0.0.77",
 ]
 
 [tool.uv]
@@ -53,13 +54,25 @@ select = [
     "UP",   # pyupgrade
     "FURB", # refurb
     "RUF",  # Ruff-specific rules
+    # flake8-annotations: the "every def is annotated" requirement that mypy
+    # --strict used to enforce; ty has no strict mode, so ruff carries it.
+    "ANN",
 ]
 extend-ignore = ["E501", "RUF002", "RUF003"]
 
-[tool.mypy]
-strict = true
-files = ["scripts", "tests"]
-mypy_path = "scripts"
+# ty (https://github.com/astral-sh/ty) replaces mypy: the uv + ruff + ty trio
+# (dotfiles ADR 0044). Same scope as the old mypy block: check scripts/ and
+# tests/, resolve the tests' bare `from audit import ...` against scripts/.
+[tool.ty.src]
+include = ["scripts", "tests"]
+
+[tool.ty.environment]
+extra-paths = ["scripts"]
+
+# Warnings fail the gate. This only raises severity: ty has no --strict and
+# enables no extra checks, which is why ruff's ANN rules are selected above.
+[tool.ty.terminal]
+error-on-warning = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]

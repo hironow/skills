@@ -27,7 +27,7 @@ Third-party skills are not vendored here; they are declared in the same lock. Th
 
 ## Maintaining
 
-The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds the dev tools (pytest, ruff, mypy) the `just` recipes use.
+The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds the dev tools (pytest, ruff, ty) the `just` recipes use.
 
 | recipe | what it does |
 |---|---|
@@ -36,7 +36,7 @@ The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/
 | `just audit-consumers` | the audit plus a byte comparison against every agent home (through the symlinks the dotfiles `skills-place` recipe creates), and dangling-symlink detection; depends on the machine, so it is not part of `check` |
 | `just readme-index` / `just readme-check` | regenerate the generated blocks below from frontmatter / fail if they are stale |
 | `just compare <dir>...` | quantitative comparison of skill versions (fork first, then upstream copies): sizes, description length, tooling-rule violations, body diff |
-| `just test`, `just lint`, `just fmt` | the tooling's own unit tests, ruff + mypy (strict), ruff format |
+| `just test`, `just lint`, `just fmt` | the tooling's own unit tests, ruff + ty (warnings are errors), ruff format |
 
 The procedure around these recipes (judging a fork against its upstream, retiring a skill from the agent homes, the provenance contract in detail) is documented in dotfiles as `docs/agents/skills-maintenance.md`.
 
