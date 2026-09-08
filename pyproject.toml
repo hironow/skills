@@ -10,9 +10,9 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "mypy>=1.19",
     "pytest>=9.0",
     "ruff>=0.15",
+    "ty>=0.0.77",
 ]
 
 [tool.uv]
@@ -56,10 +56,18 @@ select = [
 ]
 extend-ignore = ["E501", "RUF002", "RUF003"]
 
-[tool.mypy]
-strict = true
-files = ["scripts", "tests"]
-mypy_path = "scripts"
+# ty (https://github.com/astral-sh/ty) replaces mypy: the uv + ruff + ty trio
+# (dotfiles ADR 0044). Same scope as the old mypy block: check scripts/ and
+# tests/, resolve the tests' bare `from audit import ...` against scripts/.
+[tool.ty.src]
+include = ["scripts", "tests"]
+
+[tool.ty.environment]
+extra-paths = ["scripts"]
+
+# Warnings fail the gate, as mypy --strict did.
+[tool.ty.terminal]
+error-on-warning = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
