@@ -1,11 +1,11 @@
 # Handover
 
-**Last updated:** 2026-09-07 00:40 (JST)
-**Updated by:** claude (session 777ca0b0, working in hironow/dotfiles)
+**Last updated:** 2026-09-08 (JST)
+**Updated by:** claude (session 946a1bfd, working in hironow/dotfiles)
 
 ## Current State
 
-44 skill directories, each with a `SKILL.md` (`sibyl` moved to hironow/skills-private and `consume-hub-actions` to its organisation's own private skills repository on 2026-09-06). `README.md` indexes them (generated tables), states the conventions (English instructions, Japanese-writing skills and user-facing templates excepted), and credits the upstream of every derived skill. All instruction text is English except those deliberate cases; no emoji markers remain in self-authored skills. The maintenance tooling lives here (`scripts/`, `tests/`, `justfile`, `.github/workflows/ci.yaml`): `just check` = ruff + mypy + tests + `audit` + `readme-check`, run by CI on every pull request; `audit` reports 0 findings at `main`.
+44 skill directories, each with a `SKILL.md` (`sibyl` moved to hironow/skills-private and `consume-hub-actions` to its organisation's own private skills repository on 2026-09-06). `README.md` indexes them (generated tables), states the conventions (English instructions, Japanese-writing skills and user-facing templates excepted), and credits the upstream of every derived skill. All instruction text is English except those deliberate cases; no emoji markers remain in self-authored skills. The maintenance tooling lives here (`scripts/`, `tests/`, `justfile`, `.github/workflows/ci.yaml`): `just check` = ruff + ty + tests + `audit` + `readme-check` (ty replaced mypy on 2026-09-08 — the uv + ruff + ty trio, dotfiles ADR 0044), run by CI on every pull request; `audit` reports 0 findings at `main`.
 
 Since 2026-09-02 (`main` 749791a → 0bf2e29, PRs #2–#13):
 
