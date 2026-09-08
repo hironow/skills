@@ -77,7 +77,7 @@ dev = [
     "pytest>=8.3",
     "httpx>=0.28",       # FastAPI TestClient
     "ruff>=0.8",
-    "mypy>=1.13",
+    "ty>=0.0.77",
 ]
 
 [tool.ruff.lint]
@@ -263,7 +263,7 @@ backend-test:
 
 # Backend: lint + type check
 backend-lint:
-    cd backend && uv run ruff check . && uv run mypy .
+    cd backend && uv run ruff check . && uv run ty check
 
 # Frontend: run dev server
 frontend-dev:
@@ -335,7 +335,7 @@ jobs:
         working-directory: backend
       - run: uv run ruff check .
         working-directory: backend
-      - run: uv run mypy .
+      - run: uv run ty check
         working-directory: backend
       - run: uv run pytest
         working-directory: backend

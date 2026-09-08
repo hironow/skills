@@ -141,7 +141,7 @@ with a public key and committed to the repository, then decrypted with the priva
 
 | Tool | Target |
 |------|--------|
-| mypy | Python |
+| ty | Python |
 | TypeScript compiler | Frontend |
 
 ### 4.7.3 Code Generation Validation

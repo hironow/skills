@@ -50,7 +50,7 @@ Development commands are unified in a task runner to remove per-person differenc
 | `just dev` | Start the backend dev server (hot-reload) |
 | `just test` | Run unit tests |
 | `just test-e2e` | Run E2E tests |
-| `just lint` | Run the linter (ruff check + mypy) |
+| `just lint` | Run the linter (ruff check + ty check) |
 | `just fmt` | Run the formatter (ruff format) |
 | `just build` | Docker image build |
 | `just push` | Push to Artifact Registry |
