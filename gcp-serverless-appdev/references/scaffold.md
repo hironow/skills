@@ -77,7 +77,7 @@ dev = [
     "pytest>=8.3",
     "httpx>=0.28",       # FastAPI TestClient
     "ruff>=0.8",
-    "ty>=0.0.77",
+    "ty==0.0.79",  # pre-1.0: pin exactly, bump deliberately
 ]
 
 [tool.ruff.lint]
