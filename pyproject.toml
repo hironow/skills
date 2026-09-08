@@ -12,7 +12,8 @@ dependencies = []
 dev = [
     "pytest>=9.0",
     "ruff>=0.15",
-    "ty>=0.0.77",
+    # pre-1.0: pinned exactly, bumped deliberately (dotfiles ADR 0044)
+    "ty==0.0.77",
 ]
 
 [tool.uv]
@@ -53,6 +54,9 @@ select = [
     "UP",   # pyupgrade
     "FURB", # refurb
     "RUF",  # Ruff-specific rules
+    # flake8-annotations: the "every def is annotated" requirement that mypy
+    # --strict used to enforce; ty has no strict mode, so ruff carries it.
+    "ANN",
 ]
 extend-ignore = ["E501", "RUF002", "RUF003"]
 
@@ -65,7 +69,8 @@ include = ["scripts", "tests"]
 [tool.ty.environment]
 extra-paths = ["scripts"]
 
-# Warnings fail the gate, as mypy --strict did.
+# Warnings fail the gate. This only raises severity: ty has no --strict and
+# enables no extra checks, which is why ruff's ANN rules are selected above.
 [tool.ty.terminal]
 error-on-warning = true
 
