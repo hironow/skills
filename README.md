@@ -27,7 +27,7 @@ Third-party skills are not vendored here; they are declared in the same lock. Th
 
 ## Maintaining
 
-The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds the dev tools (pytest, ruff, ty) the `just` recipes use.
+The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds pytest, and the `just` recipes bring in ruff and ty (the `lint` dependency group) when they run them.
 
 | recipe | what it does |
 |---|---|

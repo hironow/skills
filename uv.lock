@@ -108,6 +108,8 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+]
+lint = [
     { name = "ruff" },
     { name = "ty" },
 ]
@@ -115,8 +117,8 @@ dev = [
 [package.metadata]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.0" },
+dev = [{ name = "pytest", specifier = ">=9.0" }]
+lint = [
     { name = "ruff", specifier = "==0.16.9" },
     { name = "ty", specifier = "==0.0.84", index = "https://pypi.org/simple/" },
 ]
