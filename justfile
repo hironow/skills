@@ -46,13 +46,15 @@ test:
 
 # ruff format
 fmt:
-    uv run ruff format
+    uv run --locked --only-group lint ruff format .
 
-# ruff (format check + lint) and ty (type check; warnings fail, see pyproject)
+# ruff (lint + format check) and ty (type check; warnings fail, see pyproject).
+# ruff only parses source, so it runs with the lint group alone; ty resolves
+# imports, so it also gets the default groups (dotfiles python-tooling spoke).
 lint:
-    uv run ruff format --check
-    uv run ruff check
-    uv run ty check
+    uv run --locked --only-group lint ruff check .
+    uv run --locked --only-group lint ruff format --check .
+    uv run --locked --group lint ty check
 
 # The full local gate; CI runs the same thing.
 check: lint test audit readme-check

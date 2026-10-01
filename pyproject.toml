@@ -11,8 +11,12 @@ dependencies = []
 [dependency-groups]
 dev = [
     "pytest>=9.0",
-    # ruff and ty are pinned exactly, at the versions the dotfiles gate runs
-    # (dotfiles ADR 0044; its `just bump-tool` prints this repo's step)
+]
+# ruff + ty only: `uv run --locked --only-group lint ruff` (just fmt / lint).
+# ty runs with `--group lint` so it still sees the project's imports (pytest).
+lint = [
+    # pinned exactly, at the versions the dotfiles gate runs (dotfiles ADR
+    # 0044; its `just bump-tool` prints this repo's step)
     "ruff==0.16.9",
     "ty==0.0.84",
 ]
