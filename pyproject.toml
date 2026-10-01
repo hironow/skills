@@ -11,8 +11,9 @@ dependencies = []
 [dependency-groups]
 dev = [
     "pytest>=9.0",
-    "ruff>=0.15",
-    # pre-1.0: pinned exactly, bumped deliberately (dotfiles ADR 0044)
+    # ruff and ty are pinned exactly, at the versions the dotfiles gate runs
+    # (dotfiles ADR 0044; its `just bump-tool` prints this repo's step)
+    "ruff==0.16.9",
     "ty==0.0.84",
 ]
 
