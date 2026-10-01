@@ -18,6 +18,7 @@ import re
 import sys
 from pathlib import Path
 
+from console import utf8_stdout
 from frontmatter import read_skill
 
 VIOLATIONS: dict[str, re.Pattern[str]] = {
@@ -112,4 +113,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    utf8_stdout()
     sys.exit(main())

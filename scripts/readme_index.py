@@ -27,6 +27,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from console import utf8_stdout
 from frontmatter import read_skill, skill_dirs
 
 MAX_SUMMARY = 140
@@ -242,4 +243,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    utf8_stdout()
     sys.exit(main())
