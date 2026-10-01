@@ -31,6 +31,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from console import utf8_stdout
 from frontmatter import FrontmatterError, read_skill, skill_dirs
 
 JAPANESE_EXEMPT_SKILLS = frozenset(
@@ -345,4 +346,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    utf8_stdout()
     sys.exit(main())
