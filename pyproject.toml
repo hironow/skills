@@ -29,12 +29,6 @@ lint = [
 exclude-newer = "7 days"
 exclude-newer-package = { ruff = false, ty = false }
 
-# ADR 0028 (dotfiles): resolve through the malware-scanning PyPI mirror.
-[[tool.uv.index]]
-name = "flatt"
-url = "https://pypi.flatt.tech/simple/"
-default = true
-
 [tool.ruff]
 # Only the tooling is Python; the skills themselves may bundle example code
 # that is upstream material and is not ours to lint.
@@ -85,10 +79,13 @@ testpaths = ["tests/unit"]
 # `scripts/` is not a package; the tests import its modules directly.
 pythonpath = ["scripts"]
 
+# Public PyPI is the project default for both local and CI resolution.
+# This route cutover does not supersede the separate Accepted dotfiles ADR 0028;
+# its cross-repository decision requires a separate human ruling.
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.org/simple/"
-explicit = true
+default = true
 
 [tool.uv.sources]
 ty = { index = "pypi" }
