@@ -27,7 +27,7 @@ Third-party skills are not vendored here; they are declared in the same lock. Th
 
 ## Maintaining
 
-The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds pytest, and the `just` recipes bring in ruff and ty (the `lint` dependency group) when they run them.
+The tooling lives in `scripts/` and is stdlib-only, so a plain `python3 scripts/audit.py` works in any clone; `uv sync` adds pytest, and the `just` recipes bring in ruff and ty (the `lint` dependency group) when they run them. This repository's uv project and committed lock use public PyPI, with a relative seven-day release-age limit except for the pinned Ruff and ty quality gates. Public metadata and hashes do not certify any older Flatt artifact as malware-free. The earlier mirror requirement cited dotfiles ADR 0028; this repository's change does not itself supersede that separate Accepted record.
 
 | recipe | what it does |
 |---|---|
