@@ -17,8 +17,8 @@ dev = [
 lint = [
     # pinned exactly, at the versions the dotfiles gate runs (dotfiles ADR
     # 0044; its `just bump-tool` prints this repo's step)
-    "ruff==0.16.9",
-    "ty==0.0.84",
+    "ruff==0.17.1",
+    "ty==0.0.89",
 ]
 
 [tool.uv]
