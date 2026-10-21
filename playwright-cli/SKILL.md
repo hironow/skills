@@ -7,12 +7,12 @@ metadata:
   provenance: derived
   upstream: microsoft/playwright-cli@655530f:skills/playwright-cli
   upstream-license: Apache-2.0
-  changes: SKILL.md and the bundled references edited in the 2026-09-02 prompt audit
+  changes: SKILL.md and the bundled references edited in the 2026-09-02 prompt audit; the PATH fallback names @playwright/cli (2026-10-21, @playwright/mcp ships no playwright-cli bin)
 ---
 
 # Browser Automation with playwright-cli
 
-If `playwright-cli` is not on PATH, run it as `bunx --package @playwright/mcp playwright-cli <args>`.
+If `playwright-cli` is not on PATH, run it as `bunx --package @playwright/cli playwright-cli <args>`.
 
 ## Quick start
 
