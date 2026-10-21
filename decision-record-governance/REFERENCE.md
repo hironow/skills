@@ -1,4 +1,4 @@
-# REFERENCE — decision records, the decision queue, and Slack integration
+# REFERENCE — decision records, the decision queue, and durable consultation
 
 Detailed rules for decision-record governance: Nygard-style ADRs made strict (immutable records, supersession, reversal records).
 
@@ -9,9 +9,9 @@ Detailed rules for decision-record governance: Nygard-style ADRs made strict (im
 3. [Status vocabulary and lifecycle](#3-status-vocabulary-and-lifecycle-no-other-words-transitions-are-one-way)
 4. [Required sections](#4-required-sections)
 5. [The decision queue file](#5-the-decision-queue-file)
-6. [Slack mention IDs](#6-slack-mention-ids)
-7. [Slack message templates](#7-slack-message-templates)
-8. [Posting with the Slack API](#8-posting-with-the-slack-api-when-slack_bot_token-is-available)
+6. [Stable contact handles](#6-stable-contact-handles)
+7. [Consultation message templates](#7-consultation-message-templates)
+8. [Posting to durable venues](#8-posting-to-durable-venues)
 9. [README updates](#9-readme-updates-on-settlement-and-supersede)
 10. [Cross-DR consistency check](#10-cross-dr-consistency-check--detection-is-mandatory-the-ruling-is-human)
 
@@ -19,7 +19,7 @@ Detailed rules for decision-record governance: Nygard-style ADRs made strict (im
 
 - **ADR** (Architecture Decision Record): a technical, design, or architecture decision. Lives in `docs/adr/`. Decided by engineers or architects.
 - **PDR** (Product Decision Record): a product, UX, or business-rule decision. Lives in `docs/pdr/`. Decided by product, operations, or business owners.
-- **Decision queue**: the markdown list of undecided (`Proposed`) records awaiting approval (default path `docs/decision-queue.md`). The single source of truth for who decides what by when, and for the Slack thread state.
+- **Decision queue**: the markdown list of undecided (`Proposed`) records awaiting approval (default path `docs/decision-queue.md`). The single source of truth for who decides what by when, and for the durable consultation trace.
 - **Supersede**: replace an existing decision with a new record. The old record is kept, never deleted.
 - **Reversal**: a supersede whose conclusion is effectively the opposite of the old decision. A reversal section is mandatory.
 
@@ -31,13 +31,15 @@ Detailed rules for decision-record governance: Nygard-style ADRs made strict (im
 | `title` | A noun or verb phrase that identifies the decision unambiguously. Matches the file name `NNNN-kebab-title.md` |
 | `status` | One of the status words in §3 only |
 | `date` | Filing date (ISO 8601) |
-| `decided-date` | Date the record became Accepted or Rejected. `—` while Proposed |
-| `decision-maker` | Real name or role. Mandatory once Accepted (`TBD` is allowed while Proposed) |
-| `author` | Who filed the record. If present, `author-slack` is mandatory |
-| `author-slack` | The author's Slack mention ID (`<@UXXXXXXXX>`). **Never blank or omitted while there is an author** |
+| `decided-date` | Date the record became Accepted, Rejected, or Deferred. `—` while Proposed |
+| `decision-maker` | Real name or role. Mandatory once Accepted, Rejected, or Deferred (`TBD` is allowed while Proposed) |
+| `decision-maker-contact` | Stable contact for the decision-maker. Mandatory before settlement and retained afterward |
+| `author` | Who filed the record. If present, `author-contact` is mandatory |
+| `author-contact` | A stable handle for the author: prefer GitHub `@handle`; Slack `<@UXXXXXXXX>` is also valid. **Never blank or omitted while there is an author** |
 | `supersedes` | ID of the record this one replaces, or `none` |
 | `superseded-by` | ID of the record that replaced this one, or `none` |
 | `related` | Cross-references to related open questions, gap IDs, or other decision records |
+| `consultation-trace` | Stable URL/reference in the confirmed durable venue containing the consultation and ruling; `—` only while no consultation is required |
 
 ## 3. Status vocabulary and lifecycle (no other words; transitions are one-way)
 
@@ -54,7 +56,7 @@ Proposed ──▶ Accepted ──▶ Superseded   (replaced by a successor reco
 ## 4. Required sections
 
 - `## Context` — the background and why a decision is needed now (facts only).
-- `## Decision` — the single settled statement, unambiguous, in MUST/SHALL form. Number multiple decisions D1, D2, …. While Proposed, write the placeholder "（Proposed。確定後に MUST 文で記述。）".
+- `## Decision` — unambiguous disposition. Accepted records use MUST/SHALL statements (number multiple decisions D1, D2, …). Rejected records state that no option was adopted and why; Deferred records state the revisit condition. While Proposed, write the placeholder "（Proposed。確定後にAcceptedのMUST/SHALL、Rejectedの理由、またはDeferredの再検討条件を記述。）".
 - `## Options Considered` — every option, chosen and rejected, each rejected one with its reason.
 - `## Consequences` — explicit `Positive` / `Negative` / `Neutral`.
 - `## 反転記録 (Reversal)` — mandatory only for a reversal supersede; otherwise `none`.
@@ -67,34 +69,30 @@ Record bodies are written primarily in Japanese (the templates are Japanese). Gi
 
 - Default path: `docs/decision-queue.md` (confirm with the user if the repository differs).
 - Structure: (1) how to use, (2) the summary table of records awaiting approval, (3) the decided log. Template: [templates/decision-queue.md](templates/decision-queue.md).
-- Required columns of the summary table: `ID` / `何を決める（ひとことで）` / `種別` / `作者` / `作者 Slack` / `決める人` / `決裁者 Slack` / `期限` / `状態` / `Slack スレッド` / `最終催促日` / `備考` / `元ファイル`. `備考` (notes) holds consistency-check rulings (§10.3) and anything else worth noting.
+- Required columns of the summary table: `ID` / `何を決める（ひとことで）` / `種別` / `作者` / `作者連絡先` / `決める人` / `決裁者連絡先` / `期限` / `状態` / `相談記録` / `最終催促日` / `備考` / `元ファイル`. `備考` (notes) holds consistency-check rulings (§10.3) and anything else worth noting.
 - **Validation rules (check on every registration and update)**:
-  1. Every row with a value in `作者` (author) has a mention ID starting with `<@U` in `作者 Slack`.
-  2. The queue row and the record header agree (`status`, `author-slack`, and so on).
+  1. Every row with a value in `作者` (author) has a non-empty stable handle in `作者連絡先`.
+  2. The queue row and the record header agree (`status`, both contact handles, `consultation-trace`, and so on).
   3. No record that is no longer `Proposed` remains in the summary table (move it to the decided log).
   4. Every row in the summary table has an existing record file.
-- When moving a row to the decided log, add `決定日` (decided date), `決定者` (decision-maker), and `結論` (Accepted/Rejected/Deferred plus a summary).
+- When moving a row to the decided log, add `決定日` (decided date), `決定者` (decision-maker), and `結論` (Accepted/Rejected/Deferred plus a summary). Retain the author, both stable contact handles, `相談記録`, and `備考`; settlement must not discard the people or evidence needed by a later supersession.
 
-## 6. Slack mention IDs
+## 6. Stable contact handles
 
-- The form is `<@UXXXXXXXX>` (member ID). Display names and `@name` strings do not produce a mention and are not acceptable.
-- How to obtain one, in order:
-  1. Ask the user directly (Slack profile → "Copy member ID").
-  2. With `$SLACK_BOT_TOKEN`, look it up with `users.lookupByEmail`:
-     `curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" "https://slack.com/api/users.lookupByEmail?email=<email>"`
-  3. Reuse the same person's ID from the existing queue, records, or git log.
-- **If it cannot be found, block the registration and ask the user. Guessing or fabricating is forbidden.**
+- Prefer a GitHub `@handle` when the decision record lives in GitHub. Use a Slack `<@UXXXXXXXX>` member ID when that team still uses Slack. Another stable handle is allowed only after the user names the durable venue.
+- Obtain the handle from an existing repository record, the authenticated account, or the user. A display name without a stable account identifier is insufficient.
+- **If the author contact cannot be found, block registration. If the decision-maker contact cannot be found, block settlement. Ask the user; guessing or fabricating is forbidden.**
 
-## 7. Slack message templates
+## 7. Consultation message templates
 
-> Slack is where you ask, request, and remind the decision-maker and the author. Approval requests, reminders, and settlement notices are posted when needed; **consulting the people involved about a consistency-check finding is mandatory** (template in §10.3). Creating, updating, and superseding records always happens in the markdown files in the repository — a Slack message is supporting evidence for a decision, never the source of truth.
+> Use the team's confirmed durable venue to ask, request, and remind the decision-maker and author. Approval requests, reminders, and settlement notices are posted when needed; **consulting the people involved about a consistency-check finding is mandatory** (template in §10.3). Creating, updating, and superseding records always happens in repository markdown — a thread is supporting evidence for a decision, never the source of truth.
 
 The message bodies below are in Japanese because that is the language of the teams that read them; keep them as they are.
 
 ### Filing notice (approval request)
 ```
 :bell: 決裁依頼 {ID}「{title}」
-起票: {author-slack} ／ 決裁者: {decider-slack} ／ 期限: {YYYY-MM-DD}
+起票: {author-contact} ／ 決裁者: {decider-contact} ／ 期限: {YYYY-MM-DD}
 ■ 要点（やさしい説明）: {1〜2文}
 ■ 選択肢: A) {…} / B) {…}（推奨: {…}）
 ■ 詳細: {記録ファイルへのリンク（リポジトリ URL があれば blob リンク）}
@@ -104,7 +102,7 @@ The message bodies below are in Japanese because that is the language of the tea
 ### Reminder
 ```
 :alarm_clock: リマインド {ID}「{title}」（期限 {YYYY-MM-DD}{超過 n 日}）
-{decider-slack} 決裁をお願いします。選択肢と詳細は上記（または {リンク}）。
+{decider-contact} 決裁をお願いします。選択肢と詳細は上記（または {リンク}）。
 ```
 
 ### Settlement notice
@@ -112,7 +110,7 @@ The message bodies below are in Japanese because that is the language of the tea
 :white_check_mark: 決定 {ID}「{title}」→ {Accepted/Rejected/Deferred}
 決定者: {decision-maker} ／ 決定日: {YYYY-MM-DD}
 結論: {Decision の要約 1〜2 文}
-{author-slack} 後続アクション: {決定後にやること}
+{author-contact} 後続アクション: {決定後にやること}
 ```
 
 ### Supersede / reversal notice
@@ -121,7 +119,17 @@ The message bodies below are in Japanese because that is the language of the tea
 理由: {要約} ／ 詳細: {リンク}
 ```
 
-## 8. Posting with the Slack API (when `$SLACK_BOT_TOKEN` is available)
+## 8. Posting to durable venues
+
+Prefer an existing GitHub PR/issue/discussion when the repository already has one. After confirming the exact wording with the user:
+
+```bash
+# Record the returned comment URL as the consultation trace.
+gh pr comment <number> --body-file <message.md>
+# Or: gh issue comment <number> --body-file <message.md>
+```
+
+When the team uses Slack and `$SLACK_BOT_TOKEN` is available:
 
 ```bash
 # Post to a channel (record the returned ts in the queue as the thread ID)
@@ -137,9 +145,10 @@ curl -s -X POST https://slack.com/api/chat.postMessage \
   -d '{"channel": "{C…}", "thread_ts": "{ts recorded in the queue}", "text": "{body}"}'
 ```
 
-- On success, confirm `ok: true` and record `ts` in the queue's `Slack スレッド` column as `{channel}/{ts}`.
-- On `ok: false`, report the error (`channel_not_found`, `not_in_channel`, …) to the user and resolve the cause before retrying.
-- Keep `<@U…>` as plain text in the body (do not escape it) so the mention works.
+- On GitHub, capture the resulting comment URL. On Slack, confirm `ok: true` and record `ts` as `{channel}/{ts}`.
+- On failure, report the error to the user and resolve the cause before retrying.
+- Keep platform-native mentions as plain text so the people involved are actually notified.
+- If no posting tool or credential is available, prepare the confirmed message and ask the user to post it by hand; record the returned URL/reference the same way, and never skip the consultation itself.
 
 ## 9. README updates (on settlement and supersede)
 
@@ -180,7 +189,7 @@ DR 間整合検査: {n} 件検出（対象: {ID}「{title}」）
 1. [{分類}] {相手の ID・status}
    - 該当箇所: {対象側の引用} ⇔ {相手側の引用}
    - なぜ問題か: {1〜2文。事実のみ}
-   - 関係者: {相手 DR の decision-maker / author と Slack メンション ID}
+   - 関係者: {相手 DR の decision-maker / author と安定したcontact handle}
    - 解消の選択肢:
      a) {例: 本記録に supersedes: {相手 ID} を宣言し反転記録を書く}
      b) {例: 本記録の該当 Decision を修正/撤回する}
@@ -189,17 +198,17 @@ DR 間整合検査: {n} 件検出（対象: {ID}「{title}」）
 
 Then follow this flow **without exception or shortcut**:
 
-1. **Identify the people involved**: the `decision-maker` and `author` of the conflicting DR, and their Slack mention IDs (§6 if unknown; if still unknown, ask the user).
-2. **Consultation is mandatory**: proceeding without consulting them is **forbidden**. **Never offer "proceed knowing there is a contradiction" as an option, and do not accept it if asked** — make that request itself a topic of the consultation. Slack is only the venue; the point is to involve the people behind the original decision.
-3. **Open a consultation thread on Slack** (means in §8; template below): post the finding and the options with the people mentioned, and record the thread in the queue's notes column. If Slack is unavailable, generate the message and ask the user to hold the consultation (**skipping the consultation itself is not allowed**).
+1. **Identify the people involved**: the `decision-maker` and `author` of the conflicting DR, and their stable contact handles (§6 if unknown; if still unknown, ask the user).
+2. **Consultation is mandatory**: proceeding without consulting them is **forbidden**. **Never offer "proceed knowing there is a contradiction" as an option, and do not accept it if asked** — make that request itself a topic of the consultation. The venue is optional; involving the original people is the point.
+3. **Open a durable consultation thread** (means in §8): post the finding and options with the people mentioned, and record its stable URL/reference in the queue. If the involved person gives the ruling directly in the current chat, copy that ruling to a stable URL/reference in the confirmed durable venue before settlement; the chat alone is not the durable record.
 4. **Ruling**: the humans (the people involved plus the approver) choose among a/b/c and so on. The AI does not decide. If you recommend, recommend one option, with reasons, neutrally.
-5. **Trace**: record the ruling in the record's `related` / `## Context`, the queue's notes column, and the commit message:
-   「{分類} を {誰} が {日付} に {選択肢} と裁定（相談スレッド: {channel}/{ts}）」.
+5. **Trace**: record the ruling in the record's `consultation-trace` / `related` / `## Context`, the queue's notes column, and the commit message:
+   「{分類} を {誰} が {日付} に {選択肢} と裁定（相談記録: {stable URL/reference in the confirmed durable venue}）」.
 
 Consultation message template (Japanese, as posted):
 ```
 :warning: DR 整合相談 — {対象ID}「{title}」が {相手ID}「{相手title}」と {分類} の疑い
-{関係者メンション} 元の決定に関わった方の確認・相談が必要です（このスレッドで）。
+{関係者contact} 元の決定に関わった方の確認・相談が必要です（この記録で）。
 ■ 該当箇所: {対象側引用} ⇔ {相手側引用}
 ■ なぜ問題か: {1〜2文}
 ■ 解消の選択肢: a) {…} b) {…} c) {…}
