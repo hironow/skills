@@ -36,9 +36,9 @@ Now set the language of the generated documents, before you forget: in `Glossary
 
 If it fails here, the tools are missing or too old. Check `elan --version`, `bun --version`, `java -version`, `just --version` (1.39 or newer), `rg --version`. Fix the tool; do not edit the `justfile`.
 
-### 3. Fill the role table (workflow step 0)
+### 3. Decide the roles (workflow step 0)
 
-Copy the role table from `SKILL.md` into the README and fill the third column for this domain. Write "none" for a role that does not exist. Do not go on until every row is filled or says "none".
+Read the role table in `SKILL.md` and decide, for this domain, which term plays each role and which roles do not exist. You record this in the glossary in the next step, as `role := some .<role>` on each term that plays one; the role table in `docs/generated/roles.md` is generated from those tags. Do not invent a term to fill a role.
 
 ### 4. Write the glossary file (workflow step 3)
 
@@ -61,14 +61,15 @@ open Term
 
 def terms : List (Entry Term Ctx) := [
   { id := member, label := "会員", context := .booking, gloss := "会議室を借りる利用者" },
-  { id := slot, label := "時間枠", context := .booking, gloss := "1 つの会議室の、1 つの時間帯" },
-  { id := slotHold, label := "仮押さえ", context := .booking,
+  { id := slot, label := "時間枠", role := some .resource, context := .booking,
+    gloss := "1 つの会議室の、1 つの時間帯" },
+  { id := slotHold, label := "仮押さえ", role := some .hold, context := .booking,
     gloss := "会員が時間枠を期限つきで確保している状態", defDeps := [member, slot] },
-  { id := payment, label := "決済", context := .payment,
+  { id := payment, label := "決済", role := some .externalConfirmation, context := .payment,
     gloss := "外部の決済会社が行う支払い。結果は遅れて届き、止められない", defDeps := [member] },
-  { id := booking, label := "予約確定", context := .booking,
+  { id := booking, label := "予約確定", role := some .entitlement, context := .booking,
     gloss := "決済が成功し、時間枠が会員のものになった状態", defDeps := [member, slot, payment] },
-  { id := emergencyStop, label := "受付停止", context := .operations,
+  { id := emergencyStop, label := "受付停止", role := some .stop, context := .operations,
     gloss := "システムが自律的に、新しい仮押さえと決済の開始を止めること", defDeps := [slotHold, payment] }
 ]
 
@@ -81,7 +82,8 @@ def claims : List (Claim Term) := [
     evidence := .lean "Glossary.Rooms.terms_wellFormed" (WellFormed terms) terms_wellFormed }
 ]
 
-def book : Book Term Ctx := { title := "会議室の予約", terms, claims }
+-- Until step 6 models the stop scene, the starter's model covers it. Step 6 replaces this line.
+def book : Book Term Ctx := { title := "会議室の予約", terms, claims, stopScene := .inBook "Starter" }
 
 theorem book_check : book.check = true := by decide
 
@@ -93,6 +95,7 @@ Rules that the build enforces, so you will see an error if you break them:
 - Every name after `id :=`, in `defDeps` and in `about` is one of the cases of `Term`.
 - A term appears in the list after every term in its `defDeps`.
 - `verdict` matches `evidence`: `.lean` and `.holds` are `.proved`; `.leanRefutes` and `.violated` are `.counterexample`; `.question` is `.undecided`.
+- `role` is one of the cases of `Role` in `Glossary/Core.lean`; leave it out for a term that plays no shared role.
 - Indentation matters inside `{ ... }`: every line of an entry or a claim is indented further than its opening brace. A line that starts at the brace's column gives "unexpected identifier; expected '}'".
 
 ### 5. Register it (workflow step 3)
@@ -108,17 +111,17 @@ J generate
 J check
 ```
 
-You should see your terms in `docs/generated/glossary.md`. If the build says `check ... = true` could not be decided, the list breaks one of the three rules above: read the message, it names the theorem.
+You should see your terms in `docs/generated/glossary.md` and your role table in `docs/generated/roles.md`, and `stop-check: ... the declarations hold`. If the build says `check ... = true` could not be decided, the list breaks one of the three rules above: read the message, it names the theorem.
 
 ### 6. Model the stop scene (workflow step 4)
 
-First decide whether anything is in flight when the system stops: look at the role table rows External confirmation, Hold, Entitlement and Deadline. If any of them is not none, or you are not sure, model the scene as below. Only if all four are none, skip the model and put this line in the README instead:
+First decide whether anything is in flight when the system stops. If any term carries the role `externalConfirmation`, `hold`, `entitlement` or `deadline`, something is, and you model the scene as below; the gate refuses a waiver in that case. Only if none of these four roles is tagged, and none is missing by mistake, declare instead, in the book:
 
-```
-<!-- stop-scene: none; <one sentence on why nothing is in flight across a stop> -->
+```lean
+stopScene := .waived "<one sentence on why nothing is in flight across a stop>"
 ```
 
-Keep the English role names in the first column of the role table (`外部の確認 (External confirmation)`). Then run `python3 <skill>/scripts/status.py .`: the stop item must show `[done]`. If it shows `[todo]`, the hint says which role disagrees; fix the table or model the scene.
+and go on to step 7.
 
 **Starting point A:** copy `Spec/starter.qnt` to `Spec/<domain>.qnt` and rename the roles to the domain's words (the starter is the stop scene in the shared roles). Keep the two modules `naive` and `guarded`.
 
@@ -131,14 +134,14 @@ bunx @informalsystems/quint@$(cat quint-version) test --main=naive Spec/<domain>
 
 `typecheck` prints nothing when the file is fine; any output is an error. `test` should print `ok doubleEntitlementTest` (or your renamed test). In the subdir layout, run these two `bunx` commands inside the project folder (`glossary/`), and run every `just` command from the repository root (`just glossary check`); `just` typed inside `glossary/` finds the root justfile and reports that the recipe does not exist.
 
-Add the claims to the glossary file. For starting point A, copy the four from `Glossary/Starter.lean` (naive exclusivity violated, guarded exclusivity holds, guarded orphan violated, and the question) and change the file name, the terms in `about`, and the statements. For B and C, write claims of the same four kinds about your own modules: what the code as it is breaks, what a proposal keeps, what a proposal newly breaks, and the question that remains. Add the test line to `Spec/tests.txt`: `Spec/<domain>.qnt naive`.
+Add the claims to the glossary file. For starting point A, copy the four from `Glossary/Starter.lean` (naive exclusivity violated, guarded exclusivity holds, guarded orphan violated, and the question) and change the file name, the terms in `about`, and the statements. Keep your stop term in the `about` of the counterexample and of the claim that holds: those claims are what back the stop scene. For B and C, write claims of the same four kinds about your own modules: what the code as it is breaks, what a proposal keeps, what a proposal newly breaks, and the question that remains. Add the test line to `Spec/tests.txt`: `Spec/<domain>.qnt naive`. Then replace `stopScene := .inBook "Starter"` with `stopScene := .modelled`.
 
 ```sh
 J generate
 J check
 ```
 
-You should see `ok  violated  naive.exclusive`, `ok  holds  guarded.exclusive (N distinct states found)` and `ok  violated  guarded.noOrphan`. A line ending in `(found by TLC; too deep for the simulator)` is also a pass: the counterexample exists but needs many steps.
+You should see `stop-check: ... the declarations hold`, then `ok  violated  naive.exclusive`, `ok  holds  guarded.exclusive (N distinct states found)` and `ok  violated  guarded.noOrphan`. If stop-check fails, it names what is missing: a term with `role := some .stop`, or a counterexample, a proved result or a Quint check among the claims about it. A line ending in `(found by TLC; too deep for the simulator)` is also a pass: the counterexample exists but needs many steps.
 
 - `FAIL holds ...`: the property is false. Read the trace printed above the line. Either the design is wrong (good: record it as a counterexample instead) or the property says more than you meant.
 - `FAIL violated ...: no counterexample found by the simulator or by TLC`: the property holds in every reachable state. Either the design is safe here (change the claim to `.holds`) or the model does not allow the behaviour you had in mind (compare the actions with the rules or the code).
@@ -149,7 +152,7 @@ Delete `Glossary/Starter.lean` and `Spec/starter.qnt`. Remove their lines from `
 
 ### 8. Go deeper where the role table says so (workflow step 4)
 
-For each role that is not "none", read its pattern in `references/patterns.md` and add the model and the claims. Do them in this order and run `J check` after each: pattern 3 (gaps in the rules), pattern 5 (stages of the confirmation), pattern 7 (who resolves a cancelled entitlement), pattern 8 (deadline), pattern 9 (who decides). Skip pattern 6 unless the industry actually reallocates.
+For each role that `docs/generated/roles.md` does not show as none, read its pattern in `references/patterns.md` and add the model and the claims. Do them in this order and run `J check` after each: pattern 3 (gaps in the rules), pattern 5 (stages of the confirmation), pattern 7 (who resolves a cancelled entitlement), pattern 8 (deadline), pattern 9 (who decides). Skip pattern 6 unless the industry actually reallocates.
 
 After each pattern, ask of every point the design could not settle: who in the business decides this? Add it as an `.undecided` claim with a `.question`.
 

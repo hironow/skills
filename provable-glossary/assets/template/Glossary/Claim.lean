@@ -50,11 +50,30 @@ def Evidence.verdict : Evidence → Verdict
   | .violated .. => .counterexample
   | .question .. => .undecided
 
+def Evidence.isQuint : Evidence → Bool
+  | .holds .. | .violated .. => true
+  | _ => false
+
+/-- What a book says about the stop scene: what happens to work in flight when the system stops
+(pattern 4). `just check` (stop-check) verifies the declaration against the terms and claims. -/
+inductive StopScene where
+  /-- Not declared yet. `just check` fails until the book declares one of the others. -/
+  | undeclared
+  /-- The scene is modelled: a term has role `.stop`, and the claims about it include a
+  counterexample, a proved result, and Quint evidence. -/
+  | modelled
+  /-- Nothing is in flight across a stop. Accepted only when no term has the role
+  `externalConfirmation`, `hold`, `entitlement` or `deadline`. -/
+  | waived (reason : String)
+  /-- Another book of this project, named by its title, models the scene. -/
+  | inBook (title : String)
+
 /-- A glossary together with the claims made about it. -/
 structure Book (ι κ : Type) where
   title : String
   terms : List (Entry ι κ)
   claims : List (Claim ι)
+  stopScene : StopScene := .undeclared
 
 variable {ι κ : Type} [DecidableEq ι]
 

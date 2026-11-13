@@ -10,6 +10,14 @@ This file is the same for every domain. Do not edit it per project.
 
 namespace Glossary
 
+/-- The shared roles a term can play in its domain (SKILL.md, "Map the domain onto shared roles").
+`docs/generated/roles.md` lists them from the glossary, and the stop-scene rule
+(`Glossary/StopScene.lean`) reads them. -/
+inductive Role where
+  | resource | hold | externalConfirmation | entitlement | stop | plannedStop | deadline
+  | fallbackChannel | supplyCancellation | reallocation
+  deriving DecidableEq, Repr
+
 /-- One glossary entry. `ι` is the term ID type, `κ` the bounded context type. -/
 structure Entry (ι κ : Type) where
   id : ι
@@ -31,6 +39,9 @@ structure Entry (ι κ : Type) where
   contain the text. Use it for a definition that rests on something the code does not do
   ("nothing ever sets this status"), so that the gate fails the day someone adds it. -/
   anchors : List String := []
+  /-- The shared role this term plays, if any. Tag every term that plays one: the role table is
+  generated from these tags, and an untagged role is reported as absent. -/
+  role : Option Role := none
 
 variable {ι κ : Type}
 

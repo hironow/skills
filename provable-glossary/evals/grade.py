@@ -28,9 +28,10 @@ TEMPLATE = next(
     ),
     HERE.parent / "assets" / "template",
 )
-# The rule for waiving the stop scene lives in the skill's scripts, shared with status.py.
+# The stop scene and the roles are read from the gate-verified docs/generated/roles.md, by the
+# same code status.py uses. Nothing is judged by whether a word appears in a file.
 sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
-from stop_waiver import stop_waiver  # noqa: E402
+from stop_scene import roles_tagged, stop_scene  # noqa: E402
 
 GEN = "docs/" + "generated"
 SKIP = {
@@ -144,27 +145,18 @@ add(
     f"verify in gate: {exhaustive}",
 )
 
-# 5. a stop scene is modelled and something is shown to break, or the README waives it with
-#    <!-- stop-scene: none; <reason> --> and a role table that maps every in-flight role to none
-models = text_of(qnt)
-readme_text = (
-    (out / "README.md").read_text(errors="replace")
-    if (out / "README.md").is_file()
+# 5. the stop scene is declared in the glossary and the gate verifies it. A run without the skill
+#    has no such declaration and fails this item by construction.
+roles_md = (
+    (out / GEN / "roles.md").read_text(errors="replace")
+    if (out / GEN / "roles.md").is_file()
     else ""
 )
-waived, waiver_note = stop_waiver(readme_text)
+stop_ok, stop_note = stop_scene(roles_md)
 add(
-    "A stop scene is modelled in Quint and the gate expects at least one property to be violated, or the README records why nothing is in flight across a stop",
-    waived
-    or bool(re.search(r"emergency|halt|stop|freeze|緊急|停止", models, re.IGNORECASE))
-    and bool(
-        re.search(
-            r"violat|反例|counterexample|exit 1|negative",
-            gate_sources + all_text,
-            re.IGNORECASE,
-        )
-    ),
-    waiver_note if waived else f"searched models, gate and documents ({waiver_note})",
+    "The stop scene is declared in the glossary and the gate verifies it (docs/generated/roles.md, and the gate exits 0)",
+    stop_ok and rc == 0,
+    f"{stop_note}; gate exit {rc}",
 )
 
 # 6. open questions for the business
@@ -300,34 +292,14 @@ add(
     f"{len(JA.findall(docs))} kana characters",
 )
 
-# 16. role mapping, with missing roles marked
-readme = (
-    (out / "README.md").read_text(errors="replace")
-    if (out / "README.md").is_file()
-    else ""
+# 16. role mapping: the shared roles are tagged on terms in the glossary. The generated role table
+#     lists every role, and an untagged role shows as none.
+tagged = roles_tagged(roles_md)
+add(
+    "Terms are tagged with the shared roles: at least three roles (docs/generated/roles.md)",
+    tagged >= 3,
+    f"{tagged} roles tagged",
 )
-role_table = re.search(
-    r"^#+[^\n]*(役割|[Rr]ole)[^\n]*\n(.*?)(?=^#+ |\Z)", readme, re.S | re.M
-)
-role_rows = [
-    line
-    for line in (role_table.group(2) if role_table else "").splitlines()
-    if line.startswith("|") and not line.startswith("|-")
-]
-roles = max(len(role_rows) - 1, 0)  # minus the header row
-none_marked = bool(re.search(r"\|\s*(なし|none)", readme))
-if "p2p" in str(run_dir):
-    add(
-        "README maps the domain onto the shared roles and marks the roles that do not exist as none",
-        roles >= 6 and none_marked,
-        f"{roles} rows in the role table; none marked: {none_marked}",
-    )
-else:
-    add(
-        "README maps the domain onto the shared roles",
-        roles >= 6,
-        f"{roles} rows in the role table",
-    )
 
 # 17. [layout] shared machinery untouched, starter removed
 

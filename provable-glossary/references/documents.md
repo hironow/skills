@@ -7,7 +7,7 @@ The examples are `README.md` and `docs/` under `assets/worked-example/`.
 ## README.md
 
 1. What this is (two or three lines). The three verdicts. Link to `docs/generated/summary.md` for counts.
-2. The role table for this domain. Write "none" where a role does not exist. If the stop scene is waived, keep the English role names in the first column and add the `stop-scene: none;` line (SKILL.md).
+2. The role table: link `docs/generated/roles.md` (generated from the roles tagged on terms) and say in words what it cannot: a role that exists only in another form, or a mapping that needs a note. Do not copy the table.
 3. What was learned (five points at most).
 4. Reading order.
 5. Usage: `just setup`, `just check`, `just generate`.

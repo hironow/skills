@@ -1,6 +1,6 @@
 # Testing this skill
 
-`evals.json` holds the test prompts. `grade.py` scores a greenfield run on outcomes:
+`evals.json` holds the test prompts. No check judges by whether a word appears in a file: the stop scene and the roles are read from the gate-verified `docs/generated/roles.md`, so a run without the skill fails those two items by construction. `grade.py` scores a greenfield run on outcomes:
 `python3 -I evals/grade.py <run-dir>`, where `<run-dir>` holds the run's `outputs/`. It also runs from a copy in a
 workspace folder beside the skill (`<skills>/provable-glossary-workspace/grade.py`), and finds the template either way.
 

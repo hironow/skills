@@ -30,8 +30,8 @@ open Term
 
 def terms : List (Entry Term Ctx) := [
   { id := patient, label := "Patient", context := .booking, gloss := "A person who books a consultation" },
-  { id := slot, label := "Slot", context := .booking, gloss := "One consultation time of one doctor" },
-  { id := slotHold, label := "Slot hold", context := .booking,
+  { id := slot, label := "Slot", role := some .resource, context := .booking, gloss := "One consultation time of one doctor" },
+  { id := slotHold, label := "Slot hold", role := some .hold, context := .booking,
     gloss := "A time-limited reservation of a slot for one patient", defDeps := [patient, slot] }
 ]
 
@@ -41,6 +41,7 @@ theorem terms_wellFormed : WellFormed terms := check_sound _ (by decide)
 - List entries in the order they are defined. `defDeps` may only name earlier entries; that is how the checker rules out cycles.
 - `assoc` may name any entry, including later ones.
 - `label` and `gloss` are in the user's language. IDs are identifiers.
+- `role` tags a term with the shared role it plays (`Role` in `Glossary/Core.lean`). Leave it out for a term that plays none. `docs/generated/roles.md` is generated from these tags.
 - To record a broken draft, write it as a second list and prove what is wrong with it (`assets/worked-example/Glossary/Broken.lean`).
 
 ## 2. Claims and evidence
@@ -58,7 +59,7 @@ def claims : List (Claim Term) := [
     verdict := .undecided, evidence := .question [clinic "guarded" "noOrphan"] }
 ]
 
-def book : Book Term Ctx := { title := "Clinic booking", terms, claims }
+def book : Book Term Ctx := { title := "Clinic booking", terms, claims, stopScene := .modelled }
 
 theorem book_check : book.check = true := by decide
 ```
@@ -76,6 +77,16 @@ theorem book_check : book.check = true := by decide
 - For a temporal property set `temporal := true` in the `QuintRef`; TLC checks it.
 - Write the claim as the statement being tested, in the positive. A counterexample verdict then reads "this does not hold".
 - Add a line to `Audit.lean` for every theorem cited as evidence. It prints the axioms the theorem depends on.
+
+### The stop-scene declaration
+
+Every book declares `stopScene`; `just check` (stop-check) fails until it does, and then verifies the declaration against the roles and the claims (`Glossary/StopScene.lean`):
+
+- `.modelled`: some term has `role := some .stop`, and the claims whose `about` names it include a counterexample, a proved result, and at least one Quint check (`.holds` or `.violated`). The example above passes only once such claims are added.
+- `.waived "<reason>"`: no term has the role `externalConfirmation`, `hold`, `entitlement` or `deadline`, and the reason is a real sentence.
+- `.inBook "<title>"`: another registered book with that title declares `.modelled`.
+
+The check reads the glossary only. A model or a document that merely mentions a stop counts for nothing.
 
 ## 3. Registering a glossary
 

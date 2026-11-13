@@ -17,6 +17,8 @@ DDD の用語集 (Ubiquitous Language) を、機械で検査できる仕様の�
 ## 役割の対応表
 
 どの題材にも共通する役割に、この題材を当てはめたもの。
+機械が確かめる版は、各用語に付けた役割から生成した [docs/generated/roles.md](docs/generated/roles.md) にある。
+停止の場面の宣言 (`stopScene`) も同じ文書に載り、`just check` (stop-check) が確かめる。
 
 | 役割 | 意味 | この題材での姿 |
 |---|---|---|
@@ -71,9 +73,10 @@ Quint は bunx がその版を取得して実行するので、導入は要ら�
 証明の書き方に迷ったときは、mathlib の実装をネットで読み、必要な補題だけを素の Lean で書き直す
 ([スキルの説明](../../references/lean-and-quint.md))。
 
-`just check` は次の 6 つを行う。
+`just check` は次の 7 つを行う。
 
 - **lean-check**: 証明をビルドし、`sorry`・`axiom`・`native_decide` を拒否する。
+- **stop-check**: 各用語集の停止の場面の宣言 (`stopScene`) を、用語の役割と主張で確かめる。語の有無では判定しない。
 - **spec-check**: 用語集が持つ主張の一覧を出力させ、その 1 件ずつを Quint で実行する。
   「証明済み」は TLC の全状態検査、「反例あり」はシミュレータで確かめる。
 - **generated-check**: 生成物を作り直して比べる。手で変えた版、足したファイル、消したファイルを拒否する。

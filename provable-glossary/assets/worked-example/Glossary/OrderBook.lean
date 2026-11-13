@@ -26,14 +26,14 @@ def terms : List (Entry Term Ctx) := [
   { id := order, label := "注文", context := .sales,
     gloss := "顧客が商品を購入するために作成する取引",
     defDeps := [customer, transaction], assoc := [customer] },
-  { id := payment, label := "支払い", context := .sales,
+  { id := payment, label := "支払い", role := some .externalConfirmation, context := .sales,
     gloss := "顧客が注文の代金を払うこと", defDeps := [customer, order] },
   { id := authorization, label := "与信", context := .sales,
     gloss := "カード会社が注文の代金の枠を押さえること。期限があり、お金はまだ動かない",
     defDeps := [payment] },
   { id := capture, label := "売上確定", context := .sales,
     gloss := "与信した代金の請求を事業者が確定すること", defDeps := [authorization] },
-  { id := shipment, label := "発送", context := .sales,
+  { id := shipment, label := "発送", role := some .entitlement, context := .sales,
     gloss := "注文の商品を顧客に送り出すこと", defDeps := [customer, order] },
   { id := cancellation, label := "キャンセル", context := .sales,
     gloss := "注文を取りやめること", defDeps := [order] },
@@ -98,7 +98,8 @@ def claims : List (Claim Term) := [
     evidence := .question [coverage "paidPayDecided"] }
 ]
 
-def book : Book Term Ctx := { title := "注文", terms, claims }
+-- この用語集では停止の場面を扱わない。このリポジトリの停止の場面は、映画館の用語集で検査モデルにした。
+def book : Book Term Ctx := { title := "注文", terms, claims, stopScene := .inBook "映画館のチケット販売" }
 
 theorem book_check : book.check = true := by decide
 
