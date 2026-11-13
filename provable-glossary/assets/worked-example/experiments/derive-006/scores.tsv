@@ -1,0 +1,13 @@
+answer	property	matches	condition
+fable-Q2-1	Q2	288/288	(FREEZE and EXT >= LAT) or EXT >= LAT + MAINT
+fable-Q2-2	Q2	288/288	LAT <= EXT and (FREEZE or LAT + MAINT <= EXT)
+fable-Q4-1	Q4	288/288	EXT >= LAT
+fable-Q4-2	Q4	288/288	EXT >= LAT
+opus-Q2-1	Q2	288/288	EXT >= LAT and (FREEZE or EXT >= LAT + MAINT)
+opus-Q2-2	Q2	288/288	LAT <= EXT and (FREEZE or LAT + MAINT <= EXT)
+opus-Q4-1	Q4	288/288	EXT >= LAT
+opus-Q4-2	Q4	288/288	EXT >= LAT
+sonnet-Q2-1	Q2	288/288	(FREEZE and LAT <= EXT) or (not FREEZE and LAT + MAINT <= EXT)
+sonnet-Q2-2	Q2	288/288	(FREEZE and LAT <= EXT) or (not FREEZE and LAT + MAINT <= EXT)
+sonnet-Q4-1	Q4	288/288	LAT <= EXT
+sonnet-Q4-2	Q4	288/288	LAT <= EXT

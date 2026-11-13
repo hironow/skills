@@ -1,0 +1,15 @@
+Spec/order_coverage.qnt order_coverage
+Spec/payment_stages.qnt capture_after_ship
+Spec/emergency_sale.qnt v0_naive
+Spec/emergency_sale.qnt v1_guarded
+Spec/emergency_sale.qnt v2_pending_issuance
+Spec/rebooking.qnt fcfs
+Spec/rebooking.qnt preserving
+Spec/obligation.qnt ob0_no_obligation
+Spec/obligation.qnt ob1_no_owner
+Spec/deadline.qnt online_only
+Spec/deadline.qnt box_office
+Spec/autonomy.qnt short_auto
+Spec/autonomy.qnt short_escalate
+Spec/outage_policy.qnt draft
+Spec/outage_policy.qnt as_reported
