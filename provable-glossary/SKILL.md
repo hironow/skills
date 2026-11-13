@@ -178,6 +178,8 @@ Check what the formal work added by giving the same material to tool-less models
 
 Skipping this step leaves unsupported statements such as "the model found this" in the documents. If time does not allow it, say that it was skipped and which statements are therefore unverified.
 
+Declare the outcome in `Glossary/Registry.lean`: `def control : Control := .run` once an `experiments/<name>/` has `protocol.md` committed before `result.md`, or `.skipped "<reason>"`. `just check` (control-check) verifies the declaration; for `.run` it checks the order of the two commits in git.
+
 ### 6. Compare the questions with industry practice
 
 Group the questions in `docs/generated/questions.md` by area and send research subagents in parallel. See `references/industry-check.md`. Classify each question, and record the class on the question in the glossary (`industry := some (.answered "<what was found>")`, `.notAsked`, `.gap`, or `.notResearched`):
@@ -243,7 +245,7 @@ To confirm the protection works in a project, run `python3 <skill>/scripts/check
 - [ ] Every book declares `stopScene`, and `docs/generated/roles.md` shows `stop-scene: ok`.
 - [ ] The README links the generated role table and says what was learned, and the limits.
 - [ ] Every question carries its industry class in the glossary, and at least half were researched (`docs/generated/questions.md`).
-- [ ] At least one control experiment ran, or the documents say it was skipped.
+- [ ] `control` in `Glossary/Registry.lean` is `.run` (control-check passes) or `.skipped "<reason>"`, and the documents say the same.
 - [ ] A policy draft, if written, sits beside its check results and its limits.
 
 ## Reference files

@@ -430,3 +430,150 @@ def test_status_reads_the_industry_classification_only_from_the_counts(
     ]
     assert lines, result.stdout
     assert all(("[done]" in line) is accepted for line in lines), lines
+
+
+# The summary carries machine lines: each glossary's title, the kinds of Quint evidence, and the
+# control declaration (verified by control-check). Documents that say "対照実験は省略した",
+# "限界" or "verify" count for nothing.
+WORDY_FINDINGS = (
+    "# 結果と限界\n\n対照実験は省略した。モデルは 3 状態。\n" + "限界の説明。" * 120
+)
+WORDY_JUSTFILE = "check:\n    @true\n\n# quint verify --backend tlc\n"
+
+
+def summary_doc(
+    *books: str, holds: int = 1, control: str = "<!-- control: run -->"
+) -> str:
+    lines = [f"<!-- book: {title} -->" for title in books]
+    lines += [f"<!-- evidence: holds: {holds}; violated: 2 -->", control]
+    return "# Summary\n\n" + "\n".join(lines) + "\n"
+
+
+def grade_with_summary(
+    tmp_path: Path, summary: str | None, gate_passes: bool
+) -> list[dict]:
+    run = tmp_path / "run"
+    out = run / "outputs"
+    write_outputs(out, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes)
+    if gate_passes:
+        (out / "justfile").write_text(WORDY_JUSTFILE, encoding="utf-8")
+    (out / "docs" / "findings.md").write_text(WORDY_FINDINGS, encoding="utf-8")
+    if summary is not None:
+        (out / "docs" / "generated" / "summary.md").write_text(
+            summary, encoding="utf-8"
+        )
+    subprocess.run(
+        [sys.executable, "-I", str(SKILL / "evals" / "grade.py"), str(run)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    return json.loads((run / "grading.json").read_text(encoding="utf-8"))[
+        "expectations"
+    ]
+
+
+@pytest.mark.parametrize(
+    ("summary", "gate_passes", "accepted"),
+    [
+        (summary_doc("Rooms", holds=2), True, True),
+        (summary_doc("Rooms", holds=0), True, False),
+        (summary_doc("Rooms", holds=2), False, False),
+        (None, True, False),
+    ],
+)
+def test_grader_reads_exhaustive_holds_from_the_summary(
+    tmp_path: Path, summary: str | None, gate_passes: bool, accepted: bool
+) -> None:
+    expectations = grade_with_summary(tmp_path, summary, gate_passes)
+    assert item(expectations, "exhaustive")["passed"] is accepted
+
+
+@pytest.mark.parametrize(
+    ("control", "gate_passes", "accepted"),
+    [
+        ("<!-- control: run -->", True, True),
+        ("<!-- control: skipped; no time was left after Tier 2 -->", True, True),
+        ("<!-- control: undeclared -->", True, False),
+        ("<!-- control: run -->", False, False),
+    ],
+)
+def test_grader_reads_the_control_declaration_from_the_summary(
+    tmp_path: Path, control: str, gate_passes: bool, accepted: bool
+) -> None:
+    expectations = grade_with_summary(
+        tmp_path, summary_doc("Rooms", control=control), gate_passes
+    )
+    assert item(expectations, "control")["passed"] is accepted
+
+
+def test_grader_does_not_judge_limits_by_words(tmp_path: Path) -> None:
+    expectations = grade_with_summary(tmp_path, summary_doc("Rooms"), gate_passes=True)
+    assert not [e for e in expectations if "limits" in e["text"].lower()]
+
+
+def status_output(
+    tmp_path: Path, summary: str | None, starter_file: bool = False
+) -> str:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    if not starter_file:
+        (project / "Glossary" / "Starter.lean").unlink()
+    write_outputs(
+        project, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes=False
+    )
+    (project / "docs" / "findings.md").write_text("所見。" * 200, encoding="utf-8")
+    if summary is not None:
+        (project / "docs" / "generated" / "summary.md").write_text(
+            summary, encoding="utf-8"
+        )
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    return result.stdout
+
+
+def status_item(output: str, topic: str) -> bool:
+    lines = [line for line in output.splitlines() if topic in line and "[" in line]
+    assert lines, output
+    return all("[done]" in line for line in lines)
+
+
+@pytest.mark.parametrize(
+    ("control", "accepted"),
+    [
+        ("<!-- control: run -->", True),
+        ("<!-- control: skipped; no time was left after Tier 2 -->", True),
+        ("<!-- control: undeclared -->", False),
+    ],
+)
+def test_status_reads_the_control_declaration(
+    tmp_path: Path, control: str, accepted: bool
+) -> None:
+    output = status_output(tmp_path, summary_doc("Rooms", control=control))
+    assert status_item(output, "control experiment") is accepted
+
+
+def test_status_finds_the_domain_glossary_by_the_summary_titles(tmp_path: Path) -> None:
+    assert status_item(
+        status_output(tmp_path / "a", summary_doc("Rooms")), "domain glossary"
+    )
+    assert not status_item(
+        status_output(tmp_path / "b", summary_doc("Starter")), "domain glossary"
+    )
+    assert not status_item(
+        status_output(tmp_path / "c", summary_doc("Rooms", "Starter")),
+        "starter glossary",
+    )
+
+
+def test_status_does_not_judge_the_findings_by_words(tmp_path: Path) -> None:
+    # The findings fixture has no 限界 and no "limit": its length is all status.py may judge.
+    assert status_item(
+        status_output(tmp_path, summary_doc("Rooms")), "docs/findings.md"
+    )

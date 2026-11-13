@@ -178,7 +178,7 @@ Read `references/industry-check.md`. Search for how real operators answer each q
 
 ### 11. Control experiment (workflow step 5)
 
-Read `references/experiments.md`. The three scripts do the mechanical parts. If you skip it, write in `docs/findings.md` that no comparison with a control was made and therefore nothing in the documents may be called a discovery of the formal method.
+Read `references/experiments.md`. The three scripts do the mechanical parts. Commit `experiments/<name>/protocol.md` before running, commit `result.md` after, then set `def control : Control := .run` in `Glossary/Registry.lean` and run `J check`: control-check prints the experiments whose protocol came first. If you skip it, set `def control : Control := .skipped "<reason>"` and write in `docs/findings.md` that no comparison with a control was made and therefore nothing in the documents may be called a discovery of the formal method.
 
 ### 12. Policy draft (workflow step 7)
 

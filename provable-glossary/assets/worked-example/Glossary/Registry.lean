@@ -14,4 +14,7 @@ def labels : Labels := Labels.ja
 
 def books : List BookView := [OrderBook.book.view labels, Cinema.book.view labels]
 
+/-- 対照実験 (道具を使わないモデルとの比較) を行った。記録は `experiments/` にある。 -/
+def control : Control := .run
+
 end Glossary

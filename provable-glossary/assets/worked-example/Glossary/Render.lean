@@ -286,11 +286,27 @@ def questionsDoc (l : Labels) (books : List BookView) : List String :=
             s!"| {i + 1} | {c.statement} | {c.about} | {c.evidence} | {l.industry c.industry} |"))
     ++ [""]
 
-def summaryDoc (l : Labels) (books : List BookView) : List String :=
+/-- The machine line for the control declaration, read by `status.py` and the grader. -/
+def controlLine : Control → String
+  | .run => "<!-- control: run -->"
+  | .skipped reason => s!"<!-- control: skipped; {reason.replace "-->" "- ->"} -->"
+  | .undeclared => "<!-- control: undeclared -->"
+
+/-- Machine lines for `status.py` and the grader: each glossary's title, the kinds of Quint
+evidence, and the control declaration. -/
+def summaryMachineLines (books : List BookView) (control : Control) : List String :=
+  let claims := books.flatMap (·.claims)
+  let holds := (claims.filter fun c => c.quint && c.verdict == .proved).length
+  let violated := (claims.filter fun c => c.quint && c.verdict == .counterexample).length
+  books.map (fun b => s!"<!-- book: {b.title.replace "-->" "- ->"} -->")
+  ++ [s!"<!-- evidence: holds: {holds}; violated: {violated} -->", controlLine control]
+
+def summaryDoc (l : Labels) (books : List BookView) (control : Control) : List String :=
   let total (f : BookView → Nat) : Nat := (books.map f).foldl (· + ·) 0
   let row (name : String) (terms claims p c u : Nat) : String :=
     s!"| {name} | {terms} | {claims} | {p} | {c} | {u} |"
-  [l.header, "", s!"# {l.summaryTitle}", "", l.summaryColumns, separator l.summaryColumns]
+  [l.header, "", s!"# {l.summaryTitle}", ""] ++ summaryMachineLines books control
+  ++ ["", l.summaryColumns, separator l.summaryColumns]
   ++ books.map (fun b =>
     row b.title b.terms.length b.claims.length
       (count b .proved) (count b .counterexample) (count b .undecided))
@@ -324,10 +340,11 @@ def termIds (books : List BookView) : List String :=
   books.flatMap fun b => b.terms.map (·.id)
 
 /-- The generated documents: file name and content. -/
-def generatedDocs (l : Labels) (books : List BookView) : List (String × List String) :=
+def generatedDocs (l : Labels) (books : List BookView) (control : Control) :
+    List (String × List String) :=
   [("glossary.md", glossaryDoc l books),
    ("questions.md", questionsDoc l books),
    ("anchors.md", anchorsDoc l books),
-   ("summary.md", summaryDoc l books)]
+   ("summary.md", summaryDoc l books control)]
 
 end Glossary

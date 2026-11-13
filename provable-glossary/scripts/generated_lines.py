@@ -14,6 +14,13 @@ machine-readable lines into `docs/generated/roles.md`:
     <!-- questions: 11; with-counterexample: 5; outside-model: 6 -->
     <!-- industry: classified: 11; researched: 9 -->
 
+`docs/generated/summary.md` carries each glossary's title, the kinds of Quint evidence, and the
+control declaration (verified by `just check`, control-check):
+
+    <!-- book: 映画館のチケット販売 -->
+    <!-- evidence: holds: 9; violated: 15 -->
+    <!-- control: run -->   (or: skipped; <reason> / undeclared)
+
 This module reads those lines and nothing else. It never judges by whether a word appears in a
 model, a README or any other file. Used by scripts/status.py and evals/grade.py.
 """
@@ -76,3 +83,23 @@ def industry_complete(questions_md: str) -> tuple[bool, str]:
     classified, researched = industry
     ok = total > 0 and classified == total and 2 * researched >= total
     return ok, f"{classified} of {total} questions classified, {researched} researched"
+
+
+BOOK_LINE = re.compile(r"^<!-- book: (.*) -->$", re.MULTILINE)
+EVIDENCE_LINE = re.compile(r"^<!-- evidence: holds: (\d+); violated: (\d+) -->$", re.MULTILINE)
+CONTROL_LINE = re.compile(r"^<!-- control: (run|skipped|undeclared)(?:; (.*))? -->$", re.MULTILINE)
+
+
+def book_titles(summary_md: str) -> list[str]:
+    return BOOK_LINE.findall(summary_md)
+
+
+def holds_count(summary_md: str) -> int | None:
+    found = EVIDENCE_LINE.search(summary_md)
+    return int(found.group(1)) if found else None
+
+
+def control(summary_md: str) -> tuple[str, str] | None:
+    """(run | skipped | undeclared, reason) as declared in Glossary/Registry.lean, or None."""
+    found = CONTROL_LINE.search(summary_md)
+    return (found.group(1), found.group(2) or "") if found else None

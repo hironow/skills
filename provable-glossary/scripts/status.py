@@ -16,7 +16,7 @@ import sys
 
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
-from generated_lines import industry_complete, question_counts, roles_tagged, stop_scene
+from generated_lines import book_titles, control, industry_complete, question_counts, roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -43,9 +43,9 @@ def main() -> int:
     def item(tier, done, text, hint=""):
         items.append((tier, bool(done), text, hint))
 
-    registry = read(project / "Glossary" / "Registry.lean")
-    domain_registered = bool(re.search(r"\.book\.view", registry.replace("Starter.book.view", "")))
-    starter_gone = "Starter" not in registry and not (project / "Glossary" / "Starter.lean").exists()
+    titles = book_titles(read(project / "docs" / "generated" / "summary.md"))
+    domain_registered = any(title != "Starter" for title in titles)
+    starter_gone = "Starter" not in titles and not (project / "Glossary" / "Starter.lean").exists()
     item(1, domain_registered, "a domain glossary is registered in Glossary/Registry.lean",
          "write Glossary/<Domain>.lean and add it to Registry.lean and Glossary.lean")
     item(1, starter_gone, "the starter glossary and Spec/starter.qnt are removed",
@@ -93,9 +93,8 @@ def main() -> int:
         item(1, not open_rows, f"every legacy term is mapped or retired ({len(open_rows)} still open)",
              "fill in migration/mapping.tsv; see references/start-migrate.md")
 
-    readme = read(project / "README.md") or read(repo / "README.md")
     findings = read(project / "docs" / "findings.md")
-    item(1, len(findings) > 500 and re.search(r"限界|[Ll]imit", findings), "docs/findings.md states findings and limits",
+    item(1, len(findings) > 500, "docs/findings.md is written (a reader checks that it states the limits and the model sizes)",
          "see references/documents.md")
 
     gaps = read(project / "docs" / "business-gaps.md")
@@ -106,11 +105,11 @@ def main() -> int:
     item(2, len(set(URL.findall(gaps))) >= 3, f"docs/business-gaps.md compares the questions with industry practice "
          f"({len(set(URL.findall(gaps)))} source URLs now)", "step 6; see references/industry-check.md")
 
-    experiments = project / "experiments"
-    ran = any(experiments.glob("*/protocol.md")) and any(experiments.glob("*/result.md"))
-    skipped = re.search(r"対照[^\n]*(飛ばし|実行して(い)?ない|行って(い)?ない|実施して(い)?ない|未実施|スキップ|省略|見送)|control[^\n]*(skipped|not run)", findings + readme, re.I)
-    item(3, ran or skipped, "a control experiment ran, or the documents say it was skipped",
-         "step 5; see references/experiments.md")
+    declared = control(read(project / "docs" / "generated" / "summary.md"))
+    item(3, declared is not None and declared[0] in ("run", "skipped"),
+         f"the control experiment is declared ({declared[0] if declared else 'no declaration'}; `just check` verifies it)",
+         "step 5: set control := .run once an experiments/<name>/ has protocol.md committed before result.md, "
+         "or .skipped \"<reason>\" in Glossary/Registry.lean")
     policy = list((project / "docs").glob("*policy*.md"))
     item(3, policy, "a policy draft for a gap exists beside its check results", "step 7; pattern 11")
 

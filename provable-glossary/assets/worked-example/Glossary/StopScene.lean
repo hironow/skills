@@ -104,8 +104,8 @@ def rolesDoc (l : Labels) (books : List BookView) : List String :=
         | _ => [])
 
 /-- Every generated document, the roles document included. -/
-def allDocs (l : Labels) (books : List BookView) : List (String × List String) :=
-  generatedDocs l books ++ [("roles.md", rolesDoc l books)]
+def allDocs (l : Labels) (books : List BookView) (control : Control) : List (String × List String) :=
+  generatedDocs l books control ++ [("roles.md", rolesDoc l books)]
 
 /-! ## Tests. They run on every `lake build`; a false one fails the build. -/
 

@@ -1,6 +1,6 @@
 # Testing this skill
 
-`evals.json` holds the test prompts. No check judges by whether a word appears in a file: the stop scene and the roles are read from the gate-verified `docs/generated/roles.md`, and the questions and their industry classes from `docs/generated/questions.md`, so a run without the skill fails those items by construction. `grade.py` scores a greenfield run on outcomes:
+`evals.json` holds the test prompts. No check judges by whether a word appears in a file: the stop scene and the roles are read from the gate-verified `docs/generated/roles.md`, the questions and their industry classes from `docs/generated/questions.md`, and the evidence counts and the control declaration from `docs/generated/summary.md`, so a run without the skill fails those items by construction. Whether the documents state the limits and the model sizes is prose that no check can read: a reader judges it, and the grader has no item for it. `grade.py` scores a greenfield run on outcomes:
 `python3 -I evals/grade.py <run-dir>`, where `<run-dir>` holds the run's `outputs/`. It also runs from a copy in a
 workspace folder beside the skill (`<skills>/provable-glossary-workspace/grade.py`), and finds the template either way.
 
