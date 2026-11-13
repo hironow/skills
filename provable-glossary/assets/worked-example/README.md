@@ -1,5 +1,7 @@
 # spec-ddd: 証明可能な用語集
 
+> この実例は読むための見本である。これだけでは検査を実行できない。検査の仕組み (`Main.lean`、`justfile` など) は [../template/](../template/) にある。新しい題材は `python3 ../../scripts/init_project.py <置き場所>` で始める。下の「使い方」と「スキル」は、この実例を作った元のリポジトリでの手順である。
+
 DDD の用語集 (Ubiquitous Language) を、機械で検査できる仕様の起点にする実験である。
 題材は、EC の注文と、映画館のチケット販売 (通常メンテナンス・緊急メンテナンスとの競合) である。
 
@@ -67,7 +69,7 @@ Lean の版は `lean-toolchain`、Quint の版は `quint-version` で固定す�
 Quint は bunx がその版を取得して実行するので、導入は要らない (導入済みのものを使うなら `QUINT=quint` を指定する)。
 証明は素の Lean で書いてあり、mathlib などの外部のパッケージは使わない。取得するものはない。
 証明の書き方に迷ったときは、mathlib の実装をネットで読み、必要な補題だけを素の Lean で書き直す
-([スキルの説明](skills/provable-glossary/references/lean-and-quint.md))。
+([スキルの説明](../../references/lean-and-quint.md))。
 
 `just check` は次の 6 つを行う。
 
@@ -98,7 +100,7 @@ Quint は bunx がその版を取得して実行するので、導入は要ら�
 
 ## スキル
 
-この成果物を、別の題材や別の業界で作るためのスキルが [skills/provable-glossary](skills/provable-glossary/SKILL.md) にある。
+この成果物を、別の題材や別の業界で作るためのスキルが [skills/provable-glossary](../../SKILL.md) にある。
 
 - どの題材でも同じ土台 (`Glossary/Core.lean`, `Claim.lean`, `Render.lean`, `Progress.lean`, `Main.lean`, `justfile`, フック類) を
   テンプレートとして持つ。このリポジトリのファイルの写しである。

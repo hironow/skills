@@ -15,11 +15,18 @@ import sys
 
 run_dir = pathlib.Path(sys.argv[1]).resolve()
 out = run_dir / "outputs"
-TEMPLATE = (
-    pathlib.Path(__file__).resolve().parent.parent
-    / "provable-glossary"
-    / "assets"
-    / "template"
+# The grader runs from the skill (evals/grade.py) or from a copy in a workspace folder beside the skill.
+HERE = pathlib.Path(__file__).resolve().parent
+TEMPLATE = next(
+    (
+        candidate
+        for candidate in (
+            HERE.parent / "assets" / "template",
+            HERE.parent / "provable-glossary" / "assets" / "template",
+        )
+        if candidate.is_dir()
+    ),
+    HERE.parent / "assets" / "template",
 )
 GEN = "docs/" + "generated"
 SKIP = {
@@ -316,15 +323,23 @@ else:
 def template_versions(rel):
     """Every version of a template file in the skill's history: a run is compared with the
     template it was started from, not with later edits to the template."""
-    repo = TEMPLATE.parents[3]
-    path = str((TEMPLATE / rel).relative_to(repo))
+    versions = {(TEMPLATE / rel).read_bytes()}
+    top = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=TEMPLATE,
+        capture_output=True,
+        text=True,
+    )
+    if top.returncode != 0:  # not in a git checkout: only the current template is known
+        return versions
+    repo = pathlib.Path(top.stdout.strip())
+    path = str((TEMPLATE / rel).resolve().relative_to(repo.resolve()))
     commits = subprocess.run(
         ["git", "log", "--format=%H", "--", path],
         cwd=repo,
         capture_output=True,
         text=True,
     )
-    versions = {(TEMPLATE / rel).read_bytes()}
     for commit in commits.stdout.split():
         blob = subprocess.run(
             ["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True
