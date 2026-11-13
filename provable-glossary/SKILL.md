@@ -18,7 +18,7 @@ What the repository holds:
 - **Analysis documents**: findings and limits, the comparison with industry practice, a draft policy.
 - **One gate**, `just check`: proofs, model checks, and the freshness of the generated documents.
 
-`assets/worked-example/` is a complete instance: a cinema that sells tickets online, with emergency maintenance cutting in. For a new domain, **the layout and the checking machinery stay the same; only the terms, the models, and the analysis change.**
+`assets/worked-example/` is a complete record of one project, to read (it does not run on its own; new work starts from `assets/template/`): a cinema that sells tickets online, with emergency maintenance cutting in. For a new domain, **the layout and the checking machinery stay the same; only the terms, the models, and the analysis change.**
 
 ## Which model should run this
 
@@ -52,23 +52,27 @@ python3 <skill>/scripts/detect_start.py <repo-dir>
 
 The playbook for your starting point adds steps to the workflow below; everything else is shared. B and C install the project in a `glossary/` folder beside the existing code and never change that code.
 
-Two aids for working step by step:
+**Continuing a project.** If the repository already holds a provable-glossary project (`detect_start.py` says so), do not start over. Run `python3 <skill>/scripts/status.py <repo-dir>`: it lists every open item with how to close it. To add a term or a scene, follow the workflow from step 3 for that part only; when `just check` fails after the code moved, read the failing check's message (an anchor that no longer resolves, a declaration that no longer holds) and fix the glossary, not the check.
+
+Aids for working step by step:
 
 - `references/runbook.md` is the workflow as commands, with the output to expect and what to do when it differs. Follow it if you are unsure how to carry out a step.
 - `python3 <skill>/scripts/status.py <repo-dir>` shows what is done and names the next action. Run it whenever you lose track.
-- When a command is refused or a check fails in a way you do not recognise, look it up in the table "When something goes wrong" at the end of `references/runbook.md` before trying anything else. It covers the common ones, including shell calls that an environment rewrites and then refuses.
+- When a command is refused or a check fails in a way you do not recognise, look it up in the table "When something goes wrong" at the end of `references/runbook.md` before trying anything else. It covers the common ones. Retry a refused call only when the refusal itself asks you to resend that exact input; otherwise do not try another way around it.
 
 The deliverable has three tiers. Finish a tier before starting the next, and say in the README which tier was reached.
 
 | Tier | Content | Workflow steps |
 |---|---|---|
-| 1. Required | A checked glossary with roles tagged and the stop scene declared and verified, the open questions, README and findings | 0, 1, 3, 4, 8 |
+| 1. Required | A checked glossary with roles tagged, the stop scene declared and verified (pattern 4, or a waiver when nothing is in flight), the open questions, README and findings, and the control declared (`.skipped "<reason>"` unless you run one) | 0, 1, 3, 4, 8 |
 | 2. Expected | The questions compared with industry practice | 2, 6 |
 | 3. Optional | A control experiment and a policy draft. If skipped, the documents say so | 5, 7 |
 
+Tier 1 is done when `status.py` shows every Tier 1 item done; each line states its own threshold. Patterns other than 4 are depth, not Tier 1: do them only when Tier 1 is done and there is time.
+
 ## Language
 
-This skill is written in English. Write the deliverable in the user's language: glossary definitions, claim statements, comments in the files you author, and every document. Pick the language of the generated documents with `Labels` in `Glossary/Registry.lean` (`Labels.en` and `Labels.ja` exist; add another by copying one). Leave the shared files as they are.
+This skill is written in English. Write the deliverable in the user's language: glossary definitions, claim statements, comments in the files you author, and every document. Pick the language of the generated documents with `Labels` in `Glossary/Registry.lean` (`Labels.en` and `Labels.ja` exist; for another language, copy one into `Glossary/Registry.lean` as a new `def` and use it there). Leave the shared files as they are.
 
 ## What this method does and does not give you
 
@@ -99,7 +103,7 @@ Some domains have no scarce resource: an approval workflow, a money transfer, a 
 | Supply cancellation (`.supplyCancellation`) | The operator can no longer honour an entitlement | Cancelled screening |
 | Reallocation (`.reallocation`) | Honouring it with a different resource | Rebooking to another screening |
 
-**Commitments in flight across a stop.** Almost every system can be stopped, for whatever reason. What matters is what is half done at that moment: an external confirmation still to arrive, a hold that will expire, an entitlement promised but not yet issued, a deadline that keeps running. These keep moving while the system stands still, and the questions they raise (grant or return, who, by when) have the same shape in every domain. Model this scene whenever anything is in flight (pattern 4 in `references/patterns.md`, which gives one pattern per role).
+**Commitments in flight across a stop.** Almost every system can be stopped, for whatever reason. What matters is what is half done at that moment: an external confirmation still to arrive, a hold that will expire, an entitlement promised but not yet issued, a deadline that keeps running. These keep moving while the system stands still, and the questions they raise (grant or return, who, by when) have the same shape in every domain. Model this scene whenever anything is in flight (pattern 4 in `references/patterns.md`; its table shows which pattern each role leads to).
 
 Declare the scene on each book of the glossary, in `stopScene`. `just check` (stop-check, `Glossary/StopScene.lean`) verifies the declaration against the roles and the claims, and never against words in files:
 
@@ -113,7 +117,7 @@ Until a book declares one of these, `just check` fails. A waiver cannot hide the
 
 ## Workflow
 
-Work in order. End each step with `just check` passing and a commit in a clear unit.
+Work in order within the tier you are doing (the table above lists each tier's steps; step 2 belongs to Tier 2). End each step with `just check` passing and a commit in a clear unit.
 
 ### 0. Take in the domain
 
@@ -133,23 +137,23 @@ python3 <skill>/scripts/init_project.py <repo-dir>
 
 In an empty directory the repository becomes the glossary project (commands: `just generate`, `just check`). In a repository that already holds files, the project goes into `glossary/` and the root `justfile` gains the line `mod glossary` (commands: `just glossary generate`, `just glossary check`). The script prints which layout it used and the next command.
 
-The project uses plain Lean with no external packages, so there is nothing to download. Do not add mathlib by default; see "Plain Lean first" in `references/lean-and-quint.md` for when it is justified and how to borrow from it without depending on it.
+The project uses plain Lean with no external packages, so there is no Lean package to download (Quint and its model checker are fetched from GitHub on the first check). Do not add mathlib by default; see "Plain Lean first" in `references/lean-and-quint.md` for when it is justified and how to borrow from it without depending on it.
 
-The checks pass at this point on a starter glossary written in the shared roles (`Glossary/Starter.lean`, `Spec/starter.qnt`). Read both: they show one claim of each kind. Delete them once your own glossary is registered.
+The checks pass at this point on a starter glossary written in the shared roles (`Glossary/Starter.lean`, `Spec/starter.qnt`). Read both: they show one claim of each kind. Keep them until your own book declares its stop scene itself: until then your book points at the starter with `stopScene := .inBook "Starter"`. Then delete them.
 
-Requirements: elan, bun (it runs Quint at the pinned version; or set `QUINT` to an installed binary), Java, just 1.39 or newer, ripgrep, Python 3.
+Requirements: elan, bun (it runs Quint at the pinned version; or set `QUINT` to an installed binary), Java, just 1.39 or newer, ripgrep, Python 3, git.
 
-**Use the newest stable versions.** The template pins the versions it was last tested with: Lean in `lean-toolchain`, Quint in `quint-version`. Before writing anything, look up the newest stable release of each (not a release candidate) and, if it is newer, put it into those two files and run `just check` on the starter. If the starter passes, keep the new versions. If it fails and the cause is not quick to fix, go back to the pinned versions and say so in the README. Never edit the `justfile` to change a version.
+**Versions.** The template pins the versions it was last tested with: Lean in `lean-toolchain`, Quint in `quint-version`; the pitfalls in the references were checked on them. Keep them unless the user asks for newer ones or you are a most capable model with time to spare. To upgrade, look up the newest stable release of each (not a release candidate), put it into those two files, and run `just check` on the starter. If the starter passes, keep the new versions. If it fails and the cause is not quick to fix, go back to the pinned versions and say so in the README. Never edit the `justfile` to change a version.
 
-### 2. Research the industry, lightly
+### 2. Research the industry, lightly (Tier 2)
 
 Before modelling, send one or two research subagents (do it inline if you cannot spawn any, or if a report fails to come back) to learn how operators in this domain handle holds, cancellations, refunds and outages in their terms, and what happened in recent incidents. See `references/industry-check.md`.
 
-The aim is to choose which scenes to model. Do not go deep on something the industry does not do. Prefer scenes where operators are visibly improvising.
+The aim is to choose which scenes to model. Do not go deep on something the industry does not do. Prefer scenes where operators are visibly improvising. In Tier 1, leave this step out and mark every business fact you assumed as an assumption in the README.
 
 ### 3. Write the glossary
 
-Write the terms and claims in `Glossary/<Domain>.lean` and register the book in `Glossary/Registry.lean`. See `references/lean-and-quint.md`.
+Write the terms and claims in `Glossary/<Domain>.lean` and register the book in `Glossary/Registry.lean`. See `references/lean-and-quint.md`. Until step 4 models the stop scene, declare `stopScene := .inBook "Starter"` on your book so that `just check` stays green; replace it once your own claims back the scene.
 
 - A term has an ID, a label, a context, a definition, definitional dependencies (no cycles allowed) and associations (cycles allowed).
 - If the draft fails the checker, that is the first finding. Keep the failing draft, prove that it is circular, and add the repaired version.
@@ -170,7 +174,7 @@ Every claim needs evidence. "Proved" means a Lean proof or an exhaustive TLC che
 
 ### 5. Compare with a control
 
-Check what the formal work added by giving the same material to tool-less models. See `references/experiments.md`. Run at least one experiment; the verification experiment (guess whether variants of a model satisfy a property) is the best first choice.
+Check what the formal work added by giving the same material to tool-less models. See `references/experiments.md`. If you do this step (Tier 3), run at least one experiment; the verification experiment (guess whether variants of a model satisfy a property) is the best first choice.
 
 - Write the procedure, the scoring, your prediction, and the decision rule, and commit them before running.
 - Verify every "violated" answer by replaying the control's trace in Quint.
@@ -235,17 +239,25 @@ To confirm the protection works in a project, run `python3 <skill>/scripts/check
 
 ## Done when
 
+Tier 1:
+
 - [ ] `just check` exits 0, and `status.py` shows every Tier 1 item done.
 - [ ] The extra items of the playbook for your starting point are done.
 - [ ] The README names the starting point (A, B or C) and the tier reached.
-- [ ] Every claim has evidence; there is no `sorry` and no extra axiom. No external Lean package was added without a recorded reason.
+- [ ] Every claim has evidence; there is no `sorry`. Every theorem cited as evidence is listed in `Audit.lean`, and its axioms are the standard ones. No external Lean package was added without a recorded reason.
 - [ ] No theorem is vacuous: each one uses its hypotheses and says what its claim says.
 - [ ] `docs/generated/` matches the glossaries, and `scripts/check_protection.py` passes.
-- [ ] The starter glossary and model are gone.
-- [ ] Every book declares `stopScene`, and `docs/generated/roles.md` shows `stop-scene: ok`.
+- [ ] The starter glossary and model are gone, and every book declares `stopScene` itself (`docs/generated/roles.md` shows `stop-scene: ok`).
 - [ ] The README links the generated role table and says what was learned, and the limits.
-- [ ] Every question carries its industry class in the glossary, and at least half were researched (`docs/generated/questions.md`).
-- [ ] `control` in `Glossary/Registry.lean` is `.run` (control-check passes) or `.skipped "<reason>"`, and the documents say the same.
+- [ ] `control` in `Glossary/Registry.lean` is `.skipped "<reason>"` (or `.run` if you did Tier 3), and the documents say the same.
+
+Tier 2, in addition:
+
+- [ ] Every question carries its industry class in the glossary, and at least half were researched (`docs/generated/questions.md`). If you cannot search the web, Tier 2 is not reached: mark the questions `some .notResearched` and say so in the README.
+
+Tier 3, in addition:
+
+- [ ] `control := .run`, and control-check names an experiment whose protocol was committed before its result.
 - [ ] A policy draft, if written, sits beside its check results and its limits.
 
 ## Reference files

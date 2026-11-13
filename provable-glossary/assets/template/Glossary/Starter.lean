@@ -5,9 +5,11 @@ import Glossary.Claim
 
 A tiny glossary written only in the shared roles (resource, hold, external confirmation,
 entitlement, emergency stop). It exists so that `just check` passes on a fresh project and shows
-one claim of each kind. Write the glossary of your domain next to it, register that one in
-`Glossary/Registry.lean`, then delete this file, `Spec/starter.qnt`, and their lines in
-`Glossary.lean`, `Audit.lean`, and `Spec/tests.txt`.
+one claim of each kind. Write the glossary of your domain next to it and register that one in
+`Glossary/Registry.lean`; until your book models its own stop scene, it points here with
+`stopScene := .inBook "Starter"`. Once it declares the scene itself, delete this file,
+`Spec/starter.qnt`, and their lines in `Glossary.lean`, `Glossary/Registry.lean`, `Audit.lean`, and
+`Spec/tests.txt`.
 -/
 
 namespace Glossary.Starter

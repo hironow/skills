@@ -43,6 +43,12 @@ def stop_scene(roles_md: str) -> tuple[bool, str]:
     return True, "; ".join(detail for _, detail in lines)
 
 
+def stop_waived_everywhere(roles_md: str) -> bool:
+    """Every glossary's stop scene is a verified waiver: nothing is in flight anywhere."""
+    lines = STOP_LINE.findall(roles_md)
+    return bool(lines) and all(state == "ok" and detail.startswith("waived") for state, detail in lines)
+
+
 def roles_tagged(roles_md: str) -> int:
     """The largest number of distinct shared roles tagged on the terms of one glossary."""
     return max((int(n) for n in TAGGED_LINE.findall(roles_md)), default=0)
