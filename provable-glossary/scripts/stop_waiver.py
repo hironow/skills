@@ -17,7 +17,8 @@ import re
 
 IN_FLIGHT_ROLES = ("External confirmation", "Hold", "Entitlement", "Deadline")
 WAIVER = re.compile(r"<!--\s*stop-scene:\s*none;\s*(\S[^>]{9,}?)\s*-->")
-NONE = re.compile(r"(none|なし|無し)\b", re.IGNORECASE)
+# "none as such; <a substitute>" says the role exists in another form, so it is not none.
+NONE = re.compile(r"(none|なし|無し)\b(?!\s*as such)", re.IGNORECASE)
 SEPARATOR = re.compile(r"\|?[\s:|-]+")
 
 
