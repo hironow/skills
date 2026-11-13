@@ -76,7 +76,8 @@ def claims : List (Claim Term) := [
   { about := [order, payment, cancellation],
     statement := "支払い済みで発送前の注文はキャンセルできるか",
     verdict := .undecided,
-    evidence := .question [coverage "paidCancelDecided"] },
+    evidence := .question [coverage "paidCancelDecided"],
+    industry := some (.gap "調べた範囲では事業者ごとに扱いがばらばらで、決まった答えがない") },
   { about := [payment, authorization, capture],
     statement := "「支払い済み」を 1 つの述語にすると、与信の意味と売上確定の意味の両方には合わせられない",
     verdict := .proved,
@@ -95,7 +96,8 @@ def claims : List (Claim Term) := [
   { about := [order, payment],
     statement := "支払い済みの注文をもう一度支払えるか",
     verdict := .undecided,
-    evidence := .question [coverage "paidPayDecided"] }
+    evidence := .question [coverage "paidPayDecided"],
+    industry := some (.answered "カード決済では冪等キーで二重の支払いを防ぐのが標準で、現金系は手作業で返金している") }
 ]
 
 -- この用語集では停止の場面を扱わない。このリポジトリの停止の場面は、映画館の用語集で検査モデルにした。

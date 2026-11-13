@@ -75,6 +75,7 @@ theorem book_check : book.check = true := by decide
 
 - `book_check` fails when a claim mentions a term that is not in the glossary, or when its verdict does not match its evidence.
 - Every question states its basis, and `just check` (question-check, `Glossary/Questions.lean`) refuses one that does not. Give it the counterexamples that show the gap whenever a model can. A question no model can show (a legal deadline, who has authority, a state nothing reaches) gets `.questionOutsideModel "<why no model shows it>"`. `.question []` fails the check. The generated `docs/generated/questions.md` numbers the questions and counts both kinds, so a document never claims more questions are backed by a model than are.
+- After the industry comparison (Tier 2), give each question `industry := some (.answered "<what was found>")`, `.notAsked`, `.gap` or `.notResearched`. See `references/industry-check.md`.
 - For a temporal property set `temporal := true` in the `QuintRef`; TLC checks it.
 - Write the claim as the statement being tested, in the positive. A counterexample verdict then reads "this does not hold".
 - Add a line to `Audit.lean` for every theorem cited as evidence. It prints the axioms the theorem depends on.

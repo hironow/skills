@@ -12,6 +12,7 @@ machine-readable lines into `docs/generated/roles.md`:
 `just check` (question-check, `Glossary/Questions.lean`):
 
     <!-- questions: 11; with-counterexample: 5; outside-model: 6 -->
+    <!-- industry: classified: 11; researched: 9 -->
 
 This module reads those lines and nothing else. It never judges by whether a word appears in a
 model, a README or any other file. Used by scripts/status.py and evals/grade.py.
@@ -52,3 +53,26 @@ def question_counts(questions_md: str) -> tuple[int, int] | None:
     if not lines:
         return None
     return sum(int(q) for q, _, _ in lines), sum(int(w) for _, w, _ in lines)
+
+
+INDUSTRY_LINE = re.compile(r"^<!-- industry: classified: (\d+); researched: (\d+) -->$", re.MULTILINE)
+
+
+def industry_counts(questions_md: str) -> tuple[int, int] | None:
+    """(classified, researched) questions over all glossaries, or None without lines."""
+    lines = INDUSTRY_LINE.findall(questions_md)
+    if not lines:
+        return None
+    return sum(int(c) for c, _ in lines), sum(int(r) for _, r in lines)
+
+
+def industry_complete(questions_md: str) -> tuple[bool, str]:
+    """Every question is classified, and at least half were actually researched (Tier 2)."""
+    counts = question_counts(questions_md)
+    industry = industry_counts(questions_md)
+    if counts is None or industry is None:
+        return False, "no question or industry counts in docs/generated/questions.md"
+    total, _ = counts
+    classified, researched = industry
+    ok = total > 0 and classified == total and 2 * researched >= total
+    return ok, f"{classified} of {total} questions classified, {researched} researched"

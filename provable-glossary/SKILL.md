@@ -180,7 +180,7 @@ Skipping this step leaves unsupported statements such as "the model found this" 
 
 ### 6. Compare the questions with industry practice
 
-Group the questions in `docs/generated/questions.md` by area and send research subagents in parallel. See `references/industry-check.md`. Classify each question:
+Group the questions in `docs/generated/questions.md` by area and send research subagents in parallel. See `references/industry-check.md`. Classify each question, and record the class on the question in the glossary (`industry := some (.answered "<what was found>")`, `.notAsked`, `.gap`, or `.notResearched`):
 
 - **Answered**: the industry has a settled answer. If the model contradicted reality, fix the glossary and the model.
 - **Not asked**: the industry does not do this at all.
@@ -242,7 +242,7 @@ To confirm the protection works in a project, run `python3 <skill>/scripts/check
 - [ ] The starter glossary and model are gone.
 - [ ] Every book declares `stopScene`, and `docs/generated/roles.md` shows `stop-scene: ok`.
 - [ ] The README links the generated role table and says what was learned, and the limits.
-- [ ] The open questions are classified against industry practice.
+- [ ] Every question carries its industry class in the glossary, and at least half were researched (`docs/generated/questions.md`).
 - [ ] At least one control experiment ran, or the documents say it was skipped.
 - [ ] A policy draft, if written, sits beside its check results and its limits.
 

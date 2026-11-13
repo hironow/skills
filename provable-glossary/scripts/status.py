@@ -16,7 +16,7 @@ import sys
 
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
-from generated_lines import question_counts, roles_tagged, stop_scene
+from generated_lines import industry_complete, question_counts, roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -99,6 +99,10 @@ def main() -> int:
          "see references/documents.md")
 
     gaps = read(project / "docs" / "business-gaps.md")
+    industry_ok, industry_note = industry_complete(read(project / "docs" / "generated" / "questions.md"))
+    item(2, industry_ok, f"every question is classified against industry practice in the glossary ({industry_note})",
+         "give each question industry := some (.answered/.notAsked/.gap \"<what was found>\") or some .notResearched; "
+         "research at least half. See references/industry-check.md")
     item(2, len(set(URL.findall(gaps))) >= 3, f"docs/business-gaps.md compares the questions with industry practice "
          f"({len(set(URL.findall(gaps)))} source URLs now)", "step 6; see references/industry-check.md")
 

@@ -351,3 +351,82 @@ def test_status_reads_questions_only_from_the_verified_counts(
     ]
     assert lines, result.stdout
     assert all(("[done]" in line) is witnessed for line in lines), lines
+
+
+# Each question carries its industry classification in the glossary; `just generate` counts them
+# into a machine line of docs/generated/questions.md. A business-gaps document full of 分類,
+# 答えあり and 空白 counts for nothing.
+WORDY_GAPS = "| 質問 | 分類 |\n|---|---|\n| 返金 | 答えあり |\n| 停止 | 空白 |\n| 振替 | 問われない |\n"
+
+
+def industry_doc(total: int, classified: int, researched: int) -> str:
+    return (
+        questions_doc(total, 1)
+        + f"<!-- industry: classified: {classified}; researched: {researched} -->\n"
+    )
+
+
+INDUSTRY_CASES: dict[str, tuple[str, bool]] = {
+    "all-classified-mostly-researched": (industry_doc(10, 10, 7), True),
+    "one-unclassified": (industry_doc(10, 9, 9), False),
+    "all-marked-not-researched": (industry_doc(10, 10, 0), False),
+    "less-than-half-researched": (industry_doc(10, 10, 4), False),
+    "no-machine-line": (questions_doc(10, 1), False),
+}
+
+
+@pytest.mark.parametrize("case", sorted(INDUSTRY_CASES))
+def test_grader_reads_the_industry_classification_only_from_the_counts(
+    tmp_path: Path, case: str
+) -> None:
+    questions, accepted = INDUSTRY_CASES[case]
+    run = tmp_path / "run"
+    out = run / "outputs"
+    write_outputs(out, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes=True)
+    (out / "docs" / "business-gaps.md").write_text(WORDY_GAPS, encoding="utf-8")
+    (out / "docs" / "generated" / "questions.md").write_text(
+        questions, encoding="utf-8"
+    )
+    subprocess.run(
+        [sys.executable, "-I", str(SKILL / "evals" / "grade.py"), str(run)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    expectations = json.loads((run / "grading.json").read_text(encoding="utf-8"))[
+        "expectations"
+    ]
+    assert (
+        item(expectations, "classified against industry practice")["passed"] is accepted
+    )
+
+
+@pytest.mark.parametrize("case", sorted(INDUSTRY_CASES))
+def test_status_reads_the_industry_classification_only_from_the_counts(
+    tmp_path: Path, case: str
+) -> None:
+    questions, accepted = INDUSTRY_CASES[case]
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    write_outputs(
+        project, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes=False
+    )
+    (project / "docs" / "business-gaps.md").write_text(WORDY_GAPS, encoding="utf-8")
+    (project / "docs" / "generated" / "questions.md").write_text(
+        questions, encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    lines = [
+        line
+        for line in result.stdout.splitlines()
+        if "classified against industry practice" in line
+    ]
+    assert lines, result.stdout
+    assert all(("[done]" in line) is accepted for line in lines), lines

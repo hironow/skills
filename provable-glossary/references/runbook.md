@@ -172,7 +172,7 @@ You should see `J check` end without `FAIL`, every line of `check_protection.py`
 
 ### 10. Compare the questions with industry practice (workflow steps 2 and 6)
 
-Read `references/industry-check.md`. Search for how real operators answer each question in `docs/generated/questions.md`, open the primary source for anything a conclusion rests on, and write `docs/business-gaps.md`. If you cannot search the web, say so in the README and leave this step out; do not write industry facts from memory.
+Read `references/industry-check.md`. Search for how real operators answer each question in `docs/generated/questions.md`, open the primary source for anything a conclusion rests on, record each question's class in the glossary (`industry := some (...)`), run `J generate` and `J check`, and write `docs/business-gaps.md` with the sources. If you cannot search the web, say so in the README, mark the questions `industry := some .notResearched`, and leave this step out; do not write industry facts from memory.
 
 ## Tier 3: optional
 
