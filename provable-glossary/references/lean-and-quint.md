@@ -124,7 +124,7 @@ module liveness {
 
 - `weakFair(a, vars)`: if `a` stays enabled forever, it is eventually taken. Enough for an action nothing else can disable, such as `recover` while stopped.
 - `strongFair(a, vars)`: if `a` is enabled again and again, it is eventually taken. Needed when another action (a stop) can disable it each time before it runs.
-- Without any fairness, `resolves` is violated by a run that does nothing. That counterexample says nothing about the design; add the assumption instead of reporting it.
+- Without any fairness, `resolves` is violated too: nothing forces `resolve` to be taken at all. That counterexample says nothing about the design; add the assumption instead of reporting it.
 - An assumption about the world, such as "recovery eventually happens", is also fairness (`weakFair(recover, vars)` above). Drop it and the claim becomes "if the stop never ends, nothing is resolved", which is often worth recording as a counterexample of its own.
 - Cite it with `temporal := true` in the `QuintRef`, for example `{ file := "Spec/liveness.qnt", main := "liveness", invariant := "Liveness", temporal := true }`. The gate runs TLC with `--temporal` for both `.holds` and `.violated`. The cinema example is `Spec/obligation.qnt` (`Liveness`, `LivenessGivenRecovery`).
 

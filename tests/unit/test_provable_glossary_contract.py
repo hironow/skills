@@ -220,3 +220,21 @@ def test_skill_says_how_to_map_a_domain_with_no_scarce_resource() -> None:
     patterns = (SKILL / "references" / "patterns.md").read_text(encoding="utf-8")
     assert "no scarce resource" in skill
     assert "at most one execution" in patterns
+
+
+def test_worked_example_holds_no_records_of_testing_the_skill() -> None:
+    # Records of evaluating the skill name test domains and their expected answers. A run reads
+    # the example's experiments as models to copy, so those records would leak into later tests.
+    experiments = SKILL / "assets" / "worked-example" / "experiments"
+    assert (
+        sorted(p.name for p in experiments.iterdir() if p.name.startswith("skill-"))
+        == []
+    )
+
+
+def test_a_role_that_exists_in_another_form_is_not_none(tmp_path: Path) -> None:
+    readme = role_table(
+        Hold="none as such; each approval step waits up to 3 business days"
+    )
+    readme += "\n" + NO_STOP
+    assert not graded_stop_item(tmp_path, readme)["passed"]
