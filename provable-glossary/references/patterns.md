@@ -7,7 +7,7 @@ Use only the patterns whose roles exist in the domain. Each entry gives the ques
 1. Glossary well-formedness
 2. Empty concepts and overloaded terms
 3. Specification gaps
-4. Emergency stop versus work in progress (common to every domain)
+4. A stop versus work in progress (whenever anything is in flight)
 5. Stages of the external confirmation
 6. Supply cancellation and reallocation
 7. Obligations, responsibility, authority
@@ -42,11 +42,11 @@ Keep models small. Start with one resource and two parties. Add more only after 
 - **A state nothing leads to.** When the code or the rules name a state that no operation ever sets (a `REFUNDED` status with no code path to it), no model can witness it. Record it as a question with `.question []` and put the evidence (where you looked) in the term's definition.
 - **Example**: `Spec/order_coverage.qnt`
 
-## 4. Emergency stop versus work in progress
+## 4. A stop versus work in progress
 
-The central pattern. It fits every domain; always write it.
+The central pattern. Write it whenever anything is in flight when the system stops, whatever stops it: an emergency stop the system takes on its own, a person, or a dependency that fails. If nothing is in flight, do not invent the scene; put `<!-- stop-scene: none; <reason> -->` in the README instead (see SKILL.md).
 
-- **Question**: When the system stops accepting work on its own, what happens to transactions that hold a resource, wait for an external confirmation, or wait for issuance?
+- **Question**: When the system stops accepting work, what happens to transactions that hold a resource, wait for an external confirmation, or wait for issuance?
 - **Properties**:
   - Exclusivity: at most one party is entitled to a resource.
   - Preservation: a transaction whose external confirmation succeeded is always tracked in a state that leads to issuance or to a refund.

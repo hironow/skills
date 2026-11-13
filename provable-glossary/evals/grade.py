@@ -140,11 +140,19 @@ add(
     f"verify in gate: {exhaustive}",
 )
 
-# 5. the emergency stop is modelled and something is shown to break
+# 5. a stop scene is modelled and something is shown to break, or the README records
+#    why nothing is in flight across a stop (<!-- stop-scene: none; <reason> -->)
 models = text_of(qnt)
+readme_text = (
+    (out / "README.md").read_text(errors="replace")
+    if (out / "README.md").is_file()
+    else ""
+)
+no_stop_reason = re.search(r"<!--\s*stop-scene:\s*none;\s*(\S[^>]{9,}?)\s*-->", readme_text)
 add(
-    "The emergency stop is modelled in Quint, and the gate expects at least one property to be violated",
-    bool(re.search(r"emergency|halt|stop|freeze|緊急|停止", models, re.IGNORECASE))
+    "A stop scene is modelled in Quint and the gate expects at least one property to be violated, or the README records why nothing is in flight across a stop",
+    bool(no_stop_reason)
+    or bool(re.search(r"emergency|halt|stop|freeze|緊急|停止", models, re.IGNORECASE))
     and bool(
         re.search(
             r"violat|反例|counterexample|exit 1|negative",
@@ -152,7 +160,9 @@ add(
             re.IGNORECASE,
         )
     ),
-    "searched models, gate and documents",
+    "README records no stop scene, with a reason"
+    if no_stop_reason
+    else "searched models, gate and documents",
 )
 
 # 6. open questions for the business

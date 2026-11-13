@@ -6,7 +6,7 @@ Looks only at files (and, with --run-check, runs the gate). It prints one line p
 done or todo, grouped in three tiers, and ends with the next action. Run it whenever you are
 unsure what remains. The tiers:
 
-  Tier 1  required  a checked glossary, the emergency-stop scene, questions, README and findings
+  Tier 1  required  a checked glossary, the stop scene (or a recorded reason there is none), questions, README and findings
   Tier 2  expected  the comparison with industry practice
   Tier 3  optional  a control experiment and a policy draft (say so in the documents if skipped)
 """
@@ -60,8 +60,10 @@ def main() -> int:
          "turn what the design cannot settle into `.question` claims")
 
     specs = "\n".join(read(p) for p in (project / "Spec").glob("*.qnt") if p.name != "starter.qnt")
-    item(1, re.search(r"emergency|halt|stop|freeze|lockdown|shutdown|suspend|kill.?switch|緊急|停止|遮断|ロックダウン", specs, re.I),
-         "the emergency stop is modelled in Spec/", "write the stop scene; it fits every domain (pattern 4)")
+    no_stop = re.search(r"<!--\s*stop-scene:\s*none;\s*\S[^>]{9,}?\s*-->", read(project / "README.md"))
+    item(1, no_stop or re.search(r"emergency|halt|stop|freeze|lockdown|shutdown|suspend|kill.?switch|緊急|停止|遮断|ロックダウン", specs, re.I),
+         "the stop scene is modelled in Spec/, or the README records why nothing is in flight across a stop",
+         "write the stop scene (pattern 4); if nothing is in flight when the system stops, add <!-- stop-scene: none; <reason> --> to the README")
 
     # In the root layout the repository is the glossary project itself, so there is no separate implementation.
     has_code = project != repo and sum(1 for p in walk_files(repo) if p.suffix in CODE_SUFFIXES) >= 3
