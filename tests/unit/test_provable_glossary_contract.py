@@ -344,6 +344,10 @@ def test_status_reads_questions_only_from_the_verified_counts(
         timeout=120,
         check=True,
     )
-    lines = [l for l in result.stdout.splitlines() if "backed by a counterexample" in l]
+    lines = [
+        line
+        for line in result.stdout.splitlines()
+        if "backed by a counterexample" in line
+    ]
     assert lines, result.stdout
     assert all(("[done]" in line) is witnessed for line in lines), lines
