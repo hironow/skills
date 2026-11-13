@@ -95,6 +95,39 @@ module guarded {
 - **A scripted test must not pass through a random choice.** If an action picks a value with `nondet`, a run that calls it is not reproducible: it passes on some seeds and fails on others. Give the action a parameter (`detectAs(real: bool)`) and pass the value explicitly in every run. The gate runs each scripted test 20 times so that such a run fails every time instead of occasionally.
 - A `.violated` claim needs no script. The gate first lets the simulator look for the violation; if it finds none, TLC searches every reachable state, and the claim passes when TLC finds it (the gate then prints "found by TLC; too deep for the simulator"). Pin such a deep counterexample with a scripted test ending in `.expect`, so a reader can see the trace.
 
+### Liveness: "it is eventually resolved"
+
+An invariant says nothing bad is ever reached. "Every commitment is eventually resolved" is a different kind of claim: a temporal property, checked by TLC over infinite runs. It always needs a fairness assumption, because a run in which nobody ever acts is allowed and resolves nothing. Write the assumption as the left side of an implication, so the claim states what it relies on.
+
+```quint
+module liveness {
+  var state: str   // "Waiting" until the commitment is resolved, then "Done"
+  var up: bool     // false while the system is stopped
+
+  action init = all { state' = "Waiting", up' = true }
+  action stop = all { up, up' = false, state' = state }
+  action recover = all { not(up), up' = true, state' = state }
+  action resolve = all { up, state == "Waiting", state' = "Done", up' = up }
+  action step = any { stop, recover, resolve }
+
+  val vars = (state, up)   // every state variable, in a tuple
+  temporal resolves = always(state == "Waiting" implies eventually(state == "Done"))
+
+  // resolve is enabled only while the system runs, and stop can interrupt it again and again:
+  // weak fairness is not enough for it, strong fairness is. recover stays enabled while stopped.
+  temporal fairStrong = strongFair(resolve, vars) and weakFair(recover, vars)
+  temporal fairWeak = weakFair(resolve, vars) and weakFair(recover, vars)
+  temporal Liveness = fairStrong implies resolves         // holds
+  temporal LivenessWeak = fairWeak implies resolves       // violated: stop, recover, stop, ...
+}
+```
+
+- `weakFair(a, vars)`: if `a` stays enabled forever, it is eventually taken. Enough for an action nothing else can disable, such as `recover` while stopped.
+- `strongFair(a, vars)`: if `a` is enabled again and again, it is eventually taken. Needed when another action (a stop) can disable it each time before it runs.
+- Without any fairness, `resolves` is violated by a run that does nothing. That counterexample says nothing about the design; add the assumption instead of reporting it.
+- An assumption about the world, such as "recovery eventually happens", is also fairness (`weakFair(recover, vars)` above). Drop it and the claim becomes "if the stop never ends, nothing is resolved", which is often worth recording as a counterexample of its own.
+- Cite it with `temporal := true` in the `QuintRef`, for example `{ file := "Spec/liveness.qnt", main := "liveness", invariant := "Liveness", temporal := true }`. The gate runs TLC with `--temporal` for both `.holds` and `.violated`. The cinema example is `Spec/obligation.qnt` (`Liveness`, `LivenessGivenRecovery`).
+
 ## 5. Plain Lean first; mathlib only in special cases
 
 Projects use plain Lean 4 (core and `Std`) with no external packages. mathlib is a heavy dependency: several GB of download and build cache per project, a slower gate, and a version to keep in step with the toolchain. The glossaries this method produces are finite and concrete, and their theorems rarely need a library. So the default is: **do not add mathlib.**

@@ -84,6 +84,8 @@ So do not promise discoveries. Promise two things: what has been decided is on r
 
 Look for these roles in any domain. If a role does not exist, write "none" and do not invent it.
 
+Some domains have no scarce resource: an approval workflow, a money transfer, a report. Do not invent one. Look instead for what must happen at most once (a payment, a notification, an entitlement issued) and for what waits with a deadline (an approval step instead of a hold). Write that mapping in the role table with a note, as in "Resource: none as such; each approved request may be paid at most once". Pattern 4 then protects "at most one execution" in place of exclusivity.
+
 | Role | Meaning | Cinema example |
 |---|---|---|
 | Resource | Limited; cannot be given to two parties at once | Seat |
