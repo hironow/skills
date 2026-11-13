@@ -1,6 +1,6 @@
 ---
 name: provable-glossary
-description: Turn a business glossary (the DDD ubiquitous language) into a repository where every claim about the terms is proved in Lean or model-checked in Quint, every open decision is recorded as a question for the business, and those questions are compared with industry practice to find gaps. Use it to design or review a system that sells, books, reserves or allocates something and that can stop itself autonomously (emergency maintenance, kill switch, circuit breaker); to formalize a glossary or domain model; to find gaps or contradictions in a specification; to derive a glossary from an existing codebase and keep it tied to the code; or to migrate a hand-maintained glossary into a checked one without losing a term. Demanding work, best run by a highly capable model. Use it even when the skill is not named, for requests such as provable glossary, formalize the ubiquitous language, verify a design with Quint or Lean, questions for the domain expert, 証明可能な用語集, 用語集の形式化, 仕様の空白, 緊急停止の設計検証, 業務側への質問.
+description: Turn a business glossary (the DDD ubiquitous language) into a repository where every claim about the terms is proved in Lean or model-checked in Quint, every open decision is recorded as a question for the business, and those questions are compared with industry practice to find gaps. Use it to design or review the business rules of a system, including what happens to work in flight when it stops (emergency maintenance, kill switch, circuit breaker, outage); to formalize a glossary or domain model; to find gaps or contradictions in a specification; to derive a glossary from an existing codebase and keep it tied to the code; or to migrate a hand-maintained glossary into a checked one without losing a term. Demanding work, best run by a highly capable model. Use it even when the skill is not named, for requests such as provable glossary, formalize the ubiquitous language, verify a design with Quint or Lean, questions for the domain expert, 証明可能な用語集, 用語集の形式化, 仕様の空白, 緊急停止の設計検証, 業務側への質問.
 license: MIT
 metadata:
   provenance: original
@@ -62,7 +62,7 @@ The deliverable has three tiers. Finish a tier before starting the next, and say
 
 | Tier | Content | Workflow steps |
 |---|---|---|
-| 1. Required | A checked glossary, the emergency-stop scene, the open questions, README and findings | 0, 1, 3, 4, 8 |
+| 1. Required | A checked glossary, the stop scene (or a recorded reason there is none), the open questions, README and findings | 0, 1, 3, 4, 8 |
 | 2. Expected | The questions compared with industry practice | 2, 6 |
 | 3. Optional | A control experiment and a policy draft. If skipped, the documents say so | 5, 7 |
 
@@ -90,14 +90,20 @@ Look for these roles in any domain. If a role does not exist, write "none" and d
 | Hold | A time-limited reservation of the resource | Seat hold |
 | External confirmation | Happens outside the system, cannot be stopped, arrives late | Payment result |
 | Entitlement | The hard-to-revoke thing handed to the customer | Admission right (ticket) |
-| Emergency stop | The system autonomously stops accepting work | Emergency maintenance |
+| Stop | The system stops accepting work: on its own (emergency), by a person, or because something it depends on fails | Emergency maintenance |
 | Planned stop | Announced; waits for work in progress | Scheduled maintenance |
 | Deadline | A fixed time after which the entitlement is worthless | Showtime |
 | Fallback channel | A human or on-site path that works during a stop | Box office |
 | Supply cancellation | The operator can no longer honour an entitlement | Cancelled screening |
 | Reallocation | Honouring it with a different resource | Rebooking to another screening |
 
-**The emergency stop is common to every domain.** At the moment of the stop some transactions are half done, and external confirmations keep arriving regardless. The questions this raises (grant or return, who, by when) have the same shape everywhere. The other roles vary. `references/patterns.md` gives one pattern per role.
+**Commitments in flight across a stop.** Almost every system can be stopped, for whatever reason. What matters is what is half done at that moment: an external confirmation still to arrive, a hold that will expire, an entitlement promised but not yet issued, a deadline that keeps running. These keep moving while the system stands still, and the questions they raise (grant or return, who, by when) have the same shape in every domain. Model this scene whenever anything is in flight (pattern 4 in `references/patterns.md`, which gives one pattern per role).
+
+If nothing is in flight when the system stops (for example, it only reads and reports, and promises nothing to anyone outside), do not invent a stop scene. Record the reason in the README with this line, so that `status.py` and the evaluation can see it:
+
+```
+<!-- stop-scene: none; <one sentence on why nothing is in flight across a stop> -->
+```
 
 ## Workflow
 
@@ -109,7 +115,7 @@ You can start once you know three things. Ask if they are missing; if the user l
 
 1. What is handed to whom, through which steps.
 2. A draft glossary or a description of the business. With only a description, draft the glossary yourself.
-3. What the emergency stop stops (new work only, or work in progress too) and who or what triggers it.
+3. What is in flight when the system stops (external confirmations, holds, entitlements not yet issued, running deadlines), what can stop it (on its own, by a person, a failing dependency), and what a stop stops (new work only, or work in progress too). Ask even when the user did not mention stopping.
 
 Fill in the role table. It goes into the README.
 
@@ -176,7 +182,7 @@ Then look for business options that none of the questions touched. For each gap,
 
 ### 7. Draft a policy for a gap, and check it
 
-Where rules can close a gap (usually the handling of the emergency stop), write them as numbered clauses. Model the draft, show that the wanted properties hold in every state, and show that removing any one rule breaks a property. If the research found a real incident, replay its timeline against the draft. See pattern 11 in `references/patterns.md`.
+Where rules can close a gap (usually the handling of a stop), write them as numbered clauses. Model the draft, show that the wanted properties hold in every state, and show that removing any one rule breaks a property. If the research found a real incident, replay its timeline against the draft. See pattern 11 in `references/patterns.md`.
 
 ### 8. Write the documents
 

@@ -1,5 +1,6 @@
 """Keep the public copy of provable-glossary usable where it is published."""
 
+import json
 import re
 import shutil
 import subprocess
@@ -76,3 +77,75 @@ def test_grader_finds_the_template_wherever_it_runs(
     assert result.returncode == 0, result.stderr[-2000:]
     grading = (run / "grading.json").read_text(encoding="utf-8")
     assert "['justfile']" in grading
+
+
+# A domain with nothing in flight across a stop records that in its README instead of
+# modelling a stop scene. The marker is machine-readable; the reason is required.
+NO_STOP = "<!-- stop-scene: none; approvals are read-only reports and nothing is sent outside -->"
+NO_STOP_WITHOUT_REASON = "<!-- stop-scene: none -->"
+QUIET_MODEL = "module report {\n  var count: int\n  action init = count' = 0\n  action step = count' = count + 1\n}\n"
+
+
+def graded_stop_item(tmp_path: Path, readme: str) -> dict:
+    run = tmp_path / "run"
+    for rel in SHARED:
+        (run / "outputs" / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(TEMPLATE / rel, run / "outputs" / rel)
+    (run / "outputs" / "Spec").mkdir(exist_ok=True)
+    (run / "outputs" / "Spec" / "report.qnt").write_text(QUIET_MODEL, encoding="utf-8")
+    (run / "outputs" / "README.md").write_text(
+        f"# Reports\n\n{readme}\n", encoding="utf-8"
+    )
+    subprocess.run(
+        [sys.executable, "-I", str(SKILL / "evals" / "grade.py"), str(run)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    expectations = json.loads((run / "grading.json").read_text(encoding="utf-8"))[
+        "expectations"
+    ]
+    return next(e for e in expectations if "stop" in e["text"].lower())
+
+
+def test_grader_accepts_a_recorded_reason_for_no_stop_scene(tmp_path: Path) -> None:
+    assert graded_stop_item(tmp_path, NO_STOP)["passed"]
+
+
+def test_grader_rejects_no_stop_scene_without_a_reason(tmp_path: Path) -> None:
+    assert not graded_stop_item(tmp_path, NO_STOP_WITHOUT_REASON)["passed"]
+
+
+def test_status_counts_a_recorded_reason_as_the_stop_item_done(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    (project / "Spec" / "report.qnt").write_text(QUIET_MODEL, encoding="utf-8")
+    (project / "README.md").write_text(f"# Reports\n\n{NO_STOP}\n", encoding="utf-8")
+
+    # As SKILL.md runs it: without -I, so it imports its sibling modules.
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+
+    stop_lines = [
+        line
+        for line in result.stdout.splitlines()
+        if "stop" in line.lower() and "[" in line
+    ]
+    assert stop_lines
+    assert all("[done]" in line for line in stop_lines), stop_lines
+
+
+def test_skill_requires_the_stop_scene_only_when_something_is_in_flight() -> None:
+    skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+    description = skill.split("\n---", 1)[0]
+    assert "can stop itself autonomously" not in description
+    assert "stop-scene: none;" in skill
+    assert "stop-scene: none;" in (SKILL / "references" / "patterns.md").read_text(
+        encoding="utf-8"
+    )
