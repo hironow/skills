@@ -75,7 +75,7 @@ Quint は bunx がその版を取得して実行するので、導入は要ら�
 
 `just check` は次の 9 つを行う。
 
-- **lean-check**: 証明をビルドし、`sorry`・`axiom`・`native_decide` を拒否する。
+- **lean-check**: 証明をビルドし、`sorry`・`axiom`・`native_decide` を拒否する。警告も失敗にする。警告には Lean 本体の追加の静的検査 (`linter.extra`、`lakefile.toml` で有効にした) を含む。
 - **stop-check**: 各用語集の停止の場面の宣言 (`stopScene`) を、用語の役割と主張で確かめる。語の有無では判定しない。
 - **question-check**: 未決定の主張 (業務側への質問) が、空白を示す反例か、モデルで示せない理由のどちらかを持つことを確かめる。
 - **control-check**: 対照実験の宣言 (`Glossary/Registry.lean` の `control`) を確かめる。行ったと宣言したなら、手順書が結果より先にコミットされた実験があることを git の履歴で確かめる。
