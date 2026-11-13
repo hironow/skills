@@ -1,6 +1,7 @@
 import Glossary.Registry
 import Glossary.StopScene
 import Glossary.Questions
+import Glossary.Control
 
 /-!
 Prints the list of checks and writes the generated documents.
@@ -10,6 +11,7 @@ Prints the list of checks and writes the generated documents.
   claims terms       every term ID, one per line
   claims stop        check the stop-scene declarations; exit 1 and list the problems if any
   claims questions   check that every question states its basis; exit 1 and list the problems if any
+  claims control     print the control declaration (run, skipped, undeclared); exit 1 if it is malformed
 
 This file is the same for every domain. Register glossaries in `Glossary/Registry.lean`.
 -/
@@ -24,7 +26,7 @@ def main (args : List String) : IO UInt32 := do
     return 0
   | ["docs", dir] =>
     IO.FS.createDirAll dir
-    let docs := allDocs labels books
+    let docs := allDocs labels books control
     -- Drop files that are no longer generated, so the folder holds exactly the current output.
     for entry in (← System.FilePath.readDir dir) do
       if !(docs.any (·.1 == entry.fileName)) && !(← entry.path.isDir) then
@@ -54,10 +56,19 @@ def main (args : List String) : IO UInt32 := do
       return 0
     else
       return 1
+  | ["control"] =>
+    let problems := controlProblems control
+    for p in problems do
+      IO.eprintln s!"control-check: {p}"
+    if problems.isEmpty then
+      IO.println (controlWord control)
+      return 0
+    else
+      return 1
   | ["terms"] =>
     for l in termIds books do
       IO.println l
     return 0
   | _ =>
-    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms | stop | questions)"
+    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms | stop | questions | control)"
     return 2

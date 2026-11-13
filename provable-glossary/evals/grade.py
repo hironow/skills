@@ -32,6 +32,9 @@ TEMPLATE = next(
 # same code status.py uses. Nothing is judged by whether a word appears in a file.
 sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
 from generated_lines import (  # noqa: E402
+    book_titles,
+    control,
+    holds_count,
     industry_complete,
     question_counts,
     roles_tagged,
@@ -134,20 +137,18 @@ add(
     bad or "clean",
 )
 
-# 4. exhaustive state exploration backs at least one "holds" result
-gate_sources = text_of(
-    [p for p in [out / "justfile", *out.glob("*.sh")] if p.is_file()]
+# 4. at least one "holds" result, checked by the gate. The gate runs TLC on every .holds claim;
+#    item 17 confirms the justfile is the template's, so the gate is the one that does this.
+summary_md = (
+    (out / GEN / "summary.md").read_text(errors="replace")
+    if (out / GEN / "summary.md").is_file()
+    else ""
 )
-exhaustive = bool(
-    re.search(
-        r"quint[^\n]*\bverify\b|\bverify\b[^\n]*--backend|apalache-mc|tlc2",
-        gate_sources,
-    )
-)
+holds = holds_count(summary_md)
 add(
-    "The gate backs at least one 'holds' result with exhaustive state exploration (TLC or Apalache), not only random simulation",
-    exhaustive and rc == 0,
-    f"verify in gate: {exhaustive}",
+    "At least one 'holds' result is backed by the gate's exhaustive check (docs/generated/summary.md, and the gate exits 0)",
+    bool(holds) and rc == 0,
+    f"{holds} holds claims; gate exit {rc}" if holds is not None else "no evidence counts in docs/generated/summary.md",
 )
 
 # 5. the stop scene is declared in the glossary and the gate verifies it. A run without the skill
@@ -260,24 +261,14 @@ add(
     nums or "no machine-made count of claims by verdict",
 )
 
-# 13. control experiment
-protocols = [p for p in md if p.name == "protocol.md"]
-results_md = [p for p in md if p.name == "result.md"]
-skipped = bool(
-    re.search(r"対照[^\n]*(飛ばし|実行していない|行っていない|スキップ|省略)", docs)
-)
+# 13. control experiment: declared in Glossary/Registry.lean and verified by the gate (control-check:
+#     for .run, some experiments/<name>/protocol.md was committed before result.md).
+# 14. (limits and model sizes) is left to a reader: no check reads the meaning of prose.
+declared = control(summary_md)
 add(
-    "A comparison with a tool-less control was preregistered and run, or the documents say it was skipped",
-    (protocols and results_md) or skipped,
-    f"{len(protocols)} protocols, {len(results_md)} results, skip stated: {skipped}",
-)
-
-# 14. limits and model sizes
-add(
-    "The documents state limits and the size of the models",
-    "限界" in docs
-    and bool(re.search(r"\d+\s*状態|状態数|\d\s*人|\d\s*枠|\d\s*つ", docs)),
-    "searched authored documents",
+    "The control experiment is declared run (preregistration verified by the gate) or skipped with a reason (docs/generated/summary.md, and the gate exits 0)",
+    declared is not None and declared[0] in ("run", "skipped") and rc == 0,
+    f"control {declared[0] if declared else 'not declared'}; gate exit {rc}",
 )
 
 # 15. documents are in the user's language
@@ -340,15 +331,11 @@ changed = [
     if not (out / rel).is_file()
     or (out / rel).read_bytes() not in template_versions(rel)
 ]
-registry = (
-    (out / "Glossary/Registry.lean").read_text(errors="replace")
-    if (out / "Glossary/Registry.lean").is_file()
-    else ""
-)
+titles = book_titles(summary_md)
 add(
     "[layout] Shared machinery is unchanged from the template and the starter glossary is removed",
-    not changed and registry and "Starter" not in registry,
-    changed or "identical; starter removed",
+    not changed and bool(titles) and "Starter" not in titles,
+    changed or f"identical; glossaries: {titles}",
 )
 
 passed = sum(r["passed"] for r in results)

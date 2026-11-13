@@ -91,6 +91,16 @@ inductive StopScene where
   /-- Another book of this project, named by its title, models the scene. -/
   | inBook (title : String)
 
+/-- Whether the comparison with a tool-less control (workflow step 5) was run. Declared once, as
+`control` in `Glossary/Registry.lean`; `just check` (control-check, `Glossary/Control.lean`) verifies it. -/
+inductive Control where
+  /-- Not declared yet. Allowed: the control is Tier 3. -/
+  | undeclared
+  /-- Run: some `experiments/<name>/` has `protocol.md` committed before `result.md`. -/
+  | run
+  /-- Skipped, with the reason. The documents say which statements are therefore unverified. -/
+  | skipped (reason : String)
+
 /-- A glossary together with the claims made about it. -/
 structure Book (ι κ : Type) where
   title : String

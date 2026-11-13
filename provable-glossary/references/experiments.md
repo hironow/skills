@@ -56,6 +56,7 @@ Expect this; it happened in every comparison so far. It is a result, not a faile
 2. Tabulate variant × property with TLC alone (`scripts/truth_table.py`). The simulator can miss counterexamples.
 3. Draw the items at random with a fixed seed (`sample.py`). Balance holds and violated. Separating items near a boundary (one step of one parameter flips the result) from far ones shows where errors cluster.
 4. Run the control (`scripts/run_control.py`) and score by machine (`scripts/replay_trace.py` for every "violated" answer).
+5. Commit `result.md`, then set `def control : Control := .run` in `Glossary/Registry.lean`. `just check` (control-check) passes only if some `experiments/<name>/protocol.md` was committed before its `result.md`.
 
 ### Tool notes
 
