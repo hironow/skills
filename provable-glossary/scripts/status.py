@@ -16,6 +16,7 @@ import sys
 
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
+from stop_waiver import IN_FLIGHT_ROLES, stop_waiver
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -60,10 +61,11 @@ def main() -> int:
          "turn what the design cannot settle into `.question` claims")
 
     specs = "\n".join(read(p) for p in (project / "Spec").glob("*.qnt") if p.name != "starter.qnt")
-    no_stop = re.search(r"<!--\s*stop-scene:\s*none;\s*\S[^>]{9,}?\s*-->", read(project / "README.md"))
-    item(1, no_stop or re.search(r"emergency|halt|stop|freeze|lockdown|shutdown|suspend|kill.?switch|緊急|停止|遮断|ロックダウン", specs, re.I),
-         "the stop scene is modelled in Spec/, or the README records why nothing is in flight across a stop",
-         "write the stop scene (pattern 4); if nothing is in flight when the system stops, add <!-- stop-scene: none; <reason> --> to the README")
+    waived, waiver_note = stop_waiver(read(project / "README.md"))
+    item(1, waived or re.search(r"emergency|halt|stop|freeze|lockdown|shutdown|suspend|kill.?switch|緊急|停止|遮断|ロックダウン", specs, re.I),
+         "the stop scene is modelled in Spec/, or the README waives it and its role table agrees",
+         "write the stop scene (pattern 4). Waive it only if the role table maps "
+         + ", ".join(IN_FLIGHT_ROLES) + " to none; " + waiver_note)
 
     # In the root layout the repository is the glossary project itself, so there is no separate implementation.
     has_code = project != repo and sum(1 for p in walk_files(repo) if p.suffix in CODE_SUFFIXES) >= 3

@@ -57,8 +57,11 @@ def test_grader_finds_the_template_wherever_it_runs(
     else:
         workspace = tmp_path / "skills" / "provable-glossary-workspace"
         workspace.mkdir(parents=True)
+        # The workspace sits beside the whole skill (evals/README.md), not beside the template alone.
         shutil.copytree(
-            TEMPLATE, tmp_path / "skills" / "provable-glossary" / "assets" / "template"
+            SKILL,
+            tmp_path / "skills" / "provable-glossary",
+            ignore=shutil.ignore_patterns("worked-example", "__pycache__"),
         )
         grader = workspace / "grade.py"
         shutil.copy(SKILL / "evals" / "grade.py", grader)
@@ -80,10 +83,46 @@ def test_grader_finds_the_template_wherever_it_runs(
 
 
 # A domain with nothing in flight across a stop records that in its README instead of
-# modelling a stop scene. The marker is machine-readable; the reason is required.
-NO_STOP = "<!-- stop-scene: none; approvals are read-only reports and nothing is sent outside -->"
+# modelling a stop scene. The waiver is a claim about the domain, so it must agree with the
+# role table: the four roles that can be in flight across a stop are named and mapped to none.
+NO_STOP = "<!-- stop-scene: none; the site only reads a nightly import and promises nothing to anyone outside -->"
 NO_STOP_WITHOUT_REASON = "<!-- stop-scene: none -->"
 QUIET_MODEL = "module report {\n  var count: int\n  action init = count' = 0\n  action step = count' = count + 1\n}\n"
+
+
+def role_table(**mapped: str) -> str:
+    rows = {
+        "External confirmation": "none",
+        "Hold": "none (nothing is reserved)",
+        "Entitlement": "なし",
+        "Deadline": "none",
+    }
+    rows.update({name.replace("_", " "): value for name, value in mapped.items()})
+    body = "\n".join(f"| 役割 ({name}) | {value} |" for name, value in rows.items())
+    return f"## 役割の表\n\n| 役割 | この題材では |\n|---|---|\n{body}\n"
+
+
+JAPANESE_ONLY_TABLE = (
+    "## 役割の表\n\n| 役割 | この題材では |\n|---|---|\n"
+    "| 外部の確認 | なし |\n| 仮確保 | なし |\n| 権利 | なし |\n| 期限 | なし |\n"
+)
+
+WAIVER_CASES = {
+    "consistent": (role_table() + "\n" + NO_STOP, True),
+    "no-reason": (role_table() + "\n" + NO_STOP_WITHOUT_REASON, False),
+    "confirmation-exists": (
+        role_table(External_confirmation="会計システムの支払い完了通知")
+        + "\n"
+        + NO_STOP,
+        False,
+    ),
+    "deadline-exists": (
+        role_table(Deadline="承認ごとに 3 営業日") + "\n" + NO_STOP,
+        False,
+    ),
+    "roles-not-named": (JAPANESE_ONLY_TABLE + "\n" + NO_STOP, False),
+    "no-role-table": (NO_STOP, False),
+}
 
 
 def graded_stop_item(tmp_path: Path, readme: str) -> dict:
@@ -109,20 +148,11 @@ def graded_stop_item(tmp_path: Path, readme: str) -> dict:
     return next(e for e in expectations if "stop" in e["text"].lower())
 
 
-def test_grader_accepts_a_recorded_reason_for_no_stop_scene(tmp_path: Path) -> None:
-    assert graded_stop_item(tmp_path, NO_STOP)["passed"]
-
-
-def test_grader_rejects_no_stop_scene_without_a_reason(tmp_path: Path) -> None:
-    assert not graded_stop_item(tmp_path, NO_STOP_WITHOUT_REASON)["passed"]
-
-
-def test_status_counts_a_recorded_reason_as_the_stop_item_done(tmp_path: Path) -> None:
+def status_stop_done(tmp_path: Path, readme: str) -> bool:
     project = tmp_path / "project"
     shutil.copytree(TEMPLATE, project)
     (project / "Spec" / "report.qnt").write_text(QUIET_MODEL, encoding="utf-8")
-    (project / "README.md").write_text(f"# Reports\n\n{NO_STOP}\n", encoding="utf-8")
-
+    (project / "README.md").write_text(f"# Reports\n\n{readme}\n", encoding="utf-8")
     # As SKILL.md runs it: without -I, so it imports its sibling modules.
     result = subprocess.run(
         [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
@@ -131,14 +161,29 @@ def test_status_counts_a_recorded_reason_as_the_stop_item_done(tmp_path: Path) -
         timeout=120,
         check=True,
     )
-
     stop_lines = [
         line
         for line in result.stdout.splitlines()
         if "stop" in line.lower() and "[" in line
     ]
-    assert stop_lines
-    assert all("[done]" in line for line in stop_lines), stop_lines
+    assert stop_lines, result.stdout
+    return all("[done]" in line for line in stop_lines)
+
+
+@pytest.mark.parametrize("case", sorted(WAIVER_CASES))
+def test_grader_accepts_a_stop_waiver_only_when_the_role_table_agrees(
+    tmp_path: Path, case: str
+) -> None:
+    readme, accepted = WAIVER_CASES[case]
+    assert graded_stop_item(tmp_path, readme)["passed"] is accepted
+
+
+@pytest.mark.parametrize("case", sorted(WAIVER_CASES))
+def test_status_accepts_a_stop_waiver_only_when_the_role_table_agrees(
+    tmp_path: Path, case: str
+) -> None:
+    readme, accepted = WAIVER_CASES[case]
+    assert status_stop_done(tmp_path, readme) is accepted
 
 
 def test_skill_requires_the_stop_scene_only_when_something_is_in_flight() -> None:
@@ -149,6 +194,9 @@ def test_skill_requires_the_stop_scene_only_when_something_is_in_flight() -> Non
     assert "stop-scene: none;" in (SKILL / "references" / "patterns.md").read_text(
         encoding="utf-8"
     )
+    runbook = (SKILL / "references" / "runbook.md").read_text(encoding="utf-8")
+    assert "stop-scene: none;" in runbook
+    assert "External confirmation" in skill.split("stop-scene: none;", 1)[1][:1500]
 
 
 def quint_blocks(markdown: str) -> list[str]:

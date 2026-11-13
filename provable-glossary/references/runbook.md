@@ -110,7 +110,15 @@ J check
 
 You should see your terms in `docs/generated/glossary.md`. If the build says `check ... = true` could not be decided, the list breaks one of the three rules above: read the message, it names the theorem.
 
-### 6. Model the emergency stop (workflow step 4)
+### 6. Model the stop scene (workflow step 4)
+
+First decide whether anything is in flight when the system stops: look at the role table rows External confirmation, Hold, Entitlement and Deadline. If any of them is not none, or you are not sure, model the scene as below. Only if all four are none, skip the model and put this line in the README instead:
+
+```
+<!-- stop-scene: none; <one sentence on why nothing is in flight across a stop> -->
+```
+
+Keep the English role names in the first column of the role table (`外部の確認 (External confirmation)`). Then run `python3 <skill>/scripts/status.py .`: the stop item must show `[done]`. If it shows `[todo]`, the hint says which role disagrees; fix the table or model the scene.
 
 **Starting point A:** copy `Spec/starter.qnt` to `Spec/<domain>.qnt` and rename the roles to the domain's words (the starter is the stop scene in the shared roles). Keep the two modules `naive` and `guarded`.
 

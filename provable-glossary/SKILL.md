@@ -107,6 +107,8 @@ If nothing is in flight when the system stops (for example, it only reads and re
 <!-- stop-scene: none; <one sentence on why nothing is in flight across a stop> -->
 ```
 
+The line is a claim about the domain, and it must agree with the role table. Name the four roles that can be in flight across a stop in English in the first column (for example `外部の確認 (External confirmation)`), and map each of External confirmation, Hold, Entitlement and Deadline to none. `status.py` and the evaluation refuse the line otherwise. If any of the four exists, or you are not sure, model the scene: a waiver is never a way to skip the hard part.
+
 ## Workflow
 
 Work in order. End each step with `just check` passing and a commit in a clear unit.
