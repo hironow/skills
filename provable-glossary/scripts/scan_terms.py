@@ -23,6 +23,10 @@ import pathlib
 import re
 import sys
 
+
+# The sibling modules live beside this script; `python3 -I` leaves this folder off the path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from glossary_project import walk_files
 
 SUFFIXES = {".go", ".rs", ".ts", ".tsx", ".js", ".jsx", ".py", ".java", ".kt", ".rb", ".cs", ".php", ".swift",

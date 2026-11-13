@@ -12,6 +12,10 @@ import pathlib
 import subprocess
 import sys
 
+
+# The sibling modules live beside this script; `python3 -I` leaves this folder off the path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from glossary_project import just, locate, repo_root
 
 project = locate(pathlib.Path(sys.argv[1]))

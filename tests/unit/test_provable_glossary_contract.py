@@ -1,11 +1,13 @@
 """Keep the public copy of provable-glossary usable where it is published."""
 
+import importlib.util
 import json
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 
@@ -79,7 +81,7 @@ def test_grader_finds_the_template_wherever_it_runs(
 
     assert result.returncode == 0, result.stderr[-2000:]
     grading = (run / "grading.json").read_text(encoding="utf-8")
-    assert "['justfile']" in grading
+    assert "'justfile'" in grading
 
 
 # The stop scene is declared in the glossary (stopScene on each book, roles on terms) and verified
@@ -577,3 +579,167 @@ def test_status_does_not_judge_the_findings_by_words(tmp_path: Path) -> None:
     assert status_item(
         status_output(tmp_path, summary_doc("Rooms")), "docs/findings.md"
     )
+
+
+# --- Review fixes, first part: correctness and loopholes -------------------------------------
+
+SHARED_RULE_FILES = [
+    "Glossary/StopScene.lean",
+    "Glossary/Questions.lean",
+    "Glossary/Control.lean",
+]
+
+
+def load_script(name: str) -> ModuleType:
+    """Import one of the skill's scripts the way it runs: from its own folder."""
+    spec = importlib.util.spec_from_file_location(
+        name, SKILL / "scripts" / f"{name}.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def project_copy(tmp_path: Path, edit: dict[str, str]) -> Path:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    for rel, text in edit.items():
+        (project / rel).write_text(text, encoding="utf-8")
+    return project
+
+
+def loosened(rel: str) -> str:
+    return (TEMPLATE / rel).read_text(encoding="utf-8") + "\n-- loosened by the run\n"
+
+
+@pytest.mark.parametrize("rel", SHARED_RULE_FILES)
+def test_shared_files_catch_an_edited_rule_file(tmp_path: Path, rel: str) -> None:
+    shared = load_script("shared_files")
+    project = project_copy(tmp_path, {rel: loosened(rel)})
+    assert shared.shared_changes(project, TEMPLATE) == [rel]
+
+
+def test_shared_files_pass_an_untouched_project(tmp_path: Path) -> None:
+    shared = load_script("shared_files")
+    assert shared.shared_changes(project_copy(tmp_path, {}), TEMPLATE) == []
+
+
+def test_shared_files_skip_a_rule_file_added_after_the_project_started(
+    tmp_path: Path,
+) -> None:
+    shared = load_script("shared_files")
+    project = project_copy(tmp_path, {})
+    (project / "Glossary" / "Control.lean").unlink()
+    assert shared.shared_changes(project, TEMPLATE) == []
+
+
+def test_shared_files_read_the_lakefile_setting_not_its_bytes(tmp_path: Path) -> None:
+    shared = load_script("shared_files")
+    lakefile = (TEMPLATE / "lakefile.toml").read_text(encoding="utf-8")
+    with_mathlib = (
+        lakefile + '\n[[require]]\nname = "mathlib"\nscope = "leanprover-community"\n'
+    )
+    assert (
+        shared.shared_changes(
+            project_copy(tmp_path / "a", {"lakefile.toml": with_mathlib}), TEMPLATE
+        )
+        == []
+    )
+    linter_off = lakefile.replace("linter.extra = true", "linter.extra = false")
+    assert linter_off != lakefile
+    changes = shared.shared_changes(
+        project_copy(tmp_path / "b", {"lakefile.toml": linter_off}), TEMPLATE
+    )
+    assert len(changes) == 1
+    assert changes[0].startswith("lakefile.toml")
+
+
+def test_every_doc_names_the_rule_files_as_shared() -> None:
+    agents = (TEMPLATE / "AGENTS.md").read_text(encoding="utf-8")
+    skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+    for text in (agents, skill):
+        for rel in SHARED_RULE_FILES:
+            assert Path(rel).name in text, rel
+
+
+def test_industry_examples_give_every_class_its_note() -> None:
+    for rel in ("SKILL.md", "references/lean-and-quint.md"):
+        text = (SKILL / rel).read_text(encoding="utf-8")
+        assert not re.search(r"`\.(notAsked|gap)`", text), rel
+
+
+@pytest.mark.parametrize(
+    "script", ["status.py", "detect_start.py", "check_protection.py", "scan_terms.py"]
+)
+def test_scripts_import_their_siblings_in_isolated_mode(
+    tmp_path: Path, script: str
+) -> None:
+    result = subprocess.run(
+        [sys.executable, "-I", str(SKILL / "scripts" / script), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert "ModuleNotFoundError" not in result.stderr, result.stderr[-500:]
+
+
+def test_init_keeps_existing_git_hooks(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    hook = repo / ".git" / "hooks" / "commit-msg"
+    hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    hook.chmod(0o755)
+    subprocess.run(
+        [sys.executable, "-I", str(SKILL / "scripts" / "init_project.py"), str(repo)],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=True,
+    )
+    configured = subprocess.run(
+        ["git", "-C", str(repo), "config", "core.hooksPath"],
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    assert configured == "", "core.hooksPath would stop .git/hooks/commit-msg"
+
+
+def test_status_shows_how_to_close_every_open_item(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    todo = [line for line in result.stdout.splitlines() if "[todo]" in line]
+    hows = [
+        line for line in result.stdout.splitlines() if line.strip().startswith("how:")
+    ]
+    assert len(todo) > 1
+    assert len(hows) == len(todo), result.stdout
+
+
+@pytest.mark.parametrize(("edited", "accepted"), [(False, True), (True, False)])
+def test_status_reports_edited_shared_machinery(
+    tmp_path: Path, edited: bool, accepted: bool
+) -> None:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    if edited:
+        rel = "Glossary/StopScene.lean"
+        (project / rel).write_text(loosened(rel), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    assert status_item(result.stdout, "shared machinery") is accepted

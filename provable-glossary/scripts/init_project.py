@@ -104,14 +104,23 @@ def install_pre_commit(repo: pathlib.Path, recipe: str) -> str:
         )
         if (repo / name).exists()
     ]
-    if (
-        (configured and configured != ".githooks")
-        or other
-        or (repo / ".git" / "hooks" / "pre-commit").exists()
-    ):
+    # Setting core.hooksPath would silently stop every hook in .git/hooks (commit-msg, pre-push...),
+    # so any hook already there means: leave the configuration alone and say what to add.
+    hooks_dir = repo / ".git" / "hooks"
+    existing = (
+        sorted(
+            p.name
+            for p in hooks_dir.iterdir()
+            if p.is_file() and not p.name.endswith(".sample")
+        )
+        if hooks_dir.is_dir()
+        else []
+    )
+    if (configured and configured != ".githooks") or other or existing:
+        managed = configured or ", ".join(other) or ", ".join(f".git/hooks/{n}" for n in existing)
         return (
-            f"pre-commit: this repository already manages git hooks ({configured or ', '.join(other) or '.git/hooks/pre-commit'}). "
-            f"Add this command to them yourself: {recipe}"
+            f"pre-commit: this repository already manages git hooks ({managed}); core.hooksPath was left as it is. "
+            f"Add this command to its pre-commit hook yourself: {recipe}"
         )
     hook = repo / ".githooks" / "pre-commit"
     hook.parent.mkdir(exist_ok=True)
