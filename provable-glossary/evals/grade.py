@@ -140,17 +140,23 @@ add(
     bool(re.search(r"emergency|halt|stop|freeze|緊急|停止", models, re.IGNORECASE))
     and bool(
         re.search(
-            r"violat|反例|counterexample|exit 1|negative", gate_sources + all_text, re.IGNORECASE
+            r"violat|反例|counterexample|exit 1|negative",
+            gate_sources + all_text,
+            re.IGNORECASE,
         )
     ),
     "searched models, gate and documents",
 )
 
 # 6. open questions for the business
-question_files = [p for p in md if re.search(r"question|質問|未決", p.name, re.IGNORECASE)]
+question_files = [
+    p for p in md if re.search(r"question|質問|未決", p.name, re.IGNORECASE)
+]
 qtext = text_of(question_files)
 q_items = len(
-    re.findall(r"^\s*(?:[-*]|\d+[.)]|\|\s*(?!-)[^|\n]{8,}\|)|^#+\s*Q\d+", qtext, re.MULTILINE)
+    re.findall(
+        r"^\s*(?:[-*]|\d+[.)]|\|\s*(?!-)[^|\n]{8,}\|)|^#+\s*Q\d+", qtext, re.MULTILINE
+    )
 )
 add(
     "At least 8 questions for the business are listed in a dedicated document",
@@ -181,7 +187,10 @@ add(
 # 9. questions classified against industry practice
 add(
     "Each open question is classified against industry practice (answered / not asked here / gap, or equivalent)",
-    bool(re.search(r"\|[^\n]*分類[^\n]*\|", docs) or re.search(r"答えあり|問われない|解決済み|決着済み", docs))
+    bool(
+        re.search(r"\|[^\n]*分類[^\n]*\|", docs)
+        or re.search(r"答えあり|問われない|解決済み|決着済み", docs)
+    )
     and "空白" in docs,
     "searched authored documents",
 )
@@ -278,7 +287,9 @@ readme = (
     if (out / "README.md").is_file()
     else ""
 )
-role_table = re.search(r"^#+[^\n]*(役割|[Rr]ole)[^\n]*\n(.*?)(?=^#+ |\Z)", readme, re.S | re.M)
+role_table = re.search(
+    r"^#+[^\n]*(役割|[Rr]ole)[^\n]*\n(.*?)(?=^#+ |\Z)", readme, re.S | re.M
+)
 role_rows = [
     line
     for line in (role_table.group(2) if role_table else "").splitlines()
@@ -307,10 +318,17 @@ def template_versions(rel):
     template it was started from, not with later edits to the template."""
     repo = TEMPLATE.parents[3]
     path = str((TEMPLATE / rel).relative_to(repo))
-    commits = subprocess.run(["git", "log", "--format=%H", "--", path], cwd=repo, capture_output=True, text=True)
+    commits = subprocess.run(
+        ["git", "log", "--format=%H", "--", path],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+    )
     versions = {(TEMPLATE / rel).read_bytes()}
     for commit in commits.stdout.split():
-        blob = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True)
+        blob = subprocess.run(
+            ["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True
+        )
         if blob.returncode == 0:
             versions.add(blob.stdout)
     return versions
@@ -325,7 +343,8 @@ changed = [
         "Main.lean",
         "justfile",
     ]
-    if not (out / rel).is_file() or (out / rel).read_bytes() not in template_versions(rel)
+    if not (out / rel).is_file()
+    or (out / rel).read_bytes() not in template_versions(rel)
 ]
 registry = (
     (out / "Glossary/Registry.lean").read_text(errors="replace")
