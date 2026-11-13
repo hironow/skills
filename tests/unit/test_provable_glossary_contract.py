@@ -149,3 +149,26 @@ def test_skill_requires_the_stop_scene_only_when_something_is_in_flight() -> Non
     assert "stop-scene: none;" in (SKILL / "references" / "patterns.md").read_text(
         encoding="utf-8"
     )
+
+
+def quint_blocks(markdown: str) -> list[str]:
+    return re.findall(r"```quint\n(.*?)```", markdown, re.DOTALL)
+
+
+def test_liveness_guide_shows_a_complete_temporal_property() -> None:
+    guide = (SKILL / "references" / "lean-and-quint.md").read_text(encoding="utf-8")
+    examples = [
+        b
+        for b in quint_blocks(guide)
+        if "temporal" in b and "weakFair(" in b and "eventually(" in b
+    ]
+    assert examples, "no Quint example of a liveness property with fairness"
+    assert "strongFair(" in guide
+    assert "temporal := true" in guide
+
+
+def test_skill_says_how_to_map_a_domain_with_no_scarce_resource() -> None:
+    skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+    patterns = (SKILL / "references" / "patterns.md").read_text(encoding="utf-8")
+    assert "no scarce resource" in skill
+    assert "at most one execution" in patterns

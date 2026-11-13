@@ -48,7 +48,7 @@ The central pattern. Write it whenever anything is in flight when the system sto
 
 - **Question**: When the system stops accepting work, what happens to transactions that hold a resource, wait for an external confirmation, or wait for issuance?
 - **Properties**:
-  - Exclusivity: at most one party is entitled to a resource.
+  - Exclusivity: at most one party is entitled to a resource. In a domain with no scarce resource, use at most one execution of each external effect instead: a request resent after recovery must not pay, ship or notify twice. Give each request an identity the outside party can recognise, and reconcile with it after the stop rather than resending blindly.
   - Preservation: a transaction whose external confirmation succeeded is always tracked in a state that leads to issuance or to a refund.
   - Meaning of the stop: once the stop is complete, no new entitlement is issued.
   - Planned stop: it waits for work in progress, so no confirmation is left unresolved during it.
