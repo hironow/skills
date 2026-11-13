@@ -224,10 +224,13 @@ Quint:
 - Running many `quint verify --backend tlc` in parallel fails silently unless an Apalache server is running (see `references/experiments.md`).
 - Even one after another, `quint verify` can fail with "Address already in use" on port 8822 when a previous run has not released the port or another project on the machine is verifying. Run it again; `scripts/truth_table.py` retries by itself.
 - Do not put dozens of variants into one file; the translation to TLA+ fails. Generate one file per variant.
+- Quint has no formatter and no linter (as of 0.33.1); `quint typecheck` is the only static check. An unknown subcommand such as `quint lint` or `quint format` opens the REPL and exits 0, so a gate that calls it passes without checking anything. Do not add one.
 
 Lean:
 
+- The build runs core Lean's opt-in extra linters (`leanOptions = { linter.extra = true }` in `lakefile.toml`), and `lake build --wfail` turns their warnings into failures: a tactic that never runs, a hypothesis such as `[Decidable p]` that the statement does not use, a namespace repeated in a name (`Glossary.Glossary.x`). Fix the code; do not turn the option off. Lean has no standard formatter yet.
 - `decide` on a large case space may need `set_option maxRecDepth <n> in` before the theorem.
+- A proposition named with `def` hides its body from instance search: `def P : Prop := 1 + 1 = 2` then `example : P := by decide` fails with "failed to synthesize Decidable P", although the body is decidable. Write `by unfold P; decide`, or declare it with `abbrev P : Prop := ...` (both checked on Lean 4.35.0).
 - `decide` fails on propositions with no `Decidable` instance. Make predicates `Bool`-valued, or give the instance: for a proposition, `instance : Decidable (P x) := by unfold P; infer_instance`; for a predicate such as `def Resolved (s : St) : Prop := s ≠ .owed`, `instance : DecidablePred Resolved := fun s => by unfold Resolved; infer_instance`.
 - Lemma names differ between core Lean versions and mathlib; check before relying on one.
 - A term ID must not be a Lean keyword. `recall`, `open`, `end`, `import`, `section`, `example`, `instance`, `theorem`, `variable`, `from`, `at`, `in`, `do`, `where`, `with`, `then`, `else` and the like give "unexpected token ...; expected ']'" inside `about := [...]`, followed by misleading `decide` failures. Name the term `toolRecall`, not `recall`.

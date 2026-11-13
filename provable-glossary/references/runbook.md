@@ -96,6 +96,7 @@ Rules that the build enforces, so you will see an error if you break them:
 - A term appears in the list after every term in its `defDeps`.
 - `verdict` matches `evidence`: `.lean` and `.holds` are `.proved`; `.leanRefutes` and `.violated` are `.counterexample`; `.question` and `.questionOutsideModel` are `.undecided`.
 - `role` is one of the cases of `Role` in `Glossary/Core.lean`; leave it out for a term that plays no shared role.
+- Warnings fail the build, including core Lean's extra linters: a tactic that never runs, an unused hypothesis, a repeated namespace. Read the warning; it names the line.
 - Indentation matters inside `{ ... }`: every line of an entry or a claim is indented further than its opening brace. A line that starts at the brace's column gives "unexpected identifier; expected '}'".
 
 ### 5. Register it (workflow step 3)
