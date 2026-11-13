@@ -28,6 +28,10 @@ TEMPLATE = next(
     ),
     HERE.parent / "assets" / "template",
 )
+# The rule for waiving the stop scene lives in the skill's scripts, shared with status.py.
+sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
+from stop_waiver import stop_waiver  # noqa: E402
+
 GEN = "docs/" + "generated"
 SKIP = {
     ".lake",
@@ -140,18 +144,18 @@ add(
     f"verify in gate: {exhaustive}",
 )
 
-# 5. a stop scene is modelled and something is shown to break, or the README records
-#    why nothing is in flight across a stop (<!-- stop-scene: none; <reason> -->)
+# 5. a stop scene is modelled and something is shown to break, or the README waives it with
+#    <!-- stop-scene: none; <reason> --> and a role table that maps every in-flight role to none
 models = text_of(qnt)
 readme_text = (
     (out / "README.md").read_text(errors="replace")
     if (out / "README.md").is_file()
     else ""
 )
-no_stop_reason = re.search(r"<!--\s*stop-scene:\s*none;\s*(\S[^>]{9,}?)\s*-->", readme_text)
+waived, waiver_note = stop_waiver(readme_text)
 add(
     "A stop scene is modelled in Quint and the gate expects at least one property to be violated, or the README records why nothing is in flight across a stop",
-    bool(no_stop_reason)
+    waived
     or bool(re.search(r"emergency|halt|stop|freeze|緊急|停止", models, re.IGNORECASE))
     and bool(
         re.search(
@@ -160,9 +164,7 @@ add(
             re.IGNORECASE,
         )
     ),
-    "README records no stop scene, with a reason"
-    if no_stop_reason
-    else "searched models, gate and documents",
+    waiver_note if waived else f"searched models, gate and documents ({waiver_note})",
 )
 
 # 6. open questions for the business
