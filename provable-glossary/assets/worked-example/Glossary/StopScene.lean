@@ -116,7 +116,7 @@ def term (id : String) (role : Option Role := none) : TermRow :=
 
 def claim (about : List String) (verdict : Verdict) (quint : Bool) : ClaimRow :=
   { verdict, statement := "", about := "", aboutIds := about, evidence := "", quint,
-    witnessed := false, basisOk := true }
+    witnessed := false, basisOk := true, industry := none }
 
 def book (title : String) (terms : List TermRow) (claims : List ClaimRow) (scene : StopScene) :
     BookView :=

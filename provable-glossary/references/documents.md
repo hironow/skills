@@ -27,7 +27,7 @@ The examples are `README.md` and `docs/` under `assets/worked-example/`.
 
 1. Conclusions (five at most).
 2. How it was researched and how reliable it is. Which points you verified yourself.
-3. The table: number, question, the industry's answer, class.
+3. The classes are in `docs/generated/questions.md`, generated from the glossary; link it, do not copy the table. Here, give for each question the evidence behind its class: what the operators do, and the sources.
 4. One section per class: what the answered questions teach, the questions not asked, the gaps.
 5. The gap formal methods cannot close.
 6. The table of business decisions: decision, customer value, role of formal methods.

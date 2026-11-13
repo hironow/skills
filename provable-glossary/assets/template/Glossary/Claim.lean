@@ -37,6 +37,22 @@ inductive Evidence where
   organisational decision, a state nothing in the code reaches). -/
   | questionOutsideModel (reason : String)
 
+/-- How the industry handles a question (workflow step 6). Each kind but `notResearched` carries a
+note on what was found; the sources go in the authored comparison document. -/
+inductive Industry where
+  /-- The industry has a settled answer. -/
+  | answered (note : String)
+  /-- The industry does not face this question at all. -/
+  | notAsked (note : String)
+  /-- No settled answer, and customers are affected: a candidate for a policy draft. -/
+  | gap (note : String)
+  /-- Not looked at yet. -/
+  | notResearched
+
+def Industry.researched : Industry → Bool
+  | .notResearched => false
+  | _ => true
+
 inductive Verdict where
   | proved | counterexample | undecided
   deriving DecidableEq, Repr
@@ -46,6 +62,8 @@ structure Claim (ι : Type) where
   statement : String
   verdict : Verdict
   evidence : Evidence
+  /-- For a question: how the industry handles it. Leave it out until the comparison (Tier 2). -/
+  industry : Option Industry := none
 
 def Evidence.verdict : Evidence → Verdict
   | .lean .. => .proved
@@ -84,6 +102,11 @@ variable {ι κ : Type} [DecidableEq ι]
 
 /-- A reason worth reading: at least ten characters that are not spaces. -/
 def meaningful (s : String) : Bool := (s.toList.filter (fun c => !c.isWhitespace)).length ≥ 10
+
+/-- A classification states what was found, unless it says the question was not researched. -/
+def Industry.noteOk : Industry → Bool
+  | .answered note | .notAsked note | .gap note => meaningful note
+  | .notResearched => true
 
 /-- Every question says what it rests on: counterexamples that show the gap, or a reason why no
 model can show it. -/

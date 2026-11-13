@@ -39,11 +39,14 @@ When you search inline, keep it bounded, because pages are long and fill your wo
 
 ## Classifying the questions
 
-| Class | Meaning | Next |
-|---|---|---|
-| Answered | The industry has a settled answer | If the model contradicts reality, fix the glossary and the model |
-| Not asked | The industry does not do this | Do not dig further. Note which neighbouring industry has the same structure |
-| Gap | No settled answer, customers affected | Candidate for the policy draft in step 7 |
+| Class | In the glossary | Meaning | Next |
+|---|---|---|---|
+| Answered | `industry := some (.answered "<what was found>")` | The industry has a settled answer | If the model contradicts reality, fix the glossary and the model |
+| Not asked | `industry := some (.notAsked "<what was found>")` | The industry does not do this | Do not dig further. Note which neighbouring industry has the same structure |
+| Gap | `industry := some (.gap "<what was found>")` | No settled answer, customers affected | Candidate for the policy draft in step 7 |
+| Not researched | `industry := some .notResearched` | Not looked at | Say so; do not guess a class |
+
+Record the class on the question itself, in the glossary. The note says in one sentence what was found; keep operator names and URLs for `docs/business-gaps.md`, where the sources are. `just check` (question-check) refuses a note under ten characters and a classification on a claim that is not a question. `docs/generated/questions.md` shows each question's class and counts them; Tier 2 is reached when every question is classified and at least half were researched.
 
 An answered question may stay undecided in the glossary: what this particular business does is still the business's decision. Withdraw a question only when the question itself did not match reality (in the example, "can an unpaid order be shipped?" – shipping on authorization is standard practice).
 

@@ -31,7 +31,12 @@ TEMPLATE = next(
 # The stop scene and the roles are read from the gate-verified docs/generated/roles.md, by the
 # same code status.py uses. Nothing is judged by whether a word appears in a file.
 sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
-from generated_lines import question_counts, roles_tagged, stop_scene  # noqa: E402
+from generated_lines import (  # noqa: E402
+    industry_complete,
+    question_counts,
+    roles_tagged,
+    stop_scene,
+)
 
 GEN = "docs/" + "generated"
 SKIP = {
@@ -187,15 +192,13 @@ add(
     f"{len(urls)} URLs in authored documents",
 )
 
-# 9. questions classified against industry practice
+# 9. questions classified against industry practice: every question carries its classification in
+#    the glossary, at least half were researched, and the gate passes (question-check).
+industry_ok, industry_note = industry_complete(questions_md)
 add(
-    "Each open question is classified against industry practice (answered / not asked here / gap, or equivalent)",
-    bool(
-        re.search(r"\|[^\n]*分類[^\n]*\|", docs)
-        or re.search(r"答えあり|問われない|解決済み|決着済み", docs)
-    )
-    and "空白" in docs,
-    "searched authored documents",
+    "Each open question is classified against industry practice in the glossary, at least half researched (docs/generated/questions.md, and the gate exits 0)",
+    industry_ok and rc == 0,
+    f"{industry_note}; gate exit {rc}",
 )
 
 # 10. generated documents are separate and regenerable
