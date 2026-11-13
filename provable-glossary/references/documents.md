@@ -10,7 +10,7 @@ The examples are `README.md` and `docs/` under `assets/worked-example/`.
 2. The role table: link `docs/generated/roles.md` (generated from the roles tagged on terms) and say in words what it cannot: a role that exists only in another form, or a mapping that needs a note. Do not copy the table.
 3. What was learned (five points at most).
 4. Reading order.
-5. Usage: `just setup`, `just check`, `just generate`.
+5. Usage: `just setup`, `just check`, `just generate` (in the subdir layout: `just glossary setup`, `just glossary check`, `just glossary generate`).
 6. What is written and what is generated, and the three mechanisms that protect the generated documents.
 7. Layout: glossaries and proofs, models, experiment records.
 8. Limits.

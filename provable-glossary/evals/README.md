@@ -4,6 +4,8 @@
 `python3 -I evals/grade.py <run-dir>`, where `<run-dir>` holds the run's `outputs/`. It also runs from a copy in a
 workspace folder beside the skill (`<skills>/provable-glossary-workspace/grade.py`), and finds the template either way.
 
+The grader's numbers are expectations for the prompts in `evals.json`, not rules of the skill: at least 8 questions, at least 5 source URLs, at least one question backed by a counterexample, at least 3 roles tagged. `scripts/status.py` keeps lower floors that every project can meet (a small domain, or one where nothing is in flight); raising them to the grader's numbers would invite padding, since a question or a role tag costs one line.
+
 Two kinds of fixture:
 
 - `../assets/example-roomdesk/` is the small existing service (with a hand-written `docs/GLOSSARY.md`) that the playbooks quote. For a from-code run, copy it without `docs/`. A run on it shows whether the

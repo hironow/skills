@@ -196,18 +196,25 @@ def test_status_reads_the_stop_scene_only_from_the_verified_declaration(
     tmp_path: Path, case: str
 ) -> None:
     roles, accepted = STOP_CASES[case]
-    lines = status_lines(tmp_path, roles, topic="stop scene")
+    lines = status_lines(tmp_path, roles, topic="stop scene is declared")
     assert all(("[done]" in line) is accepted for line in lines), lines
 
 
 @pytest.mark.parametrize(("tagged", "accepted"), [(2, False), (3, True)])
-def test_role_mapping_is_read_from_the_tags_on_terms(
+def test_grader_expects_three_roles_for_its_prompts(
     tmp_path: Path, tagged: int, accepted: bool
 ) -> None:
     roles = roles_doc("<!-- stop-scene: ok; modelled -->", tagged=tagged)
-    item = graded(tmp_path / "grade", roles, gate_passes=True, topic="tagged")
+    item = graded(tmp_path, roles, gate_passes=True, topic="tagged")
     assert item["passed"] is accepted, item
-    lines = status_lines(tmp_path / "status", roles, topic="tagged")
+
+
+@pytest.mark.parametrize(("tagged", "accepted"), [(0, False), (1, True)])
+def test_status_reads_the_role_tags_with_a_floor_of_one(
+    tmp_path: Path, tagged: int, accepted: bool
+) -> None:
+    roles = roles_doc("<!-- stop-scene: ok; modelled -->", tagged=tagged)
+    lines = status_lines(tmp_path, roles, topic="tagged")
     assert all(("[done]" in line) is accepted for line in lines), lines
 
 
@@ -322,37 +329,6 @@ def test_grader_reads_questions_only_from_the_verified_counts(
 def test_grader_requires_the_gate_for_the_question_basis(tmp_path: Path) -> None:
     expectations = graded_questions(tmp_path, questions_doc(9, 4), gate_passes=False)
     assert not item(expectations, "backed by a counterexample")["passed"]
-
-
-@pytest.mark.parametrize("case", sorted(QUESTION_CASES))
-def test_status_reads_questions_only_from_the_verified_counts(
-    tmp_path: Path, case: str
-) -> None:
-    questions, _, witnessed = QUESTION_CASES[case]
-    project = tmp_path / "project"
-    shutil.copytree(TEMPLATE, project)
-    write_outputs(
-        project, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes=False
-    )
-    (project / "docs" / "questions.md").write_text(WORDY_QUESTIONS, encoding="utf-8")
-    if questions is not None:
-        (project / "docs" / "generated" / "questions.md").write_text(
-            questions, encoding="utf-8"
-        )
-    result = subprocess.run(
-        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
-        capture_output=True,
-        text=True,
-        timeout=120,
-        check=True,
-    )
-    lines = [
-        line
-        for line in result.stdout.splitlines()
-        if "backed by a counterexample" in line
-    ]
-    assert lines, result.stdout
-    assert all(("[done]" in line) is witnessed for line in lines), lines
 
 
 # Each question carries its industry classification in the glossary; `just generate` counts them
@@ -558,7 +534,7 @@ def test_status_reads_the_control_declaration(
     tmp_path: Path, control: str, accepted: bool
 ) -> None:
     output = status_output(tmp_path, summary_doc("Rooms", control=control))
-    assert status_item(output, "control experiment") is accepted
+    assert status_item(output, "control experiment is declared") is accepted
 
 
 def test_status_finds_the_domain_glossary_by_the_summary_titles(tmp_path: Path) -> None:
@@ -743,3 +719,126 @@ def test_status_reports_edited_shared_machinery(
         check=True,
     )
     assert status_item(result.stdout, "shared machinery") is accepted
+
+
+# --- Review fixes, second part: tiers, thresholds, documents ---------------------------------
+
+
+def status_on(tmp_path: Path, roles: str, summary: str) -> str:
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    (project / "Glossary" / "Starter.lean").unlink()
+    (project / "docs" / "generated").mkdir(parents=True, exist_ok=True)
+    (project / "docs" / "generated" / "roles.md").write_text(roles, encoding="utf-8")
+    (project / "docs" / "generated" / "summary.md").write_text(
+        summary, encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    return result.stdout
+
+
+def summary_with_totals(
+    proved: int,
+    counter: int,
+    control: str = "<!-- control: skipped; Tier 3 was not reached -->",
+) -> str:
+    return summary_doc("Rooms", control=control) + (
+        f"\n| Glossary | Terms | Claims | Proved | Counterexample | Undecided |\n|---|---|---|---|---|---|\n"
+        f"| Total | 9 | {proved + counter + 3} | {proved} | {counter} | 3 |\n"
+    )
+
+
+def test_status_does_not_ask_a_waived_domain_for_a_counterexample(
+    tmp_path: Path,
+) -> None:
+    waived = roles_doc(
+        "<!-- stop-scene: ok; waived; the site only reads a nightly import -->"
+    )
+    output = status_on(tmp_path, waived, summary_with_totals(proved=2, counter=0))
+    assert status_item(output, "claims with evidence")
+
+
+def test_status_asks_a_modelled_domain_for_a_counterexample(tmp_path: Path) -> None:
+    modelled = roles_doc("<!-- stop-scene: ok; modelled -->")
+    output = status_on(tmp_path, modelled, summary_with_totals(proved=2, counter=0))
+    assert not status_item(output, "claims with evidence")
+
+
+def test_status_does_not_require_a_counterexample_backed_question(
+    tmp_path: Path,
+) -> None:
+    output = status_on(
+        tmp_path,
+        roles_doc("<!-- stop-scene: ok; modelled -->"),
+        summary_with_totals(2, 1),
+    )
+    assert "backed by a counterexample" not in output
+
+
+@pytest.mark.parametrize(
+    ("control", "declared"),
+    [
+        ("<!-- control: skipped; Tier 3 was not reached -->", True),
+        ("<!-- control: undeclared -->", False),
+    ],
+)
+def test_status_asks_for_the_control_declaration_in_tier_1(
+    tmp_path: Path, control: str, declared: bool
+) -> None:
+    output = status_on(
+        tmp_path,
+        roles_doc("<!-- stop-scene: ok; modelled -->"),
+        summary_with_totals(2, 1, control),
+    )
+    lines = [
+        line
+        for line in output.splitlines()
+        if "control experiment is declared" in line
+        and ("[done]" in line or "[todo]" in line)
+    ]
+    assert lines
+    tier_1 = output.split("Tier 2", 1)[0]
+    assert all(line in tier_1 for line in lines)
+    assert all(("[done]" in line) is declared for line in lines)
+
+
+def test_status_states_each_threshold(tmp_path: Path) -> None:
+    output = status_on(
+        tmp_path,
+        roles_doc("<!-- stop-scene: ok; modelled -->"),
+        summary_with_totals(2, 1),
+    )
+    for phrase in (
+        "at least 8 terms",
+        "at least 3 open questions",
+        "at least 1",
+        "more than 500 characters",
+        "at least 3 source URLs",
+    ):
+        assert phrase in output, phrase
+    assert "workflow step 6" in output
+
+
+def test_skill_defines_tier_1_once_and_splits_done_when_by_tier() -> None:
+    skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+    done = skill.split("## Done when", 1)[1].split("\n## ", 1)[0]
+    assert "Tier 1:" in done
+    assert "Tier 2, in addition:" in done
+    assert "Tier 3, in addition:" in done
+    assert "one pattern per role" not in skill
+    assert '.inBook "Starter"' in skill
+    assert "Python 3, git" in skill
+    patterns = (SKILL / "references" / "patterns.md").read_text(encoding="utf-8")
+    assert "| Role tagged in the glossary | Patterns |" in patterns
+    runbook = (SKILL / "references" / "runbook.md").read_text(encoding="utf-8")
+    assert "optional in Tier 1" in runbook
+    assert "three rules" not in runbook
+    assert "Tier 2 was not reached" in runbook
+    starter = (TEMPLATE / "Glossary" / "Starter.lean").read_text(encoding="utf-8")
+    assert "Glossary/Registry.lean" in starter.split("-/", 1)[0]

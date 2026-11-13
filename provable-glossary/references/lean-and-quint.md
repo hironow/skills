@@ -69,7 +69,7 @@ theorem book_check : book.check = true := by decide
 | `.lean name prop proof` | proved | The file does not compile without the proof |
 | `.leanRefutes name prop proof` | counterexample | Same, for a proof of `¬ prop` |
 | `.holds ref` | proved | TLC explores every reachable state of `ref.main` and the invariant must hold |
-| `.violated ref` | counterexample | The Quint simulator must find a violation without a script |
+| `.violated ref` | counterexample | The Quint simulator must find a violation without a script; if it finds none, TLC searches every state |
 | `.question refs` | undecided | `refs` is not empty, and each witness must be violated (it shows the gap is reachable) |
 | `.questionOutsideModel reason` | undecided | The reason has at least ten characters (question-check). Nothing is run |
 

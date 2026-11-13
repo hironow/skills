@@ -32,6 +32,8 @@ J check
 
 You should see, at the end of `J check`, lines beginning with `ok` and no line beginning with `FAIL` or `error`. The first `J check` can take a few minutes on a machine that has not built Lean or downloaded the model checker before; afterwards it takes well under a minute.
 
+Keep the pinned versions of Lean and Quint (`lean-toolchain`, `quint-version`) unless the user asked for newer ones; the pitfalls in the references were checked on them.
+
 Now set the language of the generated documents, before you forget: in `Glossary/Registry.lean`, change the one line `def labels : Labels := Labels.en` to the user's language (`Labels.ja` for Japanese), then run `J generate`.
 
 If it fails here, the tools are missing or too old. Check `elan --version`, `bun --version`, `java -version`, `just --version` (1.39 or newer), `rg --version`. Fix the tool; do not edit the `justfile`.
@@ -82,7 +84,7 @@ def claims : List (Claim Term) := [
     evidence := .lean "Glossary.Rooms.terms_wellFormed" (WellFormed terms) terms_wellFormed }
 ]
 
--- Until step 6 models the stop scene, the starter's model covers it. Step 6 replaces this line.
+-- Until this book models its stop scene, the starter's model covers it. Replace this line then.
 def book : Book Term Ctx := { title := "会議室の予約", terms, claims, stopScene := .inBook "Starter" }
 
 theorem book_check : book.check = true := by decide
@@ -112,7 +114,7 @@ J generate
 J check
 ```
 
-You should see your terms in `docs/generated/glossary.md` and your role table in `docs/generated/roles.md`, and `stop-check: ... the declarations hold`. If the build says `check ... = true` could not be decided, the list breaks one of the three rules above: read the message, it names the theorem.
+You should see your terms in `docs/generated/glossary.md` and your role table in `docs/generated/roles.md`, and `stop-check: ... the declarations hold`. If the build says `check ... = true` could not be decided, the list breaks one of the rules above: read the message, it names the theorem.
 
 ### 6. Model the stop scene (workflow step 4)
 
@@ -151,9 +153,9 @@ You should see `stop-check: ... the declarations hold`, then `ok  violated  naiv
 
 Delete `Glossary/Starter.lean` and `Spec/starter.qnt`. Remove their lines from `Glossary.lean`, `Glossary/Registry.lean`, `Audit.lean` and `Spec/tests.txt`. Run `J generate` and `J check`.
 
-### 8. Go deeper where the role table says so (workflow step 4)
+### 8. Go deeper where the role table says so (workflow step 4; optional in Tier 1)
 
-For each role that `docs/generated/roles.md` does not show as none, read its pattern in `references/patterns.md` and add the model and the claims. Do them in this order and run `J check` after each: pattern 3 (gaps in the rules), pattern 5 (stages of the confirmation), pattern 7 (who resolves a cancelled entitlement), pattern 8 (deadline), pattern 9 (who decides). Skip pattern 6 unless the industry actually reallocates.
+Tier 1 is done when `status.py` shows every Tier 1 item done; this step is depth, for when that is reached and time remains. For each role that `docs/generated/roles.md` does not show as none, read its pattern in `references/patterns.md` (the table at its top maps roles to patterns) and add the model and the claims. Do them in this order and run `J check` after each: pattern 3 (gaps in the rules), pattern 5 (stages of the confirmation), pattern 7 (who resolves a cancelled entitlement), pattern 8 (deadline), pattern 9 (who decides). Skip pattern 6 unless the industry actually reallocates.
 
 After each pattern, ask of every point the design could not settle: who in the business decides this? Add it as an `.undecided` claim: `.question [...]` with the counterexample that shows the gap, or `.questionOutsideModel "<reason>"` when no model can show it. A question with neither fails question-check.
 
@@ -167,13 +169,15 @@ python3 <skill>/scripts/check_protection.py <repo-dir>
 python3 <skill>/scripts/status.py <repo-dir>
 ```
 
+If you stop at Tier 1, set `def control : Control := .skipped "<reason>"` in `Glossary/Registry.lean` (the reason: Tier 3 was not reached) and run `J generate`.
+
 You should see `J check` end without `FAIL`, every line of `check_protection.py` beginning with `ok`, and every Tier 1 line of `status.py` marked `[done]`.
 
 ## Tier 2: expected
 
 ### 10. Compare the questions with industry practice (workflow steps 2 and 6)
 
-Read `references/industry-check.md`. Search for how real operators answer each question in `docs/generated/questions.md`, open the primary source for anything a conclusion rests on, record each question's class in the glossary (`industry := some (...)`), run `J generate` and `J check`, and write `docs/business-gaps.md` with the sources. If you cannot search the web, say so in the README, mark the questions `industry := some .notResearched`, and leave this step out; do not write industry facts from memory.
+Read `references/industry-check.md`. Search for how real operators answer each question in `docs/generated/questions.md`, open the primary source for anything a conclusion rests on, record each question's class in the glossary (`industry := some (...)`), run `J generate` and `J check`, and write `docs/business-gaps.md` with the sources. If you cannot search the web, mark the questions `industry := some .notResearched` and say in the README that Tier 2 was not reached because the web could not be searched; do not write industry facts from memory.
 
 ## Tier 3: optional
 
@@ -197,7 +201,7 @@ Pattern 11 in `references/patterns.md`.
 | `Address already in use` | Another model check is running. Run again |
 | `omega could not prove the goal` with a type alias for numbers | Use `Nat` directly |
 | A scripted test passes sometimes and fails sometimes | It passes through a random choice. Give the action a parameter |
-| A shell call is refused with "a hook changed this call's input" and shows a rewritten command | Send exactly that rewritten command as the next call, alone. See "Shell" in `references/lean-and-quint.md` |
+| A shell call is refused with "a hook changed this call's input", and the refusal asks you to send the rewritten command | Send exactly that rewritten command as the next call, alone, and only when the refusal asks for it. Any other refusal is not retried another way. See "Shell" in `references/lean-and-quint.md` |
 | The Write tool refuses a file such as `docs/findings.md` as a report | Do not work around the refusal (no shell redirection, no other tool). Put the full text in your final reply, say that the file was refused, and leave it to whoever started you to save it. `status.py` keeps listing that item and every other open one, so carry on with the rest |
 | You cannot run shell commands at all | Do not write the deliverable from imagination. Report which command you could not run and stop |
 | You are tempted to weaken a property, delete a failing claim, or edit the `justfile` to get a green gate | Stop. A failing check is information. Record what it shows |

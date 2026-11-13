@@ -6,9 +6,12 @@ Looks only at files (and, with --run-check, runs the gate). It prints one line p
 done or todo, grouped in three tiers, and ends with the next action. Run it whenever you are
 unsure what remains. The tiers:
 
-  Tier 1  required  a checked glossary, the stop scene (or a recorded reason there is none), questions, README and findings
+  Tier 1  required  a checked glossary, the stop scene declared and verified, questions, README and findings,
+                    and the control declared (.skipped "<reason>" unless one was run)
   Tier 2  expected  the comparison with industry practice
-  Tier 3  optional  a control experiment and a policy draft (say so in the documents if skipped)
+  Tier 3  optional  a control experiment (control := .run) and a policy draft
+
+Each line states its own threshold. Hints name the step of SKILL.md's workflow ("workflow step N").
 """
 import pathlib
 import re
@@ -21,7 +24,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
 from shared_files import shared_changes  # noqa: E402
-from generated_lines import book_titles, control, industry_complete, question_counts, roles_tagged, stop_scene
+from generated_lines import book_titles, control, stop_waived_everywhere, industry_complete, roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -65,31 +68,29 @@ def main() -> int:
     total = re.findall(r"\|\s*(?:合計|Total)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|", summary)
     terms, claims, proved, counter, undecided = (int(x) for x in total[0]) if total else (0, 0, 0, 0, 0)
     item(1, terms >= 8 and domain_registered, f"at least 8 terms ({terms} now)", "add the terms the scenes need")
-    item(1, proved >= 1 and counter >= 1, f"claims with evidence: {proved} proved, {counter} counterexample",
+    roles_md = read(project / "docs" / "generated" / "roles.md")
+    waived = stop_waived_everywhere(roles_md)
+    item(1, proved >= 1 and (counter >= 1 or waived),
+         f"claims with evidence: at least 1 proved and, unless the stop scene is waived, 1 counterexample "
+         f"({proved} proved, {counter} counterexample now)",
          "follow pattern 4 in references/patterns.md: naive design, counterexample, repair")
     item(1, undecided >= 3, f"at least 3 open questions recorded as undecided claims ({undecided} now)",
          "turn what the design cannot settle into `.question` claims")
 
-    counts = question_counts(read(project / "docs" / "generated" / "questions.md"))
-    total_q, witnessed_q = counts if counts else (0, 0)
-    item(1, witnessed_q >= 1, f"questions rest on evidence: {witnessed_q} of {total_q} backed by a counterexample",
-         "give each question the counterexamples that show the gap (.question [...]), or say why no model can "
-         "(.questionOutsideModel \"<reason>\"); question-check verifies it. Then `just generate`")
-    roles_md = read(project / "docs" / "generated" / "roles.md")
     stop_ok, stop_note = stop_scene(roles_md)
     item(1, stop_ok, "the stop scene is declared in the glossary and verified (docs/generated/roles.md)",
          "declare stopScene in the book (.modelled after pattern 4, or .waived \"<reason>\" if nothing is in flight), "
-         "then `just generate`. Now: " + stop_note)
+         f"then `{prefix}generate`. Now: " + stop_note)
     tagged = roles_tagged(roles_md)
-    item(1, tagged >= 3, f"terms are tagged with the shared roles ({tagged} roles tagged now)",
-         "add role := some .<role> to the terms that play one; see SKILL.md, \"Map the domain onto shared roles\"")
+    item(1, tagged >= 1, f"terms are tagged with the shared roles: at least 1, and every term that plays one ({tagged} roles tagged now)",
+         "add role := some .<role> to the terms that play one; do not invent a term for a role. See SKILL.md, \"Map the domain onto shared roles\"")
 
     # In the root layout the repository is the glossary project itself, so there is no separate implementation.
     has_code = project != repo and sum(1 for p in walk_files(repo) if p.suffix in CODE_SUFFIXES) >= 3
     anchors = read(project / "docs" / "generated" / "anchors.md")
     anchor_rows = len([l for l in anchors.splitlines() if l.startswith("| ") and "`" in l])
     if has_code:
-        item(1, anchor_rows >= 5, f"terms are anchored to the implementation ({anchor_rows} anchors now)",
+        item(1, anchor_rows >= 5, f"terms are anchored to the implementation: at least 5 anchors ({anchor_rows} now)",
              "give each term that exists in the code an `anchors := [\"path#text\"]` entry; see references/start-from-code.md")
     legacy = project / "migration" / "legacy.tsv"
     if legacy.is_file():
@@ -104,7 +105,7 @@ def main() -> int:
              "fill in migration/mapping.tsv; see references/start-migrate.md")
 
     findings = read(project / "docs" / "findings.md")
-    item(1, len(findings) > 500, "docs/findings.md is written (a reader checks that it states the limits and the model sizes)",
+    item(1, len(findings) > 500, f"docs/findings.md is written: more than 500 characters ({len(findings)} now; a reader checks the limits and model sizes)",
          "see references/documents.md")
 
     gaps = read(project / "docs" / "business-gaps.md")
@@ -112,16 +113,19 @@ def main() -> int:
     item(2, industry_ok, f"every question is classified against industry practice in the glossary ({industry_note})",
          "give each question industry := some (.answered/.notAsked/.gap \"<what was found>\") or some .notResearched; "
          "research at least half. See references/industry-check.md")
-    item(2, len(set(URL.findall(gaps))) >= 3, f"docs/business-gaps.md compares the questions with industry practice "
-         f"({len(set(URL.findall(gaps)))} source URLs now)", "step 6; see references/industry-check.md")
+    item(2, len(set(URL.findall(gaps))) >= 3, f"docs/business-gaps.md compares the questions with industry practice: "
+         f"at least 3 source URLs ({len(set(URL.findall(gaps)))} now)", "workflow step 6; see references/industry-check.md")
 
     declared = control(read(project / "docs" / "generated" / "summary.md"))
-    item(3, declared is not None and declared[0] in ("run", "skipped"),
-         f"the control experiment is declared ({declared[0] if declared else 'no declaration'}; `just check` verifies it)",
-         "step 5: set control := .run once an experiments/<name>/ has protocol.md committed before result.md, "
-         "or .skipped \"<reason>\" in Glossary/Registry.lean")
+    item(1, declared is not None and declared[0] in ("run", "skipped"),
+         f"the control experiment is declared ({declared[0] if declared else 'no declaration'}; `{prefix}check` verifies it)",
+         "set control := .skipped \"<reason>\" in Glossary/Registry.lean if you stop before Tier 3 (workflow step 5), "
+         f"then `{prefix}generate`")
     policy = list((project / "docs").glob("*policy*.md"))
-    item(3, policy, "a policy draft for a gap exists beside its check results", "step 7; pattern 11")
+    item(3, declared is not None and declared[0] == "run",
+         "a control experiment ran: control := .run, and control-check finds a protocol committed before its result",
+         "workflow step 5; see references/experiments.md")
+    item(3, policy, "a policy draft for a gap exists beside its check results", "workflow step 7; pattern 11")
 
     if "--run-check" in sys.argv:
         done = just(project, "check")

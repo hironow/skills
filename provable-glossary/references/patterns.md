@@ -16,6 +16,21 @@ Use only the patterns whose roles exist in the domain. Each entry gives the ques
 10. Timed guarantee
 11. Stop policy
 
+Which patterns a role leads to. Patterns 1-3 apply to every glossary; 9-11 follow from what the first ones found.
+
+| Role tagged in the glossary | Patterns |
+|---|---|
+| Stop, with any of Resource, Hold, External confirmation, Entitlement, Deadline | 4 (Tier 1) |
+| Planned stop | 4 (its last property) |
+| External confirmation with intermediate stages (a reserved amount, a provisional notice) | 5 |
+| Supply cancellation, Reallocation | 6, then 7 |
+| Deadline, Fallback channel | 8 |
+| The system chooses between parties on its own | 9 |
+| Holds and deadlines with durations that matter | 10 |
+| A gap the industry leaves open (Tier 3) | 11 |
+
+Tier 1 needs pattern 4 only (or a waiver when nothing is in flight). The rest is depth: do them after Tier 1 is done.
+
 Keep models small. Start with one resource and two parties. Add more only after counterexamples stop appearing, and confirm once that a larger size does not change the conclusion.
 
 ---
@@ -47,6 +62,7 @@ Keep models small. Start with one resource and two parties. Add more only after 
 The central pattern. Write it whenever anything is in flight when the system stops, whatever stops it: an emergency stop the system takes on its own, a person, or a dependency that fails. Then declare `stopScene := .modelled` on the book; `just check` verifies that a term has `role := some .stop` and that the claims about it include a counterexample, a proved result and a Quint check. If no term carries the role `externalConfirmation`, `hold`, `entitlement` or `deadline`, nothing is in flight: do not invent the scene, declare `stopScene := .waived "<reason>"` (see SKILL.md).
 
 - **Question**: When the system stops accepting work, what happens to transactions that hold a resource, wait for an external confirmation, or wait for issuance?
+- **What counts as an external confirmation**: anything that completes outside the system and cannot be stopped by it: a payment result, a parcel delivered, another library's shipment arriving, another organisation's approval, an accounting system's completion notice. The pattern is the same whatever the domain calls it.
 - **Properties**:
   - Exclusivity: at most one party is entitled to a resource. In a domain with no scarce resource, use at most one execution of each external effect instead: a request resent after recovery must not pay, ship or notify twice. Give each request an identity the outside party can recognise, and reconcile with it after the stop rather than resending blindly.
   - Preservation: a transaction whose external confirmation succeeded is always tracked in a state that leads to issuance or to a refund.
