@@ -45,7 +45,7 @@ def bookStopProblems (books : List BookView) (b : BookView) : List String :=
       ++ need (backing.any (·.verdict == .proved)) "is proved (a design that holds)"
       ++ need (backing.any (·.quint)) "has Quint evidence (the scene is not modelled)"
   | .waived reason =>
-    let short := if (reason.toList.filter (!·.isWhitespace)).length < 10 then
+    let short := if !meaningful reason then
       [s!"{b.title}: stopScene is .waived without a reason of at least ten characters"] else []
     let inFlight := b.terms.filter fun t => inFlightRoles.any (hasRole · t)
     short ++ inFlight.map fun t =>
@@ -115,7 +115,8 @@ def term (id : String) (role : Option Role := none) : TermRow :=
   { label := id, id, context := "", gloss := "", defDeps := "", assoc := "", anchors := [], role }
 
 def claim (about : List String) (verdict : Verdict) (quint : Bool) : ClaimRow :=
-  { verdict, statement := "", about := "", aboutIds := about, evidence := "", quint }
+  { verdict, statement := "", about := "", aboutIds := about, evidence := "", quint,
+    witnessed := false, basisOk := true }
 
 def book (title : String) (terms : List TermRow) (claims : List ClaimRow) (scene : StopScene) :
     BookView :=

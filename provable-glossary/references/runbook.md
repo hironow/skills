@@ -94,7 +94,7 @@ Rules that the build enforces, so you will see an error if you break them:
 
 - Every name after `id :=`, in `defDeps` and in `about` is one of the cases of `Term`.
 - A term appears in the list after every term in its `defDeps`.
-- `verdict` matches `evidence`: `.lean` and `.holds` are `.proved`; `.leanRefutes` and `.violated` are `.counterexample`; `.question` is `.undecided`.
+- `verdict` matches `evidence`: `.lean` and `.holds` are `.proved`; `.leanRefutes` and `.violated` are `.counterexample`; `.question` and `.questionOutsideModel` are `.undecided`.
 - `role` is one of the cases of `Role` in `Glossary/Core.lean`; leave it out for a term that plays no shared role.
 - Indentation matters inside `{ ... }`: every line of an entry or a claim is indented further than its opening brace. A line that starts at the brace's column gives "unexpected identifier; expected '}'".
 
@@ -154,7 +154,7 @@ Delete `Glossary/Starter.lean` and `Spec/starter.qnt`. Remove their lines from `
 
 For each role that `docs/generated/roles.md` does not show as none, read its pattern in `references/patterns.md` and add the model and the claims. Do them in this order and run `J check` after each: pattern 3 (gaps in the rules), pattern 5 (stages of the confirmation), pattern 7 (who resolves a cancelled entitlement), pattern 8 (deadline), pattern 9 (who decides). Skip pattern 6 unless the industry actually reallocates.
 
-After each pattern, ask of every point the design could not settle: who in the business decides this? Add it as an `.undecided` claim with a `.question`.
+After each pattern, ask of every point the design could not settle: who in the business decides this? Add it as an `.undecided` claim: `.question [...]` with the counterexample that shows the gap, or `.questionOutsideModel "<reason>"` when no model can show it. A question with neither fails question-check.
 
 ### 9. Write README and findings (workflow step 8)
 

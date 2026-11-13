@@ -30,8 +30,12 @@ inductive Evidence where
   | holds (ref : QuintRef)
   /-- The Quint simulator finds a counterexample. -/
   | violated (ref : QuintRef)
-  /-- A question for the business to decide, with counterexamples that show the gap if any. -/
+  /-- A question for the business to decide, with the counterexamples that show the gap.
+  The list must not be empty: a question no model can show uses `questionOutsideModel`. -/
   | question (witnesses : List QuintRef)
+  /-- A question for the business that no model shows, with the reason (a legal deadline, an
+  organisational decision, a state nothing in the code reaches). -/
+  | questionOutsideModel (reason : String)
 
 inductive Verdict where
   | proved | counterexample | undecided
@@ -49,6 +53,7 @@ def Evidence.verdict : Evidence → Verdict
   | .leanRefutes .. => .counterexample
   | .violated .. => .counterexample
   | .question .. => .undecided
+  | .questionOutsideModel .. => .undecided
 
 def Evidence.isQuint : Evidence → Bool
   | .holds .. | .violated .. => true
@@ -77,11 +82,40 @@ structure Book (ι κ : Type) where
 
 variable {ι κ : Type} [DecidableEq ι]
 
-/-- Claims mention only terms in the glossary, and each verdict matches its kind of evidence. -/
+/-- A reason worth reading: at least ten characters that are not spaces. -/
+def meaningful (s : String) : Bool := (s.toList.filter (fun c => !c.isWhitespace)).length ≥ 10
+
+/-- Every question says what it rests on: counterexamples that show the gap, or a reason why no
+model can show it. -/
+def Evidence.basisOk : Evidence → Bool
+  | .question ws => !ws.isEmpty
+  | .questionOutsideModel reason => meaningful reason
+  | _ => true
+
+/-- Claims mention only terms in the glossary, and each verdict matches its kind of evidence.
+Whether every question states its basis (`Evidence.basisOk`) is checked by `just check`
+(question-check, `Glossary/Questions.lean`), which can name the question. -/
 def Book.claimsCheck (b : Book ι κ) : Bool :=
   b.claims.all fun c =>
     c.about.all (fun t => decide (t ∈ ids b.terms)) && decide (c.evidence.verdict = c.verdict)
 
 def Book.check (b : Book ι κ) : Bool := Glossary.check b.terms && b.claimsCheck
+
+/-! ## Tests. They run on every `lake build`; a false one fails the build. -/
+
+namespace ClaimTest
+
+def ref : QuintRef := { file := "Spec/a.qnt", main := "m", invariant := "p" }
+
+-- A question backed by a counterexample.
+#guard (Evidence.question [ref]).basisOk
+-- A question outside every model, with the reason.
+#guard (Evidence.questionOutsideModel "the legal deadline is in no model").basisOk
+-- A question with neither a counterexample nor a reason.
+#guard !(Evidence.question []).basisOk
+-- A reason that says nothing.
+#guard !(Evidence.questionOutsideModel "n/a").basisOk
+
+end ClaimTest
 
 end Glossary

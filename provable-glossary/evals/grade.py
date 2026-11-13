@@ -31,7 +31,7 @@ TEMPLATE = next(
 # The stop scene and the roles are read from the gate-verified docs/generated/roles.md, by the
 # same code status.py uses. Nothing is judged by whether a word appears in a file.
 sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
-from stop_scene import roles_tagged, stop_scene  # noqa: E402
+from generated_lines import question_counts, roles_tagged, stop_scene  # noqa: E402
 
 GEN = "docs/" + "generated"
 SKIP = {
@@ -159,32 +159,24 @@ add(
     f"{stop_note}; gate exit {rc}",
 )
 
-# 6. open questions for the business
-question_files = [
-    p for p in md if re.search(r"question|質問|未決", p.name, re.IGNORECASE)
-]
-qtext = text_of(question_files)
-q_items = len(
-    re.findall(
-        r"^\s*(?:[-*]|\d+[.)]|\|\s*(?!-)[^|\n]{8,}\|)|^#+\s*Q\d+", qtext, re.MULTILINE
-    )
+# 6 and 7. questions for the business, read from the gate-verified docs/generated/questions.md.
+#    question-check makes every question rest on counterexamples or say why no model shows it.
+questions_md = (
+    (out / GEN / "questions.md").read_text(errors="replace")
+    if (out / GEN / "questions.md").is_file()
+    else ""
+)
+counts = question_counts(questions_md)
+total_q, witnessed_q = counts if counts else (0, 0)
+add(
+    "At least 8 questions for the business (docs/generated/questions.md)",
+    total_q >= 8,
+    f"{total_q} questions" if counts else "no question counts in docs/generated/questions.md",
 )
 add(
-    "At least 8 questions for the business are listed in a dedicated document",
-    q_items >= 8,
-    f"{[p.name for p in question_files]}: {q_items} items",
-)
-
-# 7. questions are tied to machine evidence
-add(
-    "Open questions are linked to machine evidence (a counterexample, an invariant or a theorem name)",
-    bool(
-        re.search(
-            r"`[A-Za-z_][\w./]*\.(qnt|lean)`|`\w+\.\w+`|反例|counterexample|定理|invariant",
-            qtext,
-        )
-    ),
-    "searched the question document",
+    "Every question states its basis, and at least one is backed by a counterexample (docs/generated/questions.md, and the gate exits 0)",
+    witnessed_q >= 1 and rc == 0,
+    f"{witnessed_q} of {total_q} backed by a counterexample; gate exit {rc}",
 )
 
 # 8. industry comparison with sources

@@ -256,3 +256,94 @@ def test_worked_example_holds_no_records_of_testing_the_skill() -> None:
         sorted(p.name for p in experiments.iterdir() if p.name.startswith("skill-"))
         == []
     )
+
+
+# Every question states its basis in the glossary, and question-check verifies it. `just generate`
+# writes one machine line per glossary into docs/generated/questions.md; the grader and status.py
+# read only that. A question document full of the words "反例" or "定理" counts for nothing.
+WORDY_QUESTIONS = (
+    "# 質問\n\n- 反例 `Spec/a.qnt` の定理 invariant により、返金するか\n" * 9
+)
+
+
+def questions_doc(total: int, witnessed: int) -> str:
+    line = f"<!-- questions: {total}; with-counterexample: {witnessed}; outside-model: {total - witnessed} -->"
+    return f"# Questions\n\n## Book\n\n{line}\n"
+
+
+QUESTION_CASES: dict[str, tuple[str | None, bool, bool]] = {
+    # name: (questions.md, at least 8 questions, at least one backed by a counterexample)
+    "enough-and-witnessed": (questions_doc(9, 4), True, True),
+    "none-witnessed": (questions_doc(9, 0), True, False),
+    "too-few": (questions_doc(5, 2), False, True),
+    "no-machine-line": (None, False, False),
+}
+
+
+def graded_questions(
+    tmp_path: Path, questions: str | None, gate_passes: bool
+) -> list[dict]:
+    run = tmp_path / "run"
+    out = run / "outputs"
+    write_outputs(out, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes)
+    (out / "docs" / "questions.md").write_text(WORDY_QUESTIONS, encoding="utf-8")
+    if questions is not None:
+        (out / "docs" / "generated" / "questions.md").write_text(
+            questions, encoding="utf-8"
+        )
+    subprocess.run(
+        [sys.executable, "-I", str(SKILL / "evals" / "grade.py"), str(run)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    return json.loads((run / "grading.json").read_text(encoding="utf-8"))[
+        "expectations"
+    ]
+
+
+def item(expectations: list[dict], topic: str) -> dict:
+    return next(e for e in expectations if topic in e["text"].lower())
+
+
+@pytest.mark.parametrize("case", sorted(QUESTION_CASES))
+def test_grader_reads_questions_only_from_the_verified_counts(
+    tmp_path: Path, case: str
+) -> None:
+    questions, enough, witnessed = QUESTION_CASES[case]
+    expectations = graded_questions(tmp_path, questions, gate_passes=True)
+    assert item(expectations, "at least 8 questions")["passed"] is enough
+    assert item(expectations, "backed by a counterexample")["passed"] is witnessed
+
+
+def test_grader_requires_the_gate_for_the_question_basis(tmp_path: Path) -> None:
+    expectations = graded_questions(tmp_path, questions_doc(9, 4), gate_passes=False)
+    assert not item(expectations, "backed by a counterexample")["passed"]
+
+
+@pytest.mark.parametrize("case", sorted(QUESTION_CASES))
+def test_status_reads_questions_only_from_the_verified_counts(
+    tmp_path: Path, case: str
+) -> None:
+    questions, _, witnessed = QUESTION_CASES[case]
+    project = tmp_path / "project"
+    shutil.copytree(TEMPLATE, project)
+    write_outputs(
+        project, roles_doc("<!-- stop-scene: ok; modelled -->"), gate_passes=False
+    )
+    (project / "docs" / "questions.md").write_text(WORDY_QUESTIONS, encoding="utf-8")
+    if questions is not None:
+        (project / "docs" / "generated" / "questions.md").write_text(
+            questions, encoding="utf-8"
+        )
+    result = subprocess.run(
+        [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    lines = [l for l in result.stdout.splitlines() if "backed by a counterexample" in l]
+    assert lines, result.stdout
+    assert all(("[done]" in line) is witnessed for line in lines), lines

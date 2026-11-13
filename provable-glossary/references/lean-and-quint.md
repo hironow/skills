@@ -70,10 +70,11 @@ theorem book_check : book.check = true := by decide
 | `.leanRefutes name prop proof` | counterexample | Same, for a proof of `¬ prop` |
 | `.holds ref` | proved | TLC explores every reachable state of `ref.main` and the invariant must hold |
 | `.violated ref` | counterexample | The Quint simulator must find a violation without a script |
-| `.question refs` | undecided | Each witness in `refs` must be violated (it shows the gap is reachable) |
+| `.question refs` | undecided | `refs` is not empty, and each witness must be violated (it shows the gap is reachable) |
+| `.questionOutsideModel reason` | undecided | The reason has at least ten characters (question-check). Nothing is run |
 
 - `book_check` fails when a claim mentions a term that is not in the glossary, or when its verdict does not match its evidence.
-- `.question []` (no witness) is allowed. Use it for a question the models do not cover, such as a legal deadline. Prefer a witness whenever a model can show the gap.
+- Every question states its basis, and `just check` (question-check, `Glossary/Questions.lean`) refuses one that does not. Give it the counterexamples that show the gap whenever a model can. A question no model can show (a legal deadline, who has authority, a state nothing reaches) gets `.questionOutsideModel "<why no model shows it>"`. `.question []` fails the check. The generated `docs/generated/questions.md` numbers the questions and counts both kinds, so a document never claims more questions are backed by a model than are.
 - For a temporal property set `temporal := true` in the `QuintRef`; TLC checks it.
 - Write the claim as the statement being tested, in the positive. A counterexample verdict then reads "this does not hold".
 - Add a line to `Audit.lean` for every theorem cited as evidence. It prints the axioms the theorem depends on.

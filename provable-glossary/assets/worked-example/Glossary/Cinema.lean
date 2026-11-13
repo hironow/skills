@@ -185,16 +185,20 @@ def claims : List (Claim Term) := [
     evidence := .question [sale "v2_pending_issuance" "noPaymentWhileBlocked"] },
   { about := [refund, cutoffApplied, paidPendingIssuance],
     statement := "遮断中に返金してよいか (モデルは許している)",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "決済の競合のモデル (Spec/emergency_sale.qnt) は遮断中の返金を許している。許すか禁じるかで性質は破れないので、どちらが正しいかを示す反例はない" },
   { about := [paidPendingIssuance, screening, emergencyMaintenance],
     statement := "緊急メンテナンスが上映開始まで続いたとき、発券保留取引をどう解決するか (時間はモデルの外)",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "決済の競合のモデルは時刻を持たない。期限のモデル (Spec/deadline.qnt) は解決の手段ごとの帰結を示すが、どれを選ぶかは業務の方針である" },
   { about := [admission, vulnerability],
     statement := "緊急メンテナンスの前に発行した入場権は、脆弱性の影響を調べ終えるまで有効か (モデルの外)",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "脆弱性の影響の調査と、発行済みの入場権の有効性は、どの検査モデルにも状態として書いていない" },
   { about := [customer, payment, seatHold],
     statement := "販売の文脈と決済の文脈が定義の上で互いに依存している。顧客をどの文脈が持つか",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "用語集の定義依存 (Lean) から出た問いで、状態遷移の反例ではない。文脈の分け方は設計と組織の判断である" },
   -- 実験 5: 公平性
   { about := [rebooking, customer, seat],
     statement := "4 人全員の希望を満たす割当ては存在しない",
@@ -241,10 +245,12 @@ def claims : List (Claim Term) := [
     verdict := .undecided, evidence := .question [rebook "fcfs" "noAvoidableLoss"] },
   { about := [fairness, protectedCustomer, payment],
     statement := "取引の確認が終わっていない保護対象のために、席を保留するか (モデルの外)",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "振替のモデル (Spec/rebooking.qnt) は、取引の確認の途中という状態を持たない" },
   { about := [fairness],
     statement := "割当ての優先順位を決め、変える権限は誰にあるか",
-    verdict := .undecided, evidence := .question [] },
+    verdict := .undecided, evidence := .questionOutsideModel
+      "権限の割り当ては組織の決めごとで、どの検査モデルの状態にもない" },
   -- Take 2 (要約からの再構成): 履行義務
   { about := [obligation, screeningCancellation, admission],
     statement := "購入完了を終点とみなす設計で、中止になった上映回の入場権は履行義務として数えられている",
