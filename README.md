@@ -79,7 +79,7 @@ Generated from each skill's frontmatter by `just readme-index`; do not edit by h
 | [`obsidian-vault`](obsidian-vault/SKILL.md) | Search, create, and manage notes in the Obsidian vault with wikilinks and index notes. | fork of mattpocock/skills |
 | [`openai-docs`](openai-docs/SKILL.md) | Use when the user asks how to build with OpenAI products or APIs and needs up-to-date official documentation with citations (for example:… | fork of openai/skills |
 | [`playwright-cli`](playwright-cli/SKILL.md) | Automates browser interactions for web testing, form filling, screenshots, and data extraction. | fork of microsoft/playwright-cli |
-| [`provable-glossary`](provable-glossary/SKILL.md) | Turn a business glossary (the DDD ubiquitous language) into a repository where every claim about the terms is proved in Lean or model-che… |  |
+| [`provable-glossary`](provable-glossary/SKILL.md) | Build or continue a repository in which a business glossary (the DDD ubiquitous language) is the starting point of a machine-checked spec… |  |
 | [`qa`](qa/SKILL.md) | Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. | fork of mattpocock/skills |
 | [`request-refactor-plan`](request-refactor-plan/SKILL.md) | Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. | fork of mattpocock/skills |
 | [`review`](review/SKILL.md) | Review the changes since a fixed point (commit, branch, tag, or merge-base) on two separate axes, Standards and Spec, using parallel sub-… | fork of mattpocock/skills |
