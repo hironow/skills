@@ -31,6 +31,7 @@ TEMPLATE = next(
 # The stop scene and the roles are read from the gate-verified docs/generated/roles.md, by the
 # same code status.py uses. Nothing is judged by whether a word appears in a file.
 sys.path.insert(0, str(TEMPLATE.parent.parent / "scripts"))
+from shared_files import shared_changes  # noqa: E402
 from generated_lines import (  # noqa: E402
     book_titles,
     control,
@@ -290,47 +291,7 @@ add(
 # 17. [layout] shared machinery untouched, starter removed
 
 
-def template_versions(rel):
-    """Every version of a template file in the skill's history: a run is compared with the
-    template it was started from, not with later edits to the template."""
-    versions = {(TEMPLATE / rel).read_bytes()}
-    top = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        cwd=TEMPLATE,
-        capture_output=True,
-        text=True,
-    )
-    if top.returncode != 0:  # not in a git checkout: only the current template is known
-        return versions
-    repo = pathlib.Path(top.stdout.strip())
-    path = str((TEMPLATE / rel).resolve().relative_to(repo.resolve()))
-    commits = subprocess.run(
-        ["git", "log", "--format=%H", "--", path],
-        cwd=repo,
-        capture_output=True,
-        text=True,
-    )
-    for commit in commits.stdout.split():
-        blob = subprocess.run(
-            ["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True
-        )
-        if blob.returncode == 0:
-            versions.add(blob.stdout)
-    return versions
-
-
-changed = [
-    rel
-    for rel in [
-        "Glossary/Core.lean",
-        "Glossary/Claim.lean",
-        "Glossary/Render.lean",
-        "Main.lean",
-        "justfile",
-    ]
-    if not (out / rel).is_file()
-    or (out / rel).read_bytes() not in template_versions(rel)
-]
+changed = shared_changes(out, TEMPLATE)
 titles = book_titles(summary_md)
 add(
     "[layout] Shared machinery is unchanged from the template and the starter glossary is removed",

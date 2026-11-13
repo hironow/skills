@@ -198,5 +198,6 @@ Pattern 11 in `references/patterns.md`.
 | `omega could not prove the goal` with a type alias for numbers | Use `Nat` directly |
 | A scripted test passes sometimes and fails sometimes | It passes through a random choice. Give the action a parameter |
 | A shell call is refused with "a hook changed this call's input" and shows a rewritten command | Send exactly that rewritten command as the next call, alone. See "Shell" in `references/lean-and-quint.md` |
+| The Write tool refuses a file such as `docs/findings.md` as a report | Do not work around the refusal (no shell redirection, no other tool). Put the full text in your final reply, say that the file was refused, and leave it to whoever started you to save it. `status.py` keeps listing that item and every other open one, so carry on with the rest |
 | You cannot run shell commands at all | Do not write the deliverable from imagination. Report which command you could not run and stop |
 | You are tempted to weaken a property, delete a failing claim, or edit the `justfile` to get a green gate | Stop. A failing check is information. Record what it shows |

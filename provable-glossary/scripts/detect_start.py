@@ -14,6 +14,10 @@ import pathlib
 import re
 import sys
 
+
+# The sibling modules live beside this script; `python3 -I` leaves this folder off the path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from glossary_project import locate, walk_files
 from import_glossary import parse_glossary
 

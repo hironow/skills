@@ -14,8 +14,13 @@ import pathlib
 import re
 import sys
 
+
+# The sibling modules live beside this script; `python3 -I` leaves this folder off the path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
+from shared_files import shared_changes  # noqa: E402
 from generated_lines import book_titles, control, industry_complete, question_counts, roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
@@ -50,6 +55,11 @@ def main() -> int:
          "write Glossary/<Domain>.lean and add it to Registry.lean and Glossary.lean")
     item(1, starter_gone, "the starter glossary and Spec/starter.qnt are removed",
          "delete Glossary/Starter.lean, Spec/starter.qnt and their lines in Glossary.lean, Audit.lean, Spec/tests.txt, Registry.lean")
+    template = pathlib.Path(__file__).resolve().parent.parent / "assets" / "template"
+    differs = shared_changes(project, template)
+    item(1, not differs, "the shared machinery matches the skill's template" + (f" (differs: {', '.join(differs)})" if differs else ""),
+         "restore these files from the template; fix the glossary or the model instead. If the skill was updated after "
+         "this project started, a file can differ from the current template without having been edited: say so in the README")
 
     summary = read(project / "docs" / "generated" / "summary.md")
     total = re.findall(r"\|\s*(?:合計|Total)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|", summary)
@@ -125,8 +135,11 @@ def main() -> int:
                 print(f"  [{'done' if done else 'todo'}] {text}")
     todo = [(t, text, hint) for t, done, text, hint in items if not done]
     if todo:
-        tier, text, hint = todo[0]
-        print(f"NEXT (tier {tier}): {text}\n      how: {hint}")
+        # Every open item, in tier order: one that cannot be closed here (a file the environment
+        # refuses to write) must not hide the rest.
+        print("NEXT, in this order:")
+        for tier, text, hint in todo:
+            print(f"  (tier {tier}) {text}\n      how: {hint}")
     else:
         print(f"NEXT: nothing left on this list. Run `{prefix}check` and scripts/check_protection.py, then finish the documents.")
     return 0

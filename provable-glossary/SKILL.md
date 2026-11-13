@@ -182,7 +182,7 @@ Declare the outcome in `Glossary/Registry.lean`: `def control : Control := .run`
 
 ### 6. Compare the questions with industry practice
 
-Group the questions in `docs/generated/questions.md` by area and send research subagents in parallel. See `references/industry-check.md`. Classify each question, and record the class on the question in the glossary (`industry := some (.answered "<what was found>")`, `.notAsked`, `.gap`, or `.notResearched`):
+Group the questions in `docs/generated/questions.md` by area and send research subagents in parallel. See `references/industry-check.md`. Classify each question, and record the class on the question in the glossary (`industry := some (.answered "<what was found>")`, `some (.notAsked "<what was found>")`, `some (.gap "<what was found>")`, or `some .notResearched`; every class but the last needs its note):
 
 - **Answered**: the industry has a settled answer. If the model contradicted reality, fix the glossary and the model.
 - **Not asked**: the industry does not do this at all.
@@ -210,7 +210,7 @@ Write the README, `docs/findings.md`, `docs/business-gaps.md`, and the policy do
 | Migration mapping (starting point C) | `migration/mapping.tsv` | You |
 | The existing implementation (B and C) | wherever it is | Nobody in this work. It is read, not changed |
 | Generated documents | `docs/generated/*.md` | Only `just generate` |
-| Shared machinery | `Glossary/{Core,Claim,Render,Progress}.lean`, `Main.lean`, `justfile`, `.claude/hooks/`, `.githooks/` | Nobody. Same for every domain |
+| Shared machinery | Every `Glossary/*.lean` except `Registry.lean` and your own glossary files: `Core.lean`, `Claim.lean`, `Render.lean`, `Progress.lean`, and the rules `StopScene.lean`, `Questions.lean`, `Control.lean`. Also `Main.lean`, `justfile` (`mod.just` in the subdir layout), `.claude/hooks/`, `.githooks/`, and the `linter.extra` setting in `lakefile.toml` | Nobody. Same for every domain. `status.py` and the evaluation compare them with the template; when a check fails, fix the glossary or the model, never the rule |
 
 The generated documents are a copy of what the glossary claims right now. Editing one by hand makes the document disagree with what was checked, which defeats the point of the repository. To change their content, edit `Glossary/*.lean` and run `just generate`.
 

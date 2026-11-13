@@ -107,7 +107,7 @@ Quint は bunx がその版を取得して実行するので、導入は要ら�
 
 この成果物を、別の題材や別の業界で作るためのスキルが [skills/provable-glossary](../../SKILL.md) にある。
 
-- どの題材でも同じ土台 (`Glossary/Core.lean`, `Claim.lean`, `Render.lean`, `Progress.lean`, `Main.lean`, `justfile`, フック類) を
+- どの題材でも同じ土台 (`Glossary/` の `Core.lean`, `Claim.lean`, `Render.lean`, `Progress.lean` と規則の `StopScene.lean`, `Questions.lean`, `Control.lean`、`Main.lean`, `justfile`, フック類) を
   テンプレートとして持つ。このリポジトリのファイルの写しである。
 - このリポジトリの用語集、モデル、文書、実験の記録を、実例として同梱する。
 - 写しは `just skill-sync` で更新し、`just check` (skill-check) が一致を確かめる。
