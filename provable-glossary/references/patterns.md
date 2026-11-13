@@ -44,7 +44,7 @@ Keep models small. Start with one resource and two parties. Add more only after 
 
 ## 4. A stop versus work in progress
 
-The central pattern. Write it whenever anything is in flight when the system stops, whatever stops it: an emergency stop the system takes on its own, a person, or a dependency that fails. If nothing is in flight, do not invent the scene; put `<!-- stop-scene: none; <reason> -->` in the README instead. It counts only when the role table maps External confirmation, Hold, Entitlement and Deadline to none (see SKILL.md); otherwise write this pattern.
+The central pattern. Write it whenever anything is in flight when the system stops, whatever stops it: an emergency stop the system takes on its own, a person, or a dependency that fails. Then declare `stopScene := .modelled` on the book; `just check` verifies that a term has `role := some .stop` and that the claims about it include a counterexample, a proved result and a Quint check. If no term carries the role `externalConfirmation`, `hold`, `entitlement` or `deadline`, nothing is in flight: do not invent the scene, declare `stopScene := .waived "<reason>"` (see SKILL.md).
 
 - **Question**: When the system stops accepting work, what happens to transactions that hold a resource, wait for an external confirmation, or wait for issuance?
 - **Properties**:

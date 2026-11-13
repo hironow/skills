@@ -23,7 +23,7 @@ setup:
     fi
 
 # Every check
-check: lean-check spec-check generated-check anchor-check migration-check skill-check
+check: lean-check stop-check spec-check generated-check anchor-check migration-check skill-check
 
 # Lean: build the proofs. Reject warnings, sorry, and extra axioms.
 lean-check:
@@ -40,6 +40,11 @@ lean-check:
       echo "lean-check: a proof depends on an untrusted axiom" >&2
       exit 1
     fi
+
+# Every registered glossary declares its stop scene, and the declaration agrees with its terms and
+# claims (Glossary/StopScene.lean). Reads only the glossary, never words in files.
+stop-check:
+    lake exe claims stop
 
 # Quint: typecheck, run the scripted tests (each line of Spec/tests.txt), then check every claim in the glossaries.
 spec-check:

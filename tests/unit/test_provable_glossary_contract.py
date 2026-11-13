@@ -82,59 +82,65 @@ def test_grader_finds_the_template_wherever_it_runs(
     assert "['justfile']" in grading
 
 
-# A domain with nothing in flight across a stop records that in its README instead of
-# modelling a stop scene. The waiver is a claim about the domain, so it must agree with the
-# role table: the four roles that can be in flight across a stop are named and mapped to none.
-NO_STOP = "<!-- stop-scene: none; the site only reads a nightly import and promises nothing to anyone outside -->"
-NO_STOP_WITHOUT_REASON = "<!-- stop-scene: none -->"
-QUIET_MODEL = "module report {\n  var count: int\n  action init = count' = 0\n  action step = count' = count + 1\n}\n"
-
-
-def role_table(**mapped: str) -> str:
-    rows = {
-        "External confirmation": "none",
-        "Hold": "none (nothing is reserved)",
-        "Entitlement": "なし",
-        "Deadline": "none",
-    }
-    rows.update({name.replace("_", " "): value for name, value in mapped.items()})
-    body = "\n".join(f"| 役割 ({name}) | {value} |" for name, value in rows.items())
-    return f"## 役割の表\n\n| 役割 | この題材では |\n|---|---|\n{body}\n"
-
-
-JAPANESE_ONLY_TABLE = (
-    "## 役割の表\n\n| 役割 | この題材では |\n|---|---|\n"
-    "| 外部の確認 | なし |\n| 仮確保 | なし |\n| 権利 | なし |\n| 期限 | なし |\n"
+# The stop scene is declared in the glossary (stopScene on each book, roles on terms) and verified
+# by the gate (stop-check). `just generate` writes one machine-readable line per glossary into
+# docs/generated/roles.md; status.py and the grader read only that. Every fixture below also holds a
+# Quint model full of stop words and the old README waiver line: neither may ever count.
+KEYWORD_MODEL = (
+    "module emergency_stop {\n  var stopped: bool\n"
+    "  action init = stopped' = false\n  action emergencyStop = stopped' = true\n}\n"
 )
+OLD_WAIVER = "<!-- stop-scene: none; the site only reads a nightly import and promises nothing outside -->"
 
-WAIVER_CASES = {
-    "consistent": (role_table() + "\n" + NO_STOP, True),
-    "no-reason": (role_table() + "\n" + NO_STOP_WITHOUT_REASON, False),
-    "confirmation-exists": (
-        role_table(External_confirmation="会計システムの支払い完了通知")
-        + "\n"
-        + NO_STOP,
+
+def roles_doc(*lines: str, tagged: int = 5) -> str:
+    return (
+        "# Roles\n\n## Book\n\n"
+        + "\n".join(lines)
+        + f"\n<!-- roles-tagged: {tagged} -->\n"
+    )
+
+
+STOP_CASES: dict[str, tuple[str | None, bool]] = {
+    "modelled-and-verified": (roles_doc("<!-- stop-scene: ok; modelled -->"), True),
+    "waived-and-verified": (
+        roles_doc(
+            "<!-- stop-scene: ok; waived; the site only reads a nightly import -->"
+        ),
+        True,
+    ),
+    "problem-reported": (
+        roles_doc("<!-- stop-scene: todo; Book: no stop scene is declared -->"),
         False,
     ),
-    "deadline-exists": (
-        role_table(Deadline="承認ごとに 3 営業日") + "\n" + NO_STOP,
+    "one-of-two-books-todo": (
+        roles_doc(
+            "<!-- stop-scene: ok; modelled -->",
+            "<!-- stop-scene: todo; Orders: no stop scene is declared -->",
+        ),
         False,
     ),
-    "roles-not-named": (JAPANESE_ONLY_TABLE + "\n" + NO_STOP, False),
-    "no-role-table": (NO_STOP, False),
+    "no-roles-doc": (None, False),
 }
 
 
-def graded_stop_item(tmp_path: Path, readme: str) -> dict:
-    run = tmp_path / "run"
+def write_outputs(out: Path, roles: str | None, gate_passes: bool) -> None:
     for rel in SHARED:
-        (run / "outputs" / rel).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(TEMPLATE / rel, run / "outputs" / rel)
-    (run / "outputs" / "Spec").mkdir(exist_ok=True)
-    (run / "outputs" / "Spec" / "report.qnt").write_text(QUIET_MODEL, encoding="utf-8")
-    (run / "outputs" / "README.md").write_text(
-        f"# Reports\n\n{readme}\n", encoding="utf-8"
-    )
+        (out / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(TEMPLATE / rel, out / rel)
+    (out / "Spec").mkdir(exist_ok=True)
+    (out / "Spec" / "emergency_stop.qnt").write_text(KEYWORD_MODEL, encoding="utf-8")
+    (out / "README.md").write_text(f"# Project\n\n{OLD_WAIVER}\n", encoding="utf-8")
+    if roles is not None:
+        (out / "docs" / "generated").mkdir(parents=True, exist_ok=True)
+        (out / "docs" / "generated" / "roles.md").write_text(roles, encoding="utf-8")
+    if gate_passes:
+        (out / "justfile").write_text("check:\n    @true\n", encoding="utf-8")
+
+
+def graded(tmp_path: Path, roles: str | None, gate_passes: bool, topic: str) -> dict:
+    run = tmp_path / "run"
+    write_outputs(run / "outputs", roles, gate_passes)
     subprocess.run(
         [sys.executable, "-I", str(SKILL / "evals" / "grade.py"), str(run)],
         capture_output=True,
@@ -145,14 +151,13 @@ def graded_stop_item(tmp_path: Path, readme: str) -> dict:
     expectations = json.loads((run / "grading.json").read_text(encoding="utf-8"))[
         "expectations"
     ]
-    return next(e for e in expectations if "stop" in e["text"].lower())
+    return next(e for e in expectations if topic in e["text"].lower())
 
 
-def status_stop_done(tmp_path: Path, readme: str) -> bool:
+def status_lines(tmp_path: Path, roles: str | None, topic: str) -> list[str]:
     project = tmp_path / "project"
     shutil.copytree(TEMPLATE, project)
-    (project / "Spec" / "report.qnt").write_text(QUIET_MODEL, encoding="utf-8")
-    (project / "README.md").write_text(f"# Reports\n\n{readme}\n", encoding="utf-8")
+    write_outputs(project, roles, gate_passes=False)
     # As SKILL.md runs it: without -I, so it imports its sibling modules.
     result = subprocess.run(
         [sys.executable, str(SKILL / "scripts" / "status.py"), str(project)],
@@ -161,42 +166,63 @@ def status_stop_done(tmp_path: Path, readme: str) -> bool:
         timeout=120,
         check=True,
     )
-    stop_lines = [
+    lines = [
         line
         for line in result.stdout.splitlines()
-        if "stop" in line.lower() and "[" in line
+        if topic in line.lower() and "[" in line
     ]
-    assert stop_lines, result.stdout
-    return all("[done]" in line for line in stop_lines)
+    assert lines, result.stdout
+    return lines
 
 
-@pytest.mark.parametrize("case", sorted(WAIVER_CASES))
-def test_grader_accepts_a_stop_waiver_only_when_the_role_table_agrees(
+@pytest.mark.parametrize("case", sorted(STOP_CASES))
+def test_grader_reads_the_stop_scene_only_from_the_verified_declaration(
     tmp_path: Path, case: str
 ) -> None:
-    readme, accepted = WAIVER_CASES[case]
-    assert graded_stop_item(tmp_path, readme)["passed"] is accepted
+    roles, accepted = STOP_CASES[case]
+    item = graded(tmp_path, roles, gate_passes=True, topic="stop scene")
+    assert item["passed"] is accepted, item
 
 
-@pytest.mark.parametrize("case", sorted(WAIVER_CASES))
-def test_status_accepts_a_stop_waiver_only_when_the_role_table_agrees(
+def test_grader_requires_the_gate_to_pass_for_the_stop_scene(tmp_path: Path) -> None:
+    roles = roles_doc("<!-- stop-scene: ok; modelled -->")
+    assert not graded(tmp_path, roles, gate_passes=False, topic="stop scene")["passed"]
+
+
+@pytest.mark.parametrize("case", sorted(STOP_CASES))
+def test_status_reads_the_stop_scene_only_from_the_verified_declaration(
     tmp_path: Path, case: str
 ) -> None:
-    readme, accepted = WAIVER_CASES[case]
-    assert status_stop_done(tmp_path, readme) is accepted
+    roles, accepted = STOP_CASES[case]
+    lines = status_lines(tmp_path, roles, topic="stop scene")
+    assert all(("[done]" in line) is accepted for line in lines), lines
 
 
-def test_skill_requires_the_stop_scene_only_when_something_is_in_flight() -> None:
+@pytest.mark.parametrize(("tagged", "accepted"), [(2, False), (3, True)])
+def test_role_mapping_is_read_from_the_tags_on_terms(
+    tmp_path: Path, tagged: int, accepted: bool
+) -> None:
+    roles = roles_doc("<!-- stop-scene: ok; modelled -->", tagged=tagged)
+    item = graded(tmp_path / "grade", roles, gate_passes=True, topic="tagged")
+    assert item["passed"] is accepted, item
+    lines = status_lines(tmp_path / "status", roles, topic="tagged")
+    assert all(("[done]" in line) is accepted for line in lines), lines
+
+
+def test_skill_declares_the_stop_scene_in_the_glossary() -> None:
     skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
     description = skill.split("\n---", 1)[0]
     assert "can stop itself autonomously" not in description
-    assert "stop-scene: none;" in skill
-    assert "stop-scene: none;" in (SKILL / "references" / "patterns.md").read_text(
-        encoding="utf-8"
-    )
-    runbook = (SKILL / "references" / "runbook.md").read_text(encoding="utf-8")
-    assert "stop-scene: none;" in runbook
-    assert "External confirmation" in skill.split("stop-scene: none;", 1)[1][:1500]
+    assert "stopScene" in skill
+    assert "role := some" in skill
+    docs = {
+        name: (SKILL / "references" / name).read_text(encoding="utf-8")
+        for name in ("patterns.md", "runbook.md", "documents.md")
+    }
+    assert "stopScene" in docs["patterns.md"]
+    assert "stopScene" in docs["runbook.md"]
+    for text in [skill, *docs.values()]:
+        assert "stop-scene: none" not in text
 
 
 def quint_blocks(markdown: str) -> list[str]:
@@ -230,11 +256,3 @@ def test_worked_example_holds_no_records_of_testing_the_skill() -> None:
         sorted(p.name for p in experiments.iterdir() if p.name.startswith("skill-"))
         == []
     )
-
-
-def test_a_role_that_exists_in_another_form_is_not_none(tmp_path: Path) -> None:
-    readme = role_table(
-        Hold="none as such; each approval step waits up to 3 business days"
-    )
-    readme += "\n" + NO_STOP
-    assert not graded_stop_item(tmp_path, readme)["passed"]

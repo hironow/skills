@@ -16,7 +16,7 @@ import sys
 
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
-from stop_waiver import IN_FLIGHT_ROLES, stop_waiver
+from stop_scene import roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -60,12 +60,14 @@ def main() -> int:
     item(1, undecided >= 3, f"at least 3 open questions recorded as undecided claims ({undecided} now)",
          "turn what the design cannot settle into `.question` claims")
 
-    specs = "\n".join(read(p) for p in (project / "Spec").glob("*.qnt") if p.name != "starter.qnt")
-    waived, waiver_note = stop_waiver(read(project / "README.md"))
-    item(1, waived or re.search(r"emergency|halt|stop|freeze|lockdown|shutdown|suspend|kill.?switch|緊急|停止|遮断|ロックダウン", specs, re.I),
-         "the stop scene is modelled in Spec/, or the README waives it and its role table agrees",
-         "write the stop scene (pattern 4). Waive it only if the role table maps "
-         + ", ".join(IN_FLIGHT_ROLES) + " to none; " + waiver_note)
+    roles_md = read(project / "docs" / "generated" / "roles.md")
+    stop_ok, stop_note = stop_scene(roles_md)
+    item(1, stop_ok, "the stop scene is declared in the glossary and verified (docs/generated/roles.md)",
+         "declare stopScene in the book (.modelled after pattern 4, or .waived \"<reason>\" if nothing is in flight), "
+         "then `just generate`. Now: " + stop_note)
+    tagged = roles_tagged(roles_md)
+    item(1, tagged >= 3, f"terms are tagged with the shared roles ({tagged} roles tagged now)",
+         "add role := some .<role> to the terms that play one; see SKILL.md, \"Map the domain onto shared roles\"")
 
     # In the root layout the repository is the glossary project itself, so there is no separate implementation.
     has_code = project != repo and sum(1 for p in walk_files(repo) if p.suffix in CODE_SUFFIXES) >= 3
@@ -87,8 +89,6 @@ def main() -> int:
              "fill in migration/mapping.tsv; see references/start-migrate.md")
 
     readme = read(project / "README.md") or read(repo / "README.md")
-    item(1, re.search(r"^#+[^\n]*(役割|[Rr]ole)", readme, re.M), "README has the role table",
-         "see references/documents.md")
     findings = read(project / "docs" / "findings.md")
     item(1, len(findings) > 500 and re.search(r"限界|[Ll]imit", findings), "docs/findings.md states findings and limits",
          "see references/documents.md")

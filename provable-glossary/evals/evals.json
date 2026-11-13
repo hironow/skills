@@ -12,7 +12,7 @@
         "Has a Lean formalization and at least one Quint model",
         "No sorry, native_decide or axiom in the Lean code",
         "The gate backs at least one 'holds' result with exhaustive state exploration (TLC or Apalache), not only random simulation",
-        "A stop scene is modelled in Quint and the gate expects at least one property to be violated, or the README records why nothing is in flight across a stop",
+        "The stop scene is declared in the glossary and the gate verifies it (docs/generated/roles.md, and the gate exits 0)",
         "At least 8 questions for the business are listed in a dedicated document",
         "Open questions are linked to machine evidence (a counterexample, an invariant or a theorem name)",
         "The documents compare the questions with industry practice and cite at least 5 distinct source URLs",
@@ -23,7 +23,7 @@
         "A comparison with a tool-less control was preregistered and run, or the documents say it was skipped",
         "The documents state limits and the size of the models",
         "The authored documents are in Japanese",
-        "README maps the domain onto the shared roles",
+        "Terms are tagged with the shared roles: at least three roles (docs/generated/roles.md)",
         "[layout] Shared machinery is unchanged from the template and the starter glossary is removed"
       ]
     },
@@ -38,7 +38,7 @@
         "Has a Lean formalization and at least one Quint model",
         "No sorry, native_decide or axiom in the Lean code",
         "The gate backs at least one 'holds' result with exhaustive state exploration (TLC or Apalache), not only random simulation",
-        "A stop scene is modelled in Quint and the gate expects at least one property to be violated, or the README records why nothing is in flight across a stop",
+        "The stop scene is declared in the glossary and the gate verifies it (docs/generated/roles.md, and the gate exits 0)",
         "At least 8 questions for the business are listed in a dedicated document",
         "Open questions are linked to machine evidence (a counterexample, an invariant or a theorem name)",
         "The documents compare the questions with industry practice and cite at least 5 distinct source URLs",
@@ -49,7 +49,7 @@
         "A comparison with a tool-less control was preregistered and run, or the documents say it was skipped",
         "The documents state limits and the size of the models",
         "The authored documents are in Japanese",
-        "README maps the domain onto the shared roles",
+        "Terms are tagged with the shared roles: at least three roles (docs/generated/roles.md)",
         "[layout] Shared machinery is unchanged from the template and the starter glossary is removed"
       ]
     },

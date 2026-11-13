@@ -56,6 +56,17 @@ structure Labels where
   summaryTitle : String
   summaryColumns : String
   total : String
+  rolesTitle : String
+  rolesIntro : String
+  roleColumns : String
+  noTerm : String
+  roleName : Role → String
+  stopUndeclared : String
+  stopModelled : String
+  stopWaived : String
+  stopInBook : String
+  stopProblems : String
+  stopBackingTitle : String
 
 def Labels.en : Labels where
   proved := "Proved"
@@ -86,6 +97,21 @@ def Labels.en : Labels where
   summaryTitle := "Summary"
   summaryColumns := "| Glossary | Terms | Claims | Proved | Counterexample | Undecided |"
   total := "Total"
+  rolesTitle := "Roles and the stop scene"
+  rolesIntro := "The shared roles, from the role tagged on each term, and what each glossary declares about the stop scene. `just check` (stop-check) verifies the declaration."
+  roleColumns := "| Role | Terms |"
+  noTerm := "none"
+  roleName
+    | .resource => "Resource" | .hold => "Hold" | .externalConfirmation => "External confirmation"
+    | .entitlement => "Entitlement" | .stop => "Stop" | .plannedStop => "Planned stop"
+    | .deadline => "Deadline" | .fallbackChannel => "Fallback channel"
+    | .supplyCancellation => "Supply cancellation" | .reallocation => "Reallocation"
+  stopUndeclared := "Stop scene: not declared."
+  stopModelled := "Stop scene: modelled. The claims that back it are listed below."
+  stopWaived := "Stop scene: none, nothing is in flight across a stop. Reason: "
+  stopInBook := "Stop scene: modelled in the glossary "
+  stopProblems := "Problems that make `just check` fail:"
+  stopBackingTitle := "Claims about the stop"
 
 def Labels.ja : Labels where
   proved := "証明済み"
@@ -116,6 +142,24 @@ def Labels.ja : Labels where
   summaryTitle := "集計"
   summaryColumns := "| 用語集 | 用語 | 主張 | 証明済み | 反例あり | 未決定 |"
   total := "合計"
+  rolesTitle := "役割と停止の場面"
+  rolesIntro := "共通の役割を、各用語に付けた役割から一覧にする。停止の場面について各用語集が宣言したことも載せる。宣言は `just check` (stop-check) が確かめる。"
+  roleColumns := "| 役割 | 用語 |"
+  noTerm := "なし"
+  roleName
+    | .resource => "資源 (Resource)" | .hold => "仮確保 (Hold)"
+    | .externalConfirmation => "外部の確認 (External confirmation)"
+    | .entitlement => "権利 (Entitlement)" | .stop => "停止 (Stop)"
+    | .plannedStop => "計画停止 (Planned stop)" | .deadline => "期限 (Deadline)"
+    | .fallbackChannel => "代わりの経路 (Fallback channel)"
+    | .supplyCancellation => "供給の取り消し (Supply cancellation)"
+    | .reallocation => "振替 (Reallocation)"
+  stopUndeclared := "停止の場面: 宣言していない。"
+  stopModelled := "停止の場面: 検査モデルにした。支える主張を下に載せる。"
+  stopWaived := "停止の場面: なし。停止をまたいで途中になるものがない。理由: "
+  stopInBook := "停止の場面: 次の用語集で検査モデルにした: "
+  stopProblems := "`just check` が落ちる理由:"
+  stopBackingTitle := "停止についての主張"
 
 def Labels.verdict (l : Labels) : Verdict → String
   | .proved => l.proved
@@ -141,13 +185,18 @@ structure TermRow where
   defDeps : String
   assoc : String
   anchors : List String
+  role : Option Role
 
 /-- One claim, ready to print. -/
 structure ClaimRow where
   verdict : Verdict
   statement : String
   about : String
+  /-- The IDs of the terms in `about`, as in `TermRow.id`. -/
+  aboutIds : List String
   evidence : String
+  /-- Whether the evidence is a Quint check (holds or violated). -/
+  quint : Bool
 
 /-- One glossary, ready to print. The term type is erased, so glossaries of different domains fit in one list. -/
 structure BookView where
@@ -155,6 +204,7 @@ structure BookView where
   terms : List TermRow
   claims : List ClaimRow
   gate : List String
+  stopScene : StopScene
 
 def Book.view {ι κ : Type} [Repr ι] [Repr κ] (l : Labels) (b : Book ι κ) : BookView :=
   let label (t : ι) : String :=
@@ -165,11 +215,13 @@ def Book.view {ι κ : Type} [Repr ι] [Repr κ] (l : Labels) (b : Book ι κ) :
   { title := b.title
     terms := b.terms.map fun e =>
       { label := e.label, id := shortName e.id, context := shortName e.context, gloss := e.gloss,
-        defDeps := names e.defDeps, assoc := names e.assoc, anchors := e.anchors }
+        defDeps := names e.defDeps, assoc := names e.assoc, anchors := e.anchors, role := e.role }
     claims := b.claims.map fun c =>
       { verdict := c.verdict, statement := c.statement, about := names c.about,
-        evidence := l.evidence c.evidence }
-    gate := b.claims.flatMap gateLines }
+        aboutIds := c.about.map shortName, evidence := l.evidence c.evidence,
+        quint := c.evidence.isQuint }
+    gate := b.claims.flatMap gateLines
+    stopScene := b.stopScene }
 
 def count (b : BookView) (v : Verdict) : Nat := (b.claims.filter (·.verdict == v)).length
 

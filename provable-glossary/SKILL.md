@@ -62,7 +62,7 @@ The deliverable has three tiers. Finish a tier before starting the next, and say
 
 | Tier | Content | Workflow steps |
 |---|---|---|
-| 1. Required | A checked glossary, the stop scene (or a recorded reason there is none), the open questions, README and findings | 0, 1, 3, 4, 8 |
+| 1. Required | A checked glossary with roles tagged and the stop scene declared and verified, the open questions, README and findings | 0, 1, 3, 4, 8 |
 | 2. Expected | The questions compared with industry practice | 2, 6 |
 | 3. Optional | A control experiment and a policy draft. If skipped, the documents say so | 5, 7 |
 
@@ -82,32 +82,34 @@ So do not promise discoveries. Promise two things: what has been decided is on r
 
 ## Map the domain onto shared roles
 
-Look for these roles in any domain. If a role does not exist, write "none" and do not invent it.
+Look for these roles in any domain and tag each term that plays one in the glossary: `role := some .externalConfirmation`. The role table is generated from the tags (`docs/generated/roles.md`): a role no term carries shows as none. Do not invent a term to fill a role.
 
-Some domains have no scarce resource: an approval workflow, a money transfer, a report. Do not invent one. Look instead for what must happen at most once (a payment, a notification, an entitlement issued) and for what waits with a deadline (an approval step instead of a hold). Write that mapping in the role table with a note, as in "Resource: none as such; each approved request may be paid at most once". Pattern 4 then protects "at most one execution" in place of exclusivity.
+Some domains have no scarce resource: an approval workflow, a money transfer, a report. Do not invent one. Look instead for what must happen at most once (a payment, a notification, an entitlement issued) and for what waits with a deadline (an approval step instead of a hold). Leave the resource untagged and explain the mapping in the README, as in "Resource: none as such; each approved request may be paid at most once". Pattern 4 then protects "at most one execution" in place of exclusivity.
 
-| Role | Meaning | Cinema example |
+| Role (`role := some .…`) | Meaning | Cinema example |
 |---|---|---|
-| Resource | Limited; cannot be given to two parties at once | Seat |
-| Hold | A time-limited reservation of the resource | Seat hold |
-| External confirmation | Happens outside the system, cannot be stopped, arrives late | Payment result |
-| Entitlement | The hard-to-revoke thing handed to the customer | Admission right (ticket) |
-| Stop | The system stops accepting work: on its own (emergency), by a person, or because something it depends on fails | Emergency maintenance |
-| Planned stop | Announced; waits for work in progress | Scheduled maintenance |
-| Deadline | A fixed time after which the entitlement is worthless | Showtime |
-| Fallback channel | A human or on-site path that works during a stop | Box office |
-| Supply cancellation | The operator can no longer honour an entitlement | Cancelled screening |
-| Reallocation | Honouring it with a different resource | Rebooking to another screening |
+| Resource (`.resource`) | Limited; cannot be given to two parties at once | Seat |
+| Hold (`.hold`) | A time-limited reservation of the resource | Seat hold |
+| External confirmation (`.externalConfirmation`) | Happens outside the system, cannot be stopped, arrives late | Payment result |
+| Entitlement (`.entitlement`) | The hard-to-revoke thing handed to the customer | Admission right (ticket) |
+| Stop (`.stop`) | The system stops accepting work: on its own (emergency), by a person, or because something it depends on fails | Emergency maintenance |
+| Planned stop (`.plannedStop`) | Announced; waits for work in progress | Scheduled maintenance |
+| Deadline (`.deadline`) | A fixed time after which the entitlement is worthless | Showtime |
+| Fallback channel (`.fallbackChannel`) | A human or on-site path that works during a stop | Box office |
+| Supply cancellation (`.supplyCancellation`) | The operator can no longer honour an entitlement | Cancelled screening |
+| Reallocation (`.reallocation`) | Honouring it with a different resource | Rebooking to another screening |
 
 **Commitments in flight across a stop.** Almost every system can be stopped, for whatever reason. What matters is what is half done at that moment: an external confirmation still to arrive, a hold that will expire, an entitlement promised but not yet issued, a deadline that keeps running. These keep moving while the system stands still, and the questions they raise (grant or return, who, by when) have the same shape in every domain. Model this scene whenever anything is in flight (pattern 4 in `references/patterns.md`, which gives one pattern per role).
 
-If nothing is in flight when the system stops (for example, it only reads and reports, and promises nothing to anyone outside), do not invent a stop scene. Record the reason in the README with this line, so that `status.py` and the evaluation can see it:
+Declare the scene on each book of the glossary, in `stopScene`. `just check` (stop-check, `Glossary/StopScene.lean`) verifies the declaration against the roles and the claims, and never against words in files:
 
-```
-<!-- stop-scene: none; <one sentence on why nothing is in flight across a stop> -->
-```
+| Declaration | Accepted when |
+|---|---|
+| `stopScene := .modelled` | A term has `role := some .stop`, and the claims about it include a counterexample (a design that breaks), a proved result (a design that holds), and at least one Quint check |
+| `stopScene := .waived "<reason>"` | Nothing is in flight: no term has the role `externalConfirmation`, `hold`, `entitlement` or `deadline`, and the reason is a real sentence |
+| `stopScene := .inBook "<title>"` | Another registered book with that title declares `.modelled` |
 
-The line is a claim about the domain, and it must agree with the role table. Name the four roles that can be in flight across a stop in English in the first column (for example `外部の確認 (External confirmation)`), and map each of External confirmation, Hold, Entitlement and Deadline to none. A role that exists in another form ("none as such; each approval step waits three days") is not none. `status.py` and the evaluation refuse the line otherwise. If any of the four exists, or you are not sure, model the scene: a waiver is never a way to skip the hard part.
+Until a book declares one of these, `just check` fails. A waiver cannot hide the hard part: if anything can be in flight, a role says so and the waiver is refused. What the gate cannot see is a term left untagged on purpose; the generated role table shows it as none, so a reader can.
 
 ## Workflow
 
@@ -121,7 +123,7 @@ You can start once you know three things. Ask if they are missing; if the user l
 2. A draft glossary or a description of the business. With only a description, draft the glossary yourself.
 3. What is in flight when the system stops (external confirmations, holds, entitlements not yet issued, running deadlines), what can stop it (on its own, by a person, a failing dependency), and what a stop stops (new work only, or work in progress too). Ask even when the user did not mention stopping.
 
-Fill in the role table. It goes into the README.
+Tag the roles on the terms when you write the glossary (step 3); the generated `docs/generated/roles.md` is the role table. The README links to it and explains any mapping that needs words.
 
 ### 1. Lay the foundation
 
@@ -161,6 +163,8 @@ Pick the patterns in `references/patterns.md` that fit the role table and write 
 2. Repair the design one step at a time. Record as claims the counterexample that disappeared and any new one that appeared.
 3. Add to the glossary every concept the repair needed.
 4. Turn what the design cannot settle into an undecided claim: a question for the business, with the counterexample that shows the gap.
+
+For the stop scene (pattern 4), put the stop term in the `about` of its counterexample and of the claim that holds, then declare `stopScene := .modelled` on the book.
 
 Every claim needs evidence. "Proved" means a Lean proof or an exhaustive TLC check; "counterexample" means a Lean proof of the negation or a counterexample Quint finds. `just check` runs every claim from the glossary; there is no separate list to maintain.
 
@@ -236,7 +240,8 @@ To confirm the protection works in a project, run `python3 <skill>/scripts/check
 - [ ] No theorem is vacuous: each one uses its hypotheses and says what its claim says.
 - [ ] `docs/generated/` matches the glossaries, and `scripts/check_protection.py` passes.
 - [ ] The starter glossary and model are gone.
-- [ ] The README has the role table, what was learned, and the limits.
+- [ ] Every book declares `stopScene`, and `docs/generated/roles.md` shows `stop-scene: ok`.
+- [ ] The README links the generated role table and says what was learned, and the limits.
 - [ ] The open questions are classified against industry practice.
 - [ ] At least one control experiment ran, or the documents say it was skipped.
 - [ ] A policy draft, if written, sits beside its check results and its limits.

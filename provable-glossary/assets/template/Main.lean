@@ -1,4 +1,5 @@
 import Glossary.Registry
+import Glossary.StopScene
 
 /-!
 Prints the list of checks and writes the generated documents.
@@ -6,6 +7,7 @@ Prints the list of checks and writes the generated documents.
   claims docs <dir>  write the generated documents into <dir>
   claims anchors     the code anchors, tab-separated: term ID, anchor
   claims terms       every term ID, one per line
+  claims stop        check the stop-scene declarations; exit 1 and list the problems if any
 
 This file is the same for every domain. Register glossaries in `Glossary/Registry.lean`.
 -/
@@ -20,7 +22,7 @@ def main (args : List String) : IO UInt32 := do
     return 0
   | ["docs", dir] =>
     IO.FS.createDirAll dir
-    let docs := generatedDocs labels books
+    let docs := allDocs labels books
     -- Drop files that are no longer generated, so the folder holds exactly the current output.
     for entry in (← System.FilePath.readDir dir) do
       if !(docs.any (·.1 == entry.fileName)) && !(← entry.path.isDir) then
@@ -32,10 +34,19 @@ def main (args : List String) : IO UInt32 := do
     for l in anchorLines books do
       IO.println l
     return 0
+  | ["stop"] =>
+    let problems := stopProblems books
+    for p in problems do
+      IO.eprintln s!"stop-check: {p}"
+    if problems.isEmpty then
+      IO.println s!"stop-check: {books.length} glossaries declare their stop scene, and the declarations hold"
+      return 0
+    else
+      return 1
   | ["terms"] =>
     for l in termIds books do
       IO.println l
     return 0
   | _ =>
-    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms)"
+    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms | stop)"
     return 2

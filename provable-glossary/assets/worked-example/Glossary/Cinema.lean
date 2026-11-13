@@ -36,27 +36,27 @@ def baseTerms : List (Entry Term Ctx) := [
     assoc := [seatHold, payment, admission] },
   { id := screening, label := "上映回", context := .sales,
     gloss := "ある作品を、ある日時に、あるスクリーンで上映する 1 回" },
-  { id := seat, label := "座席", context := .sales,
+  { id := seat, label := "座席", role := some .resource, context := .sales,
     gloss := "上映回の中で 1 人が座る場所", defDeps := [screening] },
-  { id := seatHold, label := "仮確保", context := .sales,
+  { id := seatHold, label := "仮確保", role := some .hold, context := .sales,
     gloss := "顧客が決済を終えるまで、座席を他の顧客に売らないでおく取り置き",
     defDeps := [customer, seat] },
-  { id := payment, label := "決済", context := .payment,
+  { id := payment, label := "決済", role := some .externalConfirmation, context := .payment,
     gloss := "顧客が外部の決済サービスを通じて代金を支払うこと。結果は成功・失敗・不明のどれか",
     defDeps := [customer] },
   { id := refund, label := "返金", context := .payment,
     gloss := "成功した決済の代金を顧客に戻すこと", defDeps := [payment] },
-  { id := admission, label := "入場権", context := .ticketing,
+  { id := admission, label := "入場権", role := some .entitlement, context := .ticketing,
     gloss := "顧客が、ある上映回のある座席で鑑賞できる権利 (チケット)",
     defDeps := [customer, seat] },
   { id := salesChannel, label := "販売経路", context := .operations,
     gloss := "仮確保・決済開始・発券を受け付ける入口" },
-  { id := plannedMaintenance, label := "通常メンテナンス", context := .operations,
+  { id := plannedMaintenance, label := "通常メンテナンス", role := some .plannedStop, context := .operations,
     gloss := "新しい仮確保を止め、処理中の取引が片付いてから販売経路を止める作業",
     defDeps := [salesChannel] },
   { id := vulnerability, label := "脆弱性", context := .operations,
     gloss := "悪用されると取引や入場権の信頼性を損なう欠陥" },
-  { id := emergencyMaintenance, label := "緊急メンテナンス", context := .operations,
+  { id := emergencyMaintenance, label := "緊急メンテナンス", role := some .stop, context := .operations,
     gloss := "脆弱性を検知して、処理中の取引を待たずに自動で販売経路を止めること",
     defDeps := [vulnerability, salesChannel] },
   { id := cutoffOrder, label := "停止指令", context := .operations,
@@ -77,7 +77,7 @@ def pendingIssuanceEntry : Entry Term Ctx :=
 
 /-- 実験 5 で見つけた概念。 -/
 def rebookingEntries : List (Entry Term Ctx) := [
-  { id := rebooking, label := "振替", context := .sales,
+  { id := rebooking, label := "振替", role := some .reallocation, context := .sales,
     gloss := "中止になった上映回の入場権を、別の上映回の入場権に替えること",
     defDeps := [admission, screening] },
   { id := protectedCustomer, label := "保護対象", context := .sales,
@@ -94,7 +94,7 @@ def rebookingEntries : List (Entry Term Ctx) := [
 
 /-- Take 2〜4 で見つけた概念。 -/
 def obligationEntries : List (Entry Term Ctx) := [
-  { id := screeningCancellation, label := "上映中止", context := .operations,
+  { id := screeningCancellation, label := "上映中止", role := some .supplyCancellation, context := .operations,
     gloss := "設備故障など映画館側の事情で、上映回を取りやめること", defDeps := [screening] },
   { id := obligation, label := "履行義務", context := .sales,
     gloss := "入場権を発行した顧客に対して、鑑賞させるか、振替か返金で埋め合わせる義務",
@@ -110,13 +110,13 @@ def obligationEntries : List (Entry Term Ctx) := [
   { id := progressability, label := "進行可能性", context := .operations,
     gloss := "未解決の履行義務に、責任者が実行できる解決の道が残っていること",
     defDeps := [obligation, resolutionOwner, authority] },
-  { id := fulfillmentDeadline, label := "履行期限", context := .sales,
+  { id := fulfillmentDeadline, label := "履行期限", role := some .deadline, context := .sales,
     gloss := "それを過ぎると顧客の目的が果たせなくなる時刻。上映開始",
     defDeps := [obligation, screening] },
   { id := goalLoss, label := "目的の喪失", context := .sales,
     gloss := "履行期限を過ぎて、顧客が観られなかったこと。返金で解決しても残る",
     defDeps := [fulfillmentDeadline] },
-  { id := boxOfficeIssue, label := "窓口発券", context := .ticketing,
+  { id := boxOfficeIssue, label := "窓口発券", role := some .fallbackChannel, context := .ticketing,
     gloss := "販売経路を通さずに入場権を発行すること", defDeps := [admission, salesChannel] }
 ]
 
@@ -365,7 +365,7 @@ def claims : List (Claim Term) := [
     verdict := .counterexample, evidence := .violated (outage "invalidate_all" "noLockout") }
 ]
 
-def book : Book Term Ctx := { title := "映画館のチケット販売", terms, claims }
+def book : Book Term Ctx := { title := "映画館のチケット販売", terms, claims, stopScene := .modelled }
 
 theorem book_check : book.check = true := by decide
 

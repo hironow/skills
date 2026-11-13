@@ -40,7 +40,7 @@ Status  StatusHeld, StatusPaying, StatusBooked, StatusExpired, StatusCancelled, 
   Every such group becomes a state machine in a Quint model, and each state usually becomes a term. A group of error constants (`ErrSlotTaken`, …) is not a state machine: each error is a guard of some operation, and belongs in the model as that guard.
 - `identifiers.tsv`: the anchor column is ready to paste (step B4). The `other_uses` column counts how often the name appears elsewhere in the scanned code. It is a rough count: it cannot tell a real use from an import or a re-export, and entry points that only outside callers use show 0. Use it for constants. For each limit or duration the code declares, open its few uses and check that something actually reads it; a limit that nothing reads is a rule that nothing enforces.
 
-### B3. Read the code and fill the role table
+### B3. Read the code and decide the roles
 
 The scanner counts words; it does not understand them. Open the files where the top words occur and answer, for each role in the `SKILL.md` table, "which name in the code is this?".
 
@@ -54,7 +54,7 @@ The scanner counts words; it does not understand them. Open the files where the 
 | Supply cancellation | `CloseSlot` | `payment.go` |
 | Deadline, fallback channel, planned stop, reallocation | none in the code | |
 
-Write "none in the code" where the code has no such thing. A role the business has but the code lacks is itself a question for the business.
+Write "none in the code" where the code has no such thing. A role the business has but the code lacks is itself a question for the business. Record the roles as `role := some .<role>` on the terms when you write the glossary; leave a role untagged where the code has nothing, and `docs/generated/roles.md` shows it as none.
 
 While reading, write down three kinds of observation. They become claims in step 4 of the workflow.
 
