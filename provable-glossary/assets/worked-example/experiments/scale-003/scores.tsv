@@ -1,0 +1,26 @@
+item	variant	property	truth	boundary	fable	opus	sonnet
+01	212001	Q3	violated	near	correct	correct	correct
+02	122000	Q3	holds	near	correct	correct	correct
+03	233210	Q2	holds	near	correct	correct	correct
+04	201100	Q4	violated	near	correct	correct	correct
+05	101210	Q2	violated	near	correct	correct	correct
+06	231100	Q3	holds	far	correct	correct	correct
+07	202001	Q3	violated	far	correct	correct	correct
+08	233000	Q2	holds	near	correct	correct	correct
+09	221111	Q2	holds	far	correct	correct	correct
+10	223001	Q4	violated	near	correct	correct	correct
+11	213101	Q2	violated	far	correct	correct	correct
+12	133001	Q3	holds	near	correct	correct	correct
+13	121010	Q4	holds	far	correct	correct	correct
+14	231000	Q4	holds	far	correct	correct	correct
+15	113211	Q2	violated	far	correct	correct	correct
+16	121010	Q3	holds	far	correct	correct	correct
+17	211200	Q2	violated	near	correct	correct	correct
+18	103110	Q4	violated	far	correct	correct	correct
+19	122010	Q3	holds	near	correct	correct	correct
+20	102210	Q3	violated	far	correct	correct	correct
+21	122000	Q2	holds	near	correct	correct	correct
+22	201111	Q2	violated	near	correct	correct	correct
+23	121211	Q4	holds	far	correct	correct	correct
+24	213100	Q3	violated	far	correct	correct	correct
+total					24/24	24/24	24/24

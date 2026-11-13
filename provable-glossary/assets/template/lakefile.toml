@@ -1,0 +1,9 @@
+name = "glossary"
+defaultTargets = ["Glossary", "claims"]
+
+[[lean_lib]]
+name = "Glossary"
+
+[[lean_exe]]
+name = "claims"
+root = "Main"

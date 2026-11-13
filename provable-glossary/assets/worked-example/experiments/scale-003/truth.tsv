@@ -1,0 +1,1153 @@
+variant	property	verdict	counterexample_steps	distinct_states
+101000	Q1	holds		28
+101000	Q2	violated	5	18
+101000	Q3	violated	4	13
+101000	Q4	violated	3	7
+101001	Q1	holds		31
+101001	Q2	violated	6	23
+101001	Q3	violated	4	13
+101001	Q4	violated	3	7
+101010	Q1	holds		28
+101010	Q2	violated	5	23
+101010	Q3	violated	4	12
+101010	Q4	violated	3	7
+101011	Q1	holds		31
+101011	Q2	violated	6	23
+101011	Q3	violated	4	13
+101011	Q4	violated	3	7
+101100	Q1	holds		102
+101100	Q2	violated	5	66
+101100	Q3	violated	4	36
+101100	Q4	violated	3	22
+101101	Q1	holds		118
+101101	Q2	violated	6	83
+101101	Q3	violated	4	36
+101101	Q4	violated	3	15
+101110	Q1	holds		128
+101110	Q2	violated	5	75
+101110	Q3	violated	4	37
+101110	Q4	violated	3	32
+101111	Q1	holds		136
+101111	Q2	violated	6	90
+101111	Q3	violated	4	35
+101111	Q4	violated	3	32
+101200	Q1	holds		111
+101200	Q2	violated	5	65
+101200	Q3	violated	4	37
+101200	Q4	violated	3	23
+101201	Q1	holds		130
+101201	Q2	violated	6	90
+101201	Q3	violated	4	37
+101201	Q4	violated	3	23
+101210	Q1	holds		148
+101210	Q2	violated	5	56
+101210	Q3	violated	4	49
+101210	Q4	violated	3	23
+101211	Q1	holds		159
+101211	Q2	violated	6	102
+101211	Q3	violated	4	41
+101211	Q4	violated	3	32
+102000	Q1	holds		43
+102000	Q2	violated	5	40
+102000	Q3	violated	4	13
+102000	Q4	violated	3	7
+102001	Q1	holds		52
+102001	Q2	violated	6	42
+102001	Q3	violated	4	13
+102001	Q4	violated	3	7
+102010	Q1	holds		43
+102010	Q2	violated	5	40
+102010	Q3	violated	4	13
+102010	Q4	violated	3	7
+102011	Q1	holds		52
+102011	Q2	violated	6	43
+102011	Q3	violated	4	13
+102011	Q4	violated	3	7
+102100	Q1	holds		152
+102100	Q2	violated	5	90
+102100	Q3	violated	4	36
+102100	Q4	violated	3	16
+102101	Q1	holds		186
+102101	Q2	violated	6	130
+102101	Q3	violated	4	36
+102101	Q4	violated	3	22
+102110	Q1	holds		192
+102110	Q2	violated	5	76
+102110	Q3	violated	4	50
+102110	Q4	violated	3	32
+102111	Q1	holds		218
+102111	Q2	violated	6	91
+102111	Q3	violated	4	45
+102111	Q4	violated	3	11
+102200	Q1	holds		167
+102200	Q2	violated	5	73
+102200	Q3	violated	4	36
+102200	Q4	violated	3	22
+102201	Q1	holds		206
+102201	Q2	violated	6	124
+102201	Q3	violated	4	37
+102201	Q4	violated	3	22
+102210	Q1	holds		225
+102210	Q2	violated	5	106
+102210	Q3	violated	4	59
+102210	Q4	violated	3	36
+102211	Q1	holds		256
+102211	Q2	violated	6	149
+102211	Q3	violated	4	50
+102211	Q4	violated	3	40
+103000	Q1	holds		57
+103000	Q2	violated	5	43
+103000	Q3	violated	4	13
+103000	Q4	violated	3	7
+103001	Q1	holds		68
+103001	Q2	violated	6	58
+103001	Q3	violated	4	13
+103001	Q4	violated	3	7
+103010	Q1	holds		57
+103010	Q2	violated	5	47
+103010	Q3	violated	4	13
+103010	Q4	violated	3	7
+103011	Q1	holds		68
+103011	Q2	violated	6	58
+103011	Q3	violated	4	10
+103011	Q4	violated	3	7
+103100	Q1	holds		204
+103100	Q2	violated	5	85
+103100	Q3	violated	4	36
+103100	Q4	violated	3	11
+103101	Q1	holds		246
+103101	Q2	violated	6	116
+103101	Q3	violated	4	36
+103101	Q4	violated	3	22
+103110	Q1	holds		254
+103110	Q2	violated	5	49
+103110	Q3	violated	4	51
+103110	Q4	violated	3	34
+103111	Q1	holds		286
+103111	Q2	violated	6	75
+103111	Q3	violated	4	52
+103111	Q4	violated	3	34
+103200	Q1	holds		227
+103200	Q2	violated	5	74
+103200	Q3	violated	4	37
+103200	Q4	violated	3	23
+103201	Q1	holds		276
+103201	Q2	violated	6	143
+103201	Q3	violated	4	24
+103201	Q4	violated	3	23
+103210	Q1	holds		301
+103210	Q2	violated	5	122
+103210	Q3	violated	4	53
+103210	Q4	violated	3	38
+103211	Q1	holds		340
+103211	Q2	violated	6	135
+103211	Q3	violated	4	58
+103211	Q4	violated	3	45
+111000	Q1	holds		11
+111000	Q2	holds		11
+111000	Q3	holds		11
+111000	Q4	holds		11
+111001	Q1	holds		11
+111001	Q2	holds		11
+111001	Q3	holds		11
+111001	Q4	holds		11
+111010	Q1	holds		11
+111010	Q2	holds		11
+111010	Q3	holds		11
+111010	Q4	holds		11
+111011	Q1	holds		11
+111011	Q2	holds		11
+111011	Q3	holds		11
+111011	Q4	holds		11
+111100	Q1	holds		60
+111100	Q2	violated	8	50
+111100	Q3	violated	6	42
+111100	Q4	holds		60
+111101	Q1	holds		60
+111101	Q2	violated	9	50
+111101	Q3	violated	6	42
+111101	Q4	holds		60
+111110	Q1	holds		48
+111110	Q2	holds		48
+111110	Q3	holds		48
+111110	Q4	holds		48
+111111	Q1	holds		48
+111111	Q2	holds		48
+111111	Q3	holds		48
+111111	Q4	holds		48
+111200	Q1	holds		65
+111200	Q2	violated	8	55
+111200	Q3	violated	6	47
+111200	Q4	holds		65
+111201	Q1	holds		65
+111201	Q2	violated	9	55
+111201	Q3	violated	6	47
+111201	Q4	holds		65
+111210	Q1	holds		57
+111210	Q2	holds		57
+111210	Q3	holds		57
+111210	Q4	holds		57
+111211	Q1	holds		57
+111211	Q2	holds		57
+111211	Q3	holds		57
+111211	Q4	holds		57
+112000	Q1	holds		40
+112000	Q2	violated	6	29
+112000	Q3	violated	5	19
+112000	Q4	violated	4	13
+112001	Q1	holds		39
+112001	Q2	violated	7	27
+112001	Q3	violated	5	19
+112001	Q4	violated	4	13
+112010	Q1	holds		40
+112010	Q2	violated	6	29
+112010	Q3	violated	5	19
+112010	Q4	violated	4	13
+112011	Q1	holds		39
+112011	Q2	violated	7	27
+112011	Q3	violated	5	19
+112011	Q4	violated	4	13
+112100	Q1	holds		154
+112100	Q2	violated	7	84
+112100	Q3	violated	5	60
+112100	Q4	violated	4	68
+112101	Q1	holds		150
+112101	Q2	violated	7	91
+112101	Q3	violated	5	60
+112101	Q4	violated	4	68
+112110	Q1	holds		176
+112110	Q2	violated	6	103
+112110	Q3	violated	5	68
+112110	Q4	violated	4	56
+112111	Q1	holds		172
+112111	Q2	violated	7	110
+112111	Q3	violated	5	62
+112111	Q4	violated	4	44
+112200	Q1	holds		176
+112200	Q2	violated	6	90
+112200	Q3	violated	5	61
+112200	Q4	violated	4	36
+112201	Q1	holds		173
+112201	Q2	violated	7	106
+112201	Q3	violated	5	63
+112201	Q4	violated	4	58
+112210	Q1	holds		216
+112210	Q2	violated	6	119
+112210	Q3	violated	5	81
+112210	Q4	violated	4	69
+112211	Q1	holds		211
+112211	Q2	violated	7	132
+112211	Q3	violated	5	81
+112211	Q4	violated	4	69
+113000	Q1	holds		60
+113000	Q2	violated	6	33
+113000	Q3	violated	5	19
+113000	Q4	violated	4	13
+113001	Q1	holds		59
+113001	Q2	violated	7	51
+113001	Q3	violated	5	19
+113001	Q4	violated	4	13
+113010	Q1	holds		60
+113010	Q2	violated	6	35
+113010	Q3	violated	5	19
+113010	Q4	violated	4	13
+113011	Q1	holds		59
+113011	Q2	violated	7	51
+113011	Q3	violated	5	19
+113011	Q4	violated	4	13
+113100	Q1	holds		224
+113100	Q2	violated	6	90
+113100	Q3	violated	5	60
+113100	Q4	violated	4	68
+113101	Q1	holds		222
+113101	Q2	violated	7	136
+113101	Q3	violated	5	60
+113101	Q4	violated	4	62
+113110	Q1	holds		256
+113110	Q2	violated	6	132
+113110	Q3	violated	5	74
+113110	Q4	violated	4	58
+113111	Q1	holds		252
+113111	Q2	violated	7	149
+113111	Q3	violated	5	71
+113111	Q4	violated	7	58
+113200	Q1	holds		253
+113200	Q2	violated	6	119
+113200	Q3	violated	5	64
+113200	Q4	violated	4	42
+113201	Q1	holds		250
+113201	Q2	violated	7	139
+113201	Q3	violated	5	63
+113201	Q4	violated	4	33
+113210	Q1	holds		312
+113210	Q2	violated	6	101
+113210	Q3	violated	5	88
+113210	Q4	violated	4	74
+113211	Q1	holds		307
+113211	Q2	violated	7	139
+113211	Q3	violated	5	94
+113211	Q4	violated	4	75
+121000	Q1	holds		11
+121000	Q2	holds		11
+121000	Q3	holds		11
+121000	Q4	holds		11
+121001	Q1	holds		11
+121001	Q2	holds		11
+121001	Q3	holds		11
+121001	Q4	holds		11
+121010	Q1	holds		11
+121010	Q2	holds		11
+121010	Q3	holds		11
+121010	Q4	holds		11
+121011	Q1	holds		11
+121011	Q2	holds		11
+121011	Q3	holds		11
+121011	Q4	holds		11
+121100	Q1	holds		44
+121100	Q2	holds		44
+121100	Q3	holds		44
+121100	Q4	holds		44
+121101	Q1	holds		44
+121101	Q2	holds		44
+121101	Q3	holds		44
+121101	Q4	holds		44
+121110	Q1	holds		48
+121110	Q2	holds		48
+121110	Q3	holds		48
+121110	Q4	holds		48
+121111	Q1	holds		48
+121111	Q2	holds		48
+121111	Q3	holds		48
+121111	Q4	holds		48
+121200	Q1	holds		69
+121200	Q2	violated	9	59
+121200	Q3	violated	7	51
+121200	Q4	holds		69
+121201	Q1	holds		69
+121201	Q2	violated	10	59
+121201	Q3	violated	7	51
+121201	Q4	holds		69
+121210	Q1	holds		57
+121210	Q2	holds		57
+121210	Q3	holds		57
+121210	Q4	holds		57
+121211	Q1	holds		57
+121211	Q2	holds		57
+121211	Q3	holds		57
+121211	Q4	holds		57
+122000	Q1	holds		15
+122000	Q2	holds		15
+122000	Q3	holds		15
+122000	Q4	holds		15
+122001	Q1	holds		15
+122001	Q2	holds		15
+122001	Q3	holds		15
+122001	Q4	holds		15
+122010	Q1	holds		15
+122010	Q2	holds		15
+122010	Q3	holds		15
+122010	Q4	holds		15
+122011	Q1	holds		15
+122011	Q2	holds		15
+122011	Q3	holds		15
+122011	Q4	holds		15
+122100	Q1	holds		80
+122100	Q2	violated	9	66
+122100	Q3	violated	7	58
+122100	Q4	holds		80
+122101	Q1	holds		80
+122101	Q2	violated	10	66
+122101	Q3	violated	7	58
+122101	Q4	holds		80
+122110	Q1	holds		66
+122110	Q2	holds		66
+122110	Q3	holds		66
+122110	Q4	holds		66
+122111	Q1	holds		66
+122111	Q2	holds		66
+122111	Q3	holds		66
+122111	Q4	holds		66
+122200	Q1	holds		89
+122200	Q2	violated	9	75
+122200	Q3	violated	7	67
+122200	Q4	holds		89
+122201	Q1	holds		89
+122201	Q2	violated	10	75
+122201	Q3	violated	7	67
+122201	Q4	holds		89
+122210	Q1	holds		81
+122210	Q2	holds		81
+122210	Q3	holds		81
+122210	Q4	holds		81
+122211	Q1	holds		81
+122211	Q2	holds		81
+122211	Q3	holds		81
+122211	Q4	holds		81
+123000	Q1	holds		48
+123000	Q2	violated	7	33
+123000	Q3	violated	6	23
+123000	Q4	violated	5	17
+123001	Q1	holds		47
+123001	Q2	violated	8	31
+123001	Q3	violated	6	23
+123001	Q4	violated	5	17
+123010	Q1	holds		48
+123010	Q2	violated	7	33
+123010	Q3	violated	6	23
+123010	Q4	violated	5	17
+123011	Q1	holds		47
+123011	Q2	violated	8	31
+123011	Q3	violated	6	23
+123011	Q4	violated	5	17
+123100	Q1	holds		186
+123100	Q2	violated	7	103
+123100	Q3	violated	7	76
+123100	Q4	violated	5	88
+123101	Q1	holds		182
+123101	Q2	violated	8	114
+123101	Q3	violated	6	76
+123101	Q4	violated	5	71
+123110	Q1	holds		212
+123110	Q2	violated	7	114
+123110	Q3	violated	6	86
+123110	Q4	violated	5	74
+123111	Q1	holds		208
+123111	Q2	violated	8	128
+123111	Q3	violated	6	86
+123111	Q4	violated	5	74
+123200	Q1	holds		218
+123200	Q2	violated	7	116
+123200	Q3	violated	7	83
+123200	Q4	violated	5	62
+123201	Q1	holds		213
+123201	Q2	violated	8	130
+123201	Q3	violated	7	85
+123201	Q4	violated	5	99
+123210	Q1	holds		264
+123210	Q2	violated	7	135
+123210	Q3	violated	6	95
+123210	Q4	violated	5	93
+123211	Q1	holds		259
+123211	Q2	violated	8	155
+123211	Q3	violated	6	104
+123211	Q4	violated	5	93
+131000	Q1	holds		11
+131000	Q2	holds		11
+131000	Q3	holds		11
+131000	Q4	holds		11
+131001	Q1	holds		11
+131001	Q2	holds		11
+131001	Q3	holds		11
+131001	Q4	holds		11
+131010	Q1	holds		11
+131010	Q2	holds		11
+131010	Q3	holds		11
+131010	Q4	holds		11
+131011	Q1	holds		11
+131011	Q2	holds		11
+131011	Q3	holds		11
+131011	Q4	holds		11
+131100	Q1	holds		44
+131100	Q2	holds		44
+131100	Q3	holds		44
+131100	Q4	holds		44
+131101	Q1	holds		44
+131101	Q2	holds		44
+131101	Q3	holds		44
+131101	Q4	holds		44
+131110	Q1	holds		48
+131110	Q2	holds		48
+131110	Q3	holds		48
+131110	Q4	holds		48
+131111	Q1	holds		48
+131111	Q2	holds		48
+131111	Q3	holds		48
+131111	Q4	holds		48
+131200	Q1	holds		53
+131200	Q2	holds		53
+131200	Q3	holds		53
+131200	Q4	holds		53
+131201	Q1	holds		53
+131201	Q2	holds		53
+131201	Q3	holds		53
+131201	Q4	holds		53
+131210	Q1	holds		57
+131210	Q2	holds		57
+131210	Q3	holds		57
+131210	Q4	holds		57
+131211	Q1	holds		57
+131211	Q2	holds		57
+131211	Q3	holds		57
+131211	Q4	holds		57
+132000	Q1	holds		15
+132000	Q2	holds		15
+132000	Q3	holds		15
+132000	Q4	holds		15
+132001	Q1	holds		15
+132001	Q2	holds		15
+132001	Q3	holds		15
+132001	Q4	holds		15
+132010	Q1	holds		15
+132010	Q2	holds		15
+132010	Q3	holds		15
+132010	Q4	holds		15
+132011	Q1	holds		15
+132011	Q2	holds		15
+132011	Q3	holds		15
+132011	Q4	holds		15
+132100	Q1	holds		60
+132100	Q2	holds		60
+132100	Q3	holds		60
+132100	Q4	holds		60
+132101	Q1	holds		60
+132101	Q2	holds		60
+132101	Q3	holds		60
+132101	Q4	holds		60
+132110	Q1	holds		66
+132110	Q2	holds		66
+132110	Q3	holds		66
+132110	Q4	holds		66
+132111	Q1	holds		66
+132111	Q2	holds		66
+132111	Q3	holds		66
+132111	Q4	holds		66
+132200	Q1	holds		93
+132200	Q2	violated	10	79
+132200	Q3	violated	8	71
+132200	Q4	holds		93
+132201	Q1	holds		93
+132201	Q2	violated	11	79
+132201	Q3	violated	8	71
+132201	Q4	holds		93
+132210	Q1	holds		81
+132210	Q2	holds		81
+132210	Q3	holds		81
+132210	Q4	holds		81
+132211	Q1	holds		81
+132211	Q2	holds		81
+132211	Q3	holds		81
+132211	Q4	holds		81
+133000	Q1	holds		19
+133000	Q2	holds		19
+133000	Q3	holds		19
+133000	Q4	holds		19
+133001	Q1	holds		19
+133001	Q2	holds		19
+133001	Q3	holds		19
+133001	Q4	holds		19
+133010	Q1	holds		19
+133010	Q2	holds		19
+133010	Q3	holds		19
+133010	Q4	holds		19
+133011	Q1	holds		19
+133011	Q2	holds		19
+133011	Q3	holds		19
+133011	Q4	holds		19
+133100	Q1	holds		100
+133100	Q2	violated	10	82
+133100	Q3	violated	8	74
+133100	Q4	holds		100
+133101	Q1	holds		100
+133101	Q2	violated	11	82
+133101	Q3	violated	8	74
+133101	Q4	holds		100
+133110	Q1	holds		84
+133110	Q2	holds		84
+133110	Q3	holds		84
+133110	Q4	holds		84
+133111	Q1	holds		84
+133111	Q2	holds		84
+133111	Q3	holds		84
+133111	Q4	holds		84
+133200	Q1	holds		113
+133200	Q2	violated	10	95
+133200	Q3	violated	8	87
+133200	Q4	holds		113
+133201	Q1	holds		113
+133201	Q2	violated	11	95
+133201	Q3	violated	8	87
+133201	Q4	holds		113
+133210	Q1	holds		105
+133210	Q2	holds		105
+133210	Q3	holds		105
+133210	Q4	holds		105
+133211	Q1	holds		105
+133211	Q2	holds		105
+133211	Q3	holds		105
+133211	Q4	holds		105
+201000	Q1	holds		48
+201000	Q2	violated	6	33
+201000	Q3	violated	5	23
+201000	Q4	violated	4	17
+201001	Q1	holds		47
+201001	Q2	violated	7	31
+201001	Q3	violated	5	23
+201001	Q4	violated	4	17
+201010	Q1	holds		48
+201010	Q2	violated	6	33
+201010	Q3	violated	5	23
+201010	Q4	violated	4	17
+201011	Q1	holds		47
+201011	Q2	violated	7	31
+201011	Q3	violated	5	23
+201011	Q4	violated	4	17
+201100	Q1	holds		188
+201100	Q2	violated	6	107
+201100	Q3	violated	5	74
+201100	Q4	violated	6	86
+201101	Q1	holds		184
+201101	Q2	violated	9	115
+201101	Q3	violated	5	74
+201101	Q4	violated	4	86
+201110	Q1	holds		200
+201110	Q2	violated	6	114
+201110	Q3	violated	5	80
+201110	Q4	violated	4	68
+201111	Q1	holds		196
+201111	Q2	violated	7	120
+201111	Q3	violated	5	80
+201111	Q4	violated	4	68
+201200	Q1	holds		202
+201200	Q2	violated	6	108
+201200	Q3	violated	6	77
+201200	Q4	violated	6	91
+201201	Q1	holds		197
+201201	Q2	violated	7	121
+201201	Q3	violated	5	73
+201201	Q4	violated	4	75
+201210	Q1	holds		232
+201210	Q2	violated	6	133
+201210	Q3	violated	5	91
+201210	Q4	violated	4	79
+201211	Q1	holds		227
+201211	Q2	violated	7	137
+201211	Q3	violated	5	91
+201211	Q4	violated	4	79
+202000	Q1	holds		76
+202000	Q2	violated	6	52
+202000	Q3	violated	5	29
+202000	Q4	violated	4	19
+202001	Q1	holds		75
+202001	Q2	violated	7	60
+202001	Q3	violated	5	29
+202001	Q4	violated	4	19
+202010	Q1	holds		76
+202010	Q2	violated	6	59
+202010	Q3	violated	5	39
+202010	Q4	violated	4	19
+202011	Q1	holds		75
+202011	Q2	violated	7	58
+202011	Q3	violated	5	33
+202011	Q4	violated	4	19
+202100	Q1	holds		284
+202100	Q2	violated	6	134
+202100	Q3	violated	5	88
+202100	Q4	violated	4	51
+202101	Q1	holds		282
+202101	Q2	violated	7	160
+202101	Q3	violated	5	83
+202101	Q4	violated	4	56
+202110	Q1	holds		316
+202110	Q2	violated	6	159
+202110	Q3	violated	5	98
+202110	Q4	violated	4	76
+202111	Q1	holds		312
+202111	Q2	violated	7	151
+202111	Q3	violated	5	98
+202111	Q4	violated	4	74
+202200	Q1	holds		305
+202200	Q2	violated	6	129
+202200	Q3	violated	5	79
+202200	Q4	violated	4	58
+202201	Q1	holds		302
+202201	Q2	violated	7	168
+202201	Q3	violated	5	85
+202201	Q4	violated	4	56
+202210	Q1	holds		372
+202210	Q2	violated	6	173
+202210	Q3	violated	5	99
+202210	Q4	violated	4	64
+202211	Q1	holds		367
+202211	Q2	violated	7	199
+202211	Q3	violated	5	114
+202211	Q4	violated	4	89
+203000	Q1	holds		105
+203000	Q2	violated	6	68
+203000	Q3	violated	5	42
+203000	Q4	violated	4	19
+203001	Q1	holds		106
+203001	Q2	violated	7	85
+203001	Q3	violated	5	39
+203001	Q4	violated	4	19
+203010	Q1	holds		105
+203010	Q2	violated	6	74
+203010	Q3	violated	5	29
+203010	Q4	violated	4	19
+203011	Q1	holds		106
+203011	Q2	violated	7	75
+203011	Q3	violated	5	30
+203011	Q4	violated	4	19
+203100	Q1	holds		384
+203100	Q2	violated	6	135
+203100	Q3	violated	5	75
+203100	Q4	violated	4	61
+203101	Q1	holds		388
+203101	Q2	violated	7	197
+203101	Q3	violated	5	78
+203101	Q4	violated	4	59
+203110	Q1	holds		434
+203110	Q2	violated	6	147
+203110	Q3	violated	5	101
+203110	Q4	violated	4	65
+203111	Q1	holds		438
+203111	Q2	violated	7	221
+203111	Q3	violated	5	103
+203111	Q4	violated	4	77
+203200	Q1	holds		413
+203200	Q2	violated	6	176
+203200	Q3	violated	5	90
+203200	Q4	violated	4	55
+203201	Q1	holds		418
+203201	Q2	violated	7	206
+203201	Q3	violated	5	77
+203201	Q4	violated	4	53
+203210	Q1	holds		517
+203210	Q2	violated	6	132
+203210	Q3	violated	5	121
+203210	Q4	violated	4	91
+203211	Q1	holds		522
+203211	Q2	violated	7	235
+203211	Q3	violated	5	117
+203211	Q4	violated	4	89
+211000	Q1	holds		19
+211000	Q2	holds		19
+211000	Q3	holds		19
+211000	Q4	holds		19
+211001	Q1	holds		19
+211001	Q2	holds		19
+211001	Q3	holds		19
+211001	Q4	holds		19
+211010	Q1	holds		19
+211010	Q2	holds		19
+211010	Q3	holds		19
+211010	Q4	holds		19
+211011	Q1	holds		19
+211011	Q2	holds		19
+211011	Q3	holds		19
+211011	Q4	holds		19
+211100	Q1	holds		98
+211100	Q2	violated	9	80
+211100	Q3	violated	7	72
+211100	Q4	holds		98
+211101	Q1	holds		98
+211101	Q2	violated	10	80
+211101	Q3	violated	7	72
+211101	Q4	holds		98
+211110	Q1	holds		78
+211110	Q2	holds		78
+211110	Q3	holds		78
+211110	Q4	holds		78
+211111	Q1	holds		78
+211111	Q2	holds		78
+211111	Q3	holds		78
+211111	Q4	holds		78
+211200	Q1	holds		105
+211200	Q2	violated	9	87
+211200	Q3	violated	7	79
+211200	Q4	holds		105
+211201	Q1	holds		105
+211201	Q2	violated	10	87
+211201	Q3	violated	7	79
+211201	Q4	holds		105
+211210	Q1	holds		91
+211210	Q2	holds		91
+211210	Q3	holds		91
+211210	Q4	holds		91
+211211	Q1	holds		91
+211211	Q2	holds		91
+211211	Q3	holds		91
+211211	Q4	holds		91
+212000	Q1	holds		60
+212000	Q2	violated	7	37
+212000	Q3	violated	6	29
+212000	Q4	violated	5	23
+212001	Q1	holds		59
+212001	Q2	violated	8	37
+212001	Q3	violated	6	29
+212001	Q4	violated	5	23
+212010	Q1	holds		60
+212010	Q2	violated	7	34
+212010	Q3	violated	6	29
+212010	Q4	violated	5	23
+212011	Q1	holds		59
+212011	Q2	violated	8	37
+212011	Q3	violated	6	28
+212011	Q4	violated	5	23
+212100	Q1	holds		236
+212100	Q2	violated	7	128
+212100	Q3	violated	6	98
+212100	Q4	violated	5	85
+212101	Q1	holds		232
+212101	Q2	violated	10	140
+212101	Q3	violated	6	98
+212101	Q4	violated	5	87
+212110	Q1	holds		252
+212110	Q2	violated	8	138
+212110	Q3	violated	6	106
+212110	Q4	violated	5	94
+212111	Q1	holds		248
+212111	Q2	violated	8	142
+212111	Q3	violated	6	106
+212111	Q4	violated	5	94
+212200	Q1	holds		268
+212200	Q2	violated	7	141
+212200	Q3	violated	6	106
+212200	Q4	violated	5	127
+212201	Q1	holds		263
+212201	Q2	violated	8	153
+212201	Q3	violated	6	96
+212201	Q4	violated	5	127
+212210	Q1	holds		304
+212210	Q2	violated	7	160
+212210	Q3	violated	6	125
+212210	Q4	violated	5	113
+212211	Q1	holds		299
+212211	Q2	violated	8	172
+212211	Q3	violated	6	119
+212211	Q4	violated	5	98
+213000	Q1	holds		88
+213000	Q2	violated	7	64
+213000	Q3	violated	6	43
+213000	Q4	violated	5	25
+213001	Q1	holds		87
+213001	Q2	violated	8	63
+213001	Q3	violated	6	35
+213001	Q4	violated	5	25
+213010	Q1	holds		88
+213010	Q2	violated	7	64
+213010	Q3	violated	6	36
+213010	Q4	violated	5	25
+213011	Q1	holds		87
+213011	Q2	violated	8	66
+213011	Q3	violated	6	45
+213011	Q4	violated	5	25
+213100	Q1	holds		334
+213100	Q2	violated	7	169
+213100	Q3	violated	6	113
+213100	Q4	violated	5	80
+213101	Q1	holds		330
+213101	Q2	violated	8	183
+213101	Q3	violated	6	106
+213101	Q4	violated	5	67
+213110	Q1	holds		368
+213110	Q2	violated	7	168
+213110	Q3	violated	6	123
+213110	Q4	violated	5	102
+213111	Q1	holds		364
+213111	Q2	violated	8	205
+213111	Q3	violated	6	120
+213111	Q4	violated	5	73
+213200	Q1	holds		378
+213200	Q2	violated	7	173
+213200	Q3	violated	6	122
+213200	Q4	violated	5	92
+213201	Q1	holds		375
+213201	Q2	violated	8	181
+213201	Q3	violated	6	119
+213201	Q4	violated	5	74
+213210	Q1	holds		444
+213210	Q2	violated	7	149
+213210	Q3	violated	6	140
+213210	Q4	violated	5	89
+213211	Q1	holds		439
+213211	Q2	violated	8	230
+213211	Q3	violated	6	149
+213211	Q4	violated	5	127
+221000	Q1	holds		19
+221000	Q2	holds		19
+221000	Q3	holds		19
+221000	Q4	holds		19
+221001	Q1	holds		19
+221001	Q2	holds		19
+221001	Q3	holds		19
+221001	Q4	holds		19
+221010	Q1	holds		19
+221010	Q2	holds		19
+221010	Q3	holds		19
+221010	Q4	holds		19
+221011	Q1	holds		19
+221011	Q2	holds		19
+221011	Q3	holds		19
+221011	Q4	holds		19
+221100	Q1	holds		74
+221100	Q2	holds		74
+221100	Q3	holds		74
+221100	Q4	holds		74
+221101	Q1	holds		74
+221101	Q2	holds		74
+221101	Q3	holds		74
+221101	Q4	holds		74
+221110	Q1	holds		78
+221110	Q2	holds		78
+221110	Q3	holds		78
+221110	Q4	holds		78
+221111	Q1	holds		78
+221111	Q2	holds		78
+221111	Q3	holds		78
+221111	Q4	holds		78
+221200	Q1	holds		109
+221200	Q2	violated	10	91
+221200	Q3	violated	8	83
+221200	Q4	holds		109
+221201	Q1	holds		109
+221201	Q2	violated	11	91
+221201	Q3	violated	8	83
+221201	Q4	holds		109
+221210	Q1	holds		91
+221210	Q2	holds		91
+221210	Q3	holds		91
+221210	Q4	holds		91
+221211	Q1	holds		91
+221211	Q2	holds		91
+221211	Q3	holds		91
+221211	Q4	holds		91
+222000	Q1	holds		25
+222000	Q2	holds		25
+222000	Q3	holds		25
+222000	Q4	holds		25
+222001	Q1	holds		25
+222001	Q2	holds		25
+222001	Q3	holds		25
+222001	Q4	holds		25
+222010	Q1	holds		25
+222010	Q2	holds		25
+222010	Q3	holds		25
+222010	Q4	holds		25
+222011	Q1	holds		25
+222011	Q2	holds		25
+222011	Q3	holds		25
+222011	Q4	holds		25
+222100	Q1	holds		128
+222100	Q2	violated	10	104
+222100	Q3	violated	8	96
+222100	Q4	holds		128
+222101	Q1	holds		128
+222101	Q2	violated	11	104
+222101	Q3	violated	8	96
+222101	Q4	holds		128
+222110	Q1	holds		104
+222110	Q2	holds		104
+222110	Q3	holds		104
+222110	Q4	holds		104
+222111	Q1	holds		104
+222111	Q2	holds		104
+222111	Q3	holds		104
+222111	Q4	holds		104
+222200	Q1	holds		141
+222200	Q2	violated	10	117
+222200	Q3	violated	8	109
+222200	Q4	holds		141
+222201	Q1	holds		141
+222201	Q2	violated	11	117
+222201	Q3	violated	8	109
+222201	Q4	holds		141
+222210	Q1	holds		125
+222210	Q2	holds		125
+222210	Q3	holds		125
+222210	Q4	holds		125
+222211	Q1	holds		125
+222211	Q2	holds		125
+222211	Q3	holds		125
+222211	Q4	holds		125
+223000	Q1	holds		72
+223000	Q2	violated	8	45
+223000	Q3	violated	7	35
+223000	Q4	violated	6	29
+223001	Q1	holds		71
+223001	Q2	violated	10	43
+223001	Q3	violated	7	35
+223001	Q4	violated	6	29
+223010	Q1	holds		72
+223010	Q2	violated	8	45
+223010	Q3	violated	7	35
+223010	Q4	violated	6	29
+223011	Q1	holds		71
+223011	Q2	violated	9	43
+223011	Q3	violated	7	35
+223011	Q4	violated	6	29
+223100	Q1	holds		284
+223100	Q2	violated	9	154
+223100	Q3	violated	7	122
+223100	Q4	violated	6	146
+223101	Q1	holds		280
+223101	Q2	violated	9	163
+223101	Q3	violated	7	122
+223101	Q4	violated	6	146
+223110	Q1	holds		304
+223110	Q2	violated	8	161
+223110	Q3	violated	7	132
+223110	Q4	violated	6	114
+223111	Q1	holds		300
+223111	Q2	violated	9	168
+223111	Q3	violated	7	132
+223111	Q4	violated	6	120
+223200	Q1	holds		328
+223200	Q2	violated	8	167
+223200	Q3	violated	7	136
+223200	Q4	violated	6	120
+223201	Q1	holds		323
+223201	Q2	violated	12	180
+223201	Q3	violated	7	136
+223201	Q4	violated	6	137
+223210	Q1	holds		372
+223210	Q2	violated	11	187
+223210	Q3	violated	7	159
+223210	Q4	violated	6	147
+223211	Q1	holds		367
+223211	Q2	violated	9	209
+223211	Q3	violated	7	159
+223211	Q4	violated	6	147
+231000	Q1	holds		19
+231000	Q2	holds		19
+231000	Q3	holds		19
+231000	Q4	holds		19
+231001	Q1	holds		19
+231001	Q2	holds		19
+231001	Q3	holds		19
+231001	Q4	holds		19
+231010	Q1	holds		19
+231010	Q2	holds		19
+231010	Q3	holds		19
+231010	Q4	holds		19
+231011	Q1	holds		19
+231011	Q2	holds		19
+231011	Q3	holds		19
+231011	Q4	holds		19
+231100	Q1	holds		74
+231100	Q2	holds		74
+231100	Q3	holds		74
+231100	Q4	holds		74
+231101	Q1	holds		74
+231101	Q2	holds		74
+231101	Q3	holds		74
+231101	Q4	holds		74
+231110	Q1	holds		78
+231110	Q2	holds		78
+231110	Q3	holds		78
+231110	Q4	holds		78
+231111	Q1	holds		78
+231111	Q2	holds		78
+231111	Q3	holds		78
+231111	Q4	holds		78
+231200	Q1	holds		85
+231200	Q2	holds		85
+231200	Q3	holds		85
+231200	Q4	holds		85
+231201	Q1	holds		85
+231201	Q2	holds		85
+231201	Q3	holds		85
+231201	Q4	holds		85
+231210	Q1	holds		91
+231210	Q2	holds		91
+231210	Q3	holds		91
+231210	Q4	holds		91
+231211	Q1	holds		91
+231211	Q2	holds		91
+231211	Q3	holds		91
+231211	Q4	holds		91
+232000	Q1	holds		25
+232000	Q2	holds		25
+232000	Q3	holds		25
+232000	Q4	holds		25
+232001	Q1	holds		25
+232001	Q2	holds		25
+232001	Q3	holds		25
+232001	Q4	holds		25
+232010	Q1	holds		25
+232010	Q2	holds		25
+232010	Q3	holds		25
+232010	Q4	holds		25
+232011	Q1	holds		25
+232011	Q2	holds		25
+232011	Q3	holds		25
+232011	Q4	holds		25
+232100	Q1	holds		98
+232100	Q2	holds		98
+232100	Q3	holds		98
+232100	Q4	holds		98
+232101	Q1	holds		98
+232101	Q2	holds		98
+232101	Q3	holds		98
+232101	Q4	holds		98
+232110	Q1	holds		104
+232110	Q2	holds		104
+232110	Q3	holds		104
+232110	Q4	holds		104
+232111	Q1	holds		104
+232111	Q2	holds		104
+232111	Q3	holds		104
+232111	Q4	holds		104
+232200	Q1	holds		145
+232200	Q2	violated	11	121
+232200	Q3	violated	9	113
+232200	Q4	holds		145
+232201	Q1	holds		145
+232201	Q2	violated	12	121
+232201	Q3	violated	9	113
+232201	Q4	holds		145
+232210	Q1	holds		125
+232210	Q2	holds		125
+232210	Q3	holds		125
+232210	Q4	holds		125
+232211	Q1	holds		125
+232211	Q2	holds		125
+232211	Q3	holds		125
+232211	Q4	holds		125
+233000	Q1	holds		31
+233000	Q2	holds		31
+233000	Q3	holds		31
+233000	Q4	holds		31
+233001	Q1	holds		31
+233001	Q2	holds		31
+233001	Q3	holds		31
+233001	Q4	holds		31
+233010	Q1	holds		31
+233010	Q2	holds		31
+233010	Q3	holds		31
+233010	Q4	holds		31
+233011	Q1	holds		31
+233011	Q2	holds		31
+233011	Q3	holds		31
+233011	Q4	holds		31
+233100	Q1	holds		158
+233100	Q2	violated	11	128
+233100	Q3	violated	9	120
+233100	Q4	holds		158
+233101	Q1	holds		158
+233101	Q2	violated	12	128
+233101	Q3	violated	9	120
+233101	Q4	holds		158
+233110	Q1	holds		130
+233110	Q2	holds		130
+233110	Q3	holds		130
+233110	Q4	holds		130
+233111	Q1	holds		130
+233111	Q2	holds		130
+233111	Q3	holds		130
+233111	Q4	holds		130
+233200	Q1	holds		177
+233200	Q2	violated	11	147
+233200	Q3	violated	9	139
+233200	Q4	holds		177
+233201	Q1	holds		177
+233201	Q2	violated	12	147
+233201	Q3	violated	9	139
+233201	Q4	holds		177
+233210	Q1	holds		159
+233210	Q2	holds		159
+233210	Q3	holds		159
+233210	Q4	holds		159
+233211	Q1	holds		159
+233211	Q2	holds		159
+233211	Q3	holds		159
+233211	Q4	holds		159

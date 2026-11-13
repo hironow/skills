@@ -1,0 +1,25 @@
+item	variant	property	truth	boundary	counterexample_steps	distinct_states
+01	212001	Q3	violated	near	6	29
+02	122000	Q3	holds	near		15
+03	233210	Q2	holds	near		159
+04	201100	Q4	violated	near	6	86
+05	101210	Q2	violated	near	5	56
+06	231100	Q3	holds	far		74
+07	202001	Q3	violated	far	5	29
+08	233000	Q2	holds	near		31
+09	221111	Q2	holds	far		78
+10	223001	Q4	violated	near	6	29
+11	213101	Q2	violated	far	8	183
+12	133001	Q3	holds	near		19
+13	121010	Q4	holds	far		11
+14	231000	Q4	holds	far		19
+15	113211	Q2	violated	far	7	139
+16	121010	Q3	holds	far		11
+17	211200	Q2	violated	near	9	87
+18	103110	Q4	violated	far	3	34
+19	122010	Q3	holds	near		15
+20	102210	Q3	violated	far	4	59
+21	122000	Q2	holds	near		15
+22	201111	Q2	violated	near	7	120
+23	121211	Q4	holds	far		57
+24	213100	Q3	violated	far	6	113
