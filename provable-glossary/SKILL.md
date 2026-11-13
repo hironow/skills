@@ -162,7 +162,7 @@ Pick the patterns in `references/patterns.md` that fit the role table and write 
 1. Write the naive design and show, with a counterexample, that a wanted property breaks.
 2. Repair the design one step at a time. Record as claims the counterexample that disappeared and any new one that appeared.
 3. Add to the glossary every concept the repair needed.
-4. Turn what the design cannot settle into an undecided claim: a question for the business, with the counterexample that shows the gap.
+4. Turn what the design cannot settle into an undecided claim: a question for the business, with the counterexample that shows the gap. A question no model can show gets `.questionOutsideModel "<reason>"` instead; `just check` (question-check) refuses a question with neither.
 
 For the stop scene (pattern 4), put the stop term in the `about` of its counterexample and of the claim that holds, then declare `stopScene := .modelled` on the book.
 

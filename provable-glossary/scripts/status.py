@@ -16,7 +16,7 @@ import sys
 
 from detect_start import CODE_SUFFIXES
 from glossary_project import just, just_prefix, locate, repo_root, walk_files
-from stop_scene import roles_tagged, stop_scene
+from generated_lines import question_counts, roles_tagged, stop_scene
 
 URL = re.compile(r"https?://[^\s)>\]|]+")
 
@@ -60,6 +60,11 @@ def main() -> int:
     item(1, undecided >= 3, f"at least 3 open questions recorded as undecided claims ({undecided} now)",
          "turn what the design cannot settle into `.question` claims")
 
+    counts = question_counts(read(project / "docs" / "generated" / "questions.md"))
+    total_q, witnessed_q = counts if counts else (0, 0)
+    item(1, witnessed_q >= 1, f"questions rest on evidence: {witnessed_q} of {total_q} backed by a counterexample",
+         "give each question the counterexamples that show the gap (.question [...]), or say why no model can "
+         "(.questionOutsideModel \"<reason>\"); question-check verifies it. Then `just generate`")
     roles_md = read(project / "docs" / "generated" / "roles.md")
     stop_ok, stop_note = stop_scene(roles_md)
     item(1, stop_ok, "the stop scene is declared in the glossary and verified (docs/generated/roles.md)",

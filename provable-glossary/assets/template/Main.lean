@@ -1,5 +1,6 @@
 import Glossary.Registry
 import Glossary.StopScene
+import Glossary.Questions
 
 /-!
 Prints the list of checks and writes the generated documents.
@@ -8,6 +9,7 @@ Prints the list of checks and writes the generated documents.
   claims anchors     the code anchors, tab-separated: term ID, anchor
   claims terms       every term ID, one per line
   claims stop        check the stop-scene declarations; exit 1 and list the problems if any
+  claims questions   check that every question states its basis; exit 1 and list the problems if any
 
 This file is the same for every domain. Register glossaries in `Glossary/Registry.lean`.
 -/
@@ -43,10 +45,19 @@ def main (args : List String) : IO UInt32 := do
       return 0
     else
       return 1
+  | ["questions"] =>
+    let problems := questionProblems books
+    for p in problems do
+      IO.eprintln s!"question-check: {p}"
+    if problems.isEmpty then
+      IO.println "question-check: every question rests on counterexamples or says why no model shows it"
+      return 0
+    else
+      return 1
   | ["terms"] =>
     for l in termIds books do
       IO.println l
     return 0
   | _ =>
-    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms | stop)"
+    IO.eprintln "usage: claims (gate | docs <dir> | anchors | terms | stop | questions)"
     return 2

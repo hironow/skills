@@ -39,7 +39,7 @@ Keep models small. Start with one resource and two parties. Add more only after 
 - **Question**: Do the written business rules decide every operation in every reachable state?
 - **How**: Copy the rules into a table that returns allowed, forbidden, or unspecified. Leave unwritten combinations unspecified; do not fill them by guessing. Show with a counterexample that an unspecified combination is reachable, and make each one a question.
 - **Pitfall**: The weak coverage property "some operation is possible, or the state is terminal" holds even when gaps exist. Strengthen it to "every operation is decided".
-- **A state nothing leads to.** When the code or the rules name a state that no operation ever sets (a `REFUNDED` status with no code path to it), no model can witness it. Record it as a question with `.question []` and put the evidence (where you looked) in the term's definition.
+- **A state nothing leads to.** When the code or the rules name a state that no operation ever sets (a `REFUNDED` status with no code path to it), no model can witness it. Record it as a question with `.questionOutsideModel "<where you looked and found no path>"`, and put the same evidence in the term's definition.
 - **Example**: `Spec/order_coverage.qnt`
 
 ## 4. A stop versus work in progress
