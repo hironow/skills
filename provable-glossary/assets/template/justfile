@@ -179,6 +179,9 @@ anchor-check:
     # The repository root: the top of the git work tree, unless that tree ignores this folder.
     root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
     if git -C "$root" check-ignore -q "$(pwd)" 2>/dev/null; then root="$(pwd)"; fi
+    # Read the list first. In a process substitution a failing command would end the loop with
+    # no anchors, and the check would pass without having looked at anything.
+    anchors="$(lake exe claims anchors)"
     fail=0
     count=0
     while IFS=$'\t' read -r term anchor; do
@@ -202,7 +205,7 @@ anchor-check:
         rg -qF -- "$needle" "$root/$path" \
           || { echo "anchor-check: $term: '$needle' no longer occurs in $path" >&2; fail=1; }
       fi
-    done < <(lake exe claims anchors)
+    done <<<"$anchors"
     [[ "$fail" -eq 0 ]] && echo "anchor-check: $count anchors resolve"
     exit "$fail"
 
@@ -263,3 +266,4 @@ skill-check:
     set -euo pipefail
     [[ -f skills/sync.py ]] || exit 0
     python3 -I skills/sync.py check
+    python3 -I skills/tests/test_anchor_check.py
