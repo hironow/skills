@@ -40,6 +40,24 @@ APALACHE = "0.56.1"
 HOOK_STOPS = 2
 # The exit code the fake Quint returns when a test asks its verification to fail.
 VERIFY_FAILS = 3
+# A git hook exports these, and git would then act on the repository they name instead of the
+# temporary folders these tests create.
+GIT_REPOSITORY_VARS = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_COMMON_DIR",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_PREFIX",
+)
+
+
+@pytest.fixture(autouse=True)
+def _no_repository_named_by_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Every subprocess here inherits os.environ; the git-hook test sets GIT_DIR itself."""
+    for var in GIT_REPOSITORY_VARS:
+        monkeypatch.delenv(var, raising=False)
 
 
 # ── the edit-blocking hook ──────────────────────────────────────────────────
@@ -843,3 +861,46 @@ def test_the_recipes_that_ask_git_ignore_the_hook_environment() -> None:
         start = text.index(recipe)
         body = text[start : text.index("\n\n", start + 1)]
         assert "unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE" in body, recipe
+
+
+def test_the_git_calls_leave_a_repository_named_by_the_environment_alone(
+    tmp_path: Path,
+) -> None:
+    """Run inside a git hook, these tests inherit GIT_DIR and GIT_WORK_TREE. Their git calls in
+    temporary folders must not commit to the repository those name."""
+    decoy = tmp_path / "decoy"
+    subprocess.run(["git", "init", "-q", str(decoy)], check=True)
+    (decoy / "kept.txt").write_text("kept\n", encoding="utf-8")
+    ident = ["-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+    subprocess.run(["git", "-C", str(decoy), "add", "-A"], check=True)
+    subprocess.run(
+        ["git", "-C", str(decoy), *ident, "commit", "-q", "-m", "one"], check=True
+    )
+
+    done = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            f"{Path(__file__).resolve()}::test_shared_files_finds_the_earlier_versions_of_a_template_file",
+        ],
+        env={**os.environ, "GIT_DIR": str(decoy / ".git"), "GIT_WORK_TREE": str(decoy)},
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=300,
+        check=False,
+    )
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    count = subprocess.run(
+        ["git", "-C", str(decoy), "rev-list", "--count", "HEAD"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
+    assert count == "1"
