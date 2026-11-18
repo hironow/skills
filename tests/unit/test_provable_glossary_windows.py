@@ -780,7 +780,13 @@ sys.exit(2)
 """
 
 
+needs_rg = pytest.mark.skipif(
+    shutil.which("rg") is None, reason="ripgrep is not installed (anchor-check uses it)"
+)
+
+
 @needs_just
+@needs_rg
 def test_anchor_check_finds_the_repository_root_inside_a_git_hook(
     tmp_path: Path,
 ) -> None:
