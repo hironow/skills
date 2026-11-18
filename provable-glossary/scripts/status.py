@@ -30,7 +30,7 @@ URL = re.compile(r"https?://[^\s)>\]|]+")
 
 
 def read(path: pathlib.Path) -> str:
-    return path.read_text(errors="replace") if path.is_file() else ""
+    return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
 
 
 def main() -> int:

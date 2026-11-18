@@ -1,6 +1,6 @@
 """Keep provable-glossary usable on Windows.
 
-Two things broke there (found on a Windows 11 machine with Git Bash, 2026-11-18):
+Three things broke there (found on a Windows 11 machine with Git Bash, 2026-11-18):
 
 - The edit-blocking hook compared paths with forward slashes only. Claude Code on
   Windows passes `C:\\...\\docs\\generated\\x.md`, so the hook let hand edits through.
@@ -8,11 +8,15 @@ Two things broke there (found on a Windows 11 machine with Git Bash, 2026-11-18)
   shell, which Node and Bun refuse with EINVAL on Windows. The template's
   `quint-verify` entry therefore starts the server itself with `java`, waits until
   it accepts connections, and stops only the server it started.
+- The scripts and the hook handled text in the locale's encoding and line ending:
+  cp932 and CRLF on a Japanese Windows. They now name UTF-8 and LF (or keep the
+  line ending of a file they extend), as on Linux.
 
 The server handling is chosen by `os()` and can be forced with
 `QUINT_APALACHE_SERVER=manage`, so these tests also run on the Linux CI.
 """
 
+import ast
 import json
 import os
 import shutil
@@ -97,6 +101,26 @@ def test_hook_lets_a_read_of_a_generated_document_with_backslashes_through() -> 
     assert (
         hook_exit("Bash", {"command": r"cat glossary\docs\generated\glossary.md"}) == 0
     )
+
+
+def test_hook_reads_its_input_as_utf8_whatever_the_locale() -> None:
+    """Claude Code sends UTF-8. Python 3.14 and older on a Japanese Windows decode a
+    pipe as cp932, where "既存の" does not decode; the hook then crashed with exit 1,
+    which Claude Code treats as "go ahead". PYTHONIOENCODING stands in for that
+    locale on any system (the hook itself runs with -I, which ignores the variable)."""
+    call = {
+        "tool_name": "Bash",
+        "tool_input": {"command": "echo 既存の > docs/generated/x.md"},
+    }
+    done = subprocess.run(
+        [sys.executable, str(HOOK)],
+        input=json.dumps(call, ensure_ascii=False).encode("utf-8"),
+        capture_output=True,
+        env={**os.environ, "PYTHONIOENCODING": "cp932"},
+        timeout=60,
+        check=False,
+    )
+    assert done.returncode == HOOK_STOPS, done.stderr.decode("utf-8", "replace")
 
 
 # ── the quint-verify entry ──────────────────────────────────────────────────
@@ -197,7 +221,9 @@ class World:
             "QUINT": "quint",
             "QUINT_APALACHE_SERVER": "manage",
             "APALACHE_PORT": str(self.port),
-            "APALACHE_WAIT_SECONDS": "10",
+            # The recipe's own default. A busy Windows machine once took more than 10 s
+            # to start the fake server; the wait ends as soon as the server listens.
+            "APALACHE_WAIT_SECONDS": "60",
             "FAKE_JAVA_LOG": self.java_log.as_posix(),
             "FAKE_JAVA_HEARTBEAT": self.heartbeat.as_posix(),
             "FAKE_QUINT_LOG": self.quint_log.as_posix(),
@@ -215,6 +241,12 @@ class World:
             timeout=120,
             check=False,
         )
+
+    def explain(self, ran: subprocess.CompletedProcess) -> str:
+        """What the run printed, and how far the fake server got (the recipe hides its output)."""
+        started = self.java_log.exists()
+        listened = self.heartbeat.exists()
+        return f"{ran.stdout}{ran.stderr}fake java started: {started}; it listened: {listened}"
 
     def java_stopped(self) -> bool:
         """The fake server writes a heartbeat every 0.1 s while it lives."""
@@ -246,7 +278,7 @@ def test_quint_verify_waits_for_a_slow_server_and_then_stops_it(tmp_path: Path) 
 
     ran = world.run(FAKE_JAVA_DELAY="2")
 
-    assert ran.returncode == 0, ran.stdout + ran.stderr
+    assert ran.returncode == 0, world.explain(ran)
     assert "[ok] fake verification" in ran.stdout
     assert world.verify_calls() == [
         f"verify --server-endpoint=localhost:{world.port} --backend tlc --main=guarded spec.qnt"
@@ -283,7 +315,7 @@ def test_quint_verify_uses_a_server_that_is_already_running_and_leaves_it(
 
         ran = world.run()
 
-        assert ran.returncode == 0, ran.stdout + ran.stderr
+        assert ran.returncode == 0, world.explain(ran)
         assert not world.java_log.exists()
         assert listening(world.port)
 
@@ -346,3 +378,236 @@ def test_the_template_manages_the_server_on_windows_and_spec_check_goes_through_
     # ("C:Usersabsin...just.exe: command not found", seen on Windows 11, 2026-11-18).
     assert "{{just_executable()}}" not in spec_check
     assert "{{quote(just_executable())}}" in spec_check
+
+
+# ── text encodings and line endings ─────────────────────────────────────────
+#
+# Unless told otherwise, Python up to 3.14 handles text in the locale's encoding,
+# which is cp932 on a Japanese Windows (UTF-8 Japanese does not decode there), and
+# on Windows every version writes each "\n" as "\r\n". The scripts name both, so
+# they do what they do on Linux.
+
+SCRIPTS = SKILL / "scripts"
+
+
+def run_init(repo: Path) -> None:
+    """Run init_project.py so that a text read or write without an encoding fails,
+    on Linux as well as on Windows."""
+    done = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-X",
+            "warn_default_encoding",
+            "-W",
+            "error::EncodingWarning",
+            str(SCRIPTS / "init_project.py"),
+            str(repo),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=300,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr
+
+
+def test_init_extends_a_utf8_repository_and_keeps_its_line_endings(
+    tmp_path: Path,
+) -> None:
+    """On a Japanese Windows, init_project.py could not read a justfile with Japanese
+    in it (cp932), and Path.write_text turned every \\n into \\r\\n, so adding
+    `mod glossary` rewrote a whole LF justfile (and .gitignore, settings.json) as
+    CRLF. A test of that repository that split the justfile on blank lines then
+    read it as one recipe (m4k3-co/.gpus, 2026-11-18)."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "go.mod").write_bytes(b"module example\n")
+    (repo / "justfile").write_bytes(
+        "# 既存の recipe\nbuild:\n    echo build\n".encode()
+    )
+    (repo / ".gitignore").write_bytes(b"/out/\n")
+    (repo / ".claude").mkdir()
+    (repo / ".claude" / "settings.json").write_bytes(
+        '{\n  "env": {"NOTE": "既存"}\n}\n'.encode()
+    )
+
+    run_init(repo)
+
+    for rel in [
+        "justfile",
+        ".gitignore",
+        ".claude/settings.json",
+        ".githooks/pre-commit",
+    ]:
+        assert b"\r" not in (repo / rel).read_bytes(), rel
+    justfile = (repo / "justfile").read_bytes().decode("utf-8")
+    assert justfile.startswith("# 既存の recipe\nbuild:\n    echo build\n")
+    assert justfile.endswith("\nmod glossary\n")
+    assert (repo / ".gitignore").read_bytes() == b"/out/\n/glossary-scan/\n"
+    settings = json.loads((repo / ".claude" / "settings.json").read_bytes())
+    assert settings["env"] == {"NOTE": "既存"}
+    assert "protect_generated.py" in json.dumps(settings["hooks"])
+
+
+def test_init_keeps_a_crlf_justfile_crlf(tmp_path: Path) -> None:
+    """A justfile kept in CRLF stays CRLF, and the lines added match it."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "justfile").write_bytes(b"build:\r\n    echo build\r\n")
+
+    run_init(repo)
+
+    data = (repo / "justfile").read_bytes()
+    assert data.startswith(b"build:\r\n    echo build\r\n")
+    assert data.endswith(b"\r\nmod glossary\r\n")
+    assert b"\n" not in data.replace(b"\r\n", b"")
+
+
+def test_init_appends_to_a_file_of_mixed_line_endings_without_rewriting_it(
+    tmp_path: Path,
+) -> None:
+    """One CRLF line must not turn the whole file into CRLF: a shebang ending in
+    "\\r" no longer runs on Linux. The file's bytes stay as they are, and the added
+    line ends in "\\n" unless every line of the file ends in "\\r\\n"."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    hook = repo / ".githooks" / "pre-commit"
+    hook.parent.mkdir()
+    original = b"#!/usr/bin/env bash\n# a note\r\necho ok\n"
+    hook.write_bytes(original)
+
+    run_init(repo)
+
+    assert hook.read_bytes() == original + b"just generated-check\n"
+
+
+def run_import(source: Path, project: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            str(SCRIPTS / "import_glossary.py"),
+            str(source),
+            "--project",
+            str(project),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+        check=False,
+    )
+
+
+def test_import_stops_on_a_glossary_that_is_not_utf8(tmp_path: Path) -> None:
+    """A glossary saved in cp932 imported as replacement characters (or, on a Japanese
+    Windows, by luck as text). It now stops, names the file, and writes nothing."""
+    source = tmp_path / "legacy.tsv"
+    source.write_bytes("term\tdefinition\n猫\t動物\n".encode("cp932"))
+    project = tmp_path / "project"
+    project.mkdir()
+
+    done = run_import(source, project)
+
+    assert done.returncode != 0
+    assert "legacy.tsv" in done.stderr
+    assert "UTF-8" in done.stderr
+    assert not (project / "migration").exists()
+
+
+def test_import_reads_a_utf8_glossary(tmp_path: Path) -> None:
+    source = tmp_path / "legacy.tsv"
+    source.write_bytes("term\tdefinition\n猫\t動物\n".encode())
+    project = tmp_path / "project"
+    project.mkdir()
+
+    done = run_import(source, project)
+
+    assert done.returncode == 0, done.stderr
+    legacy = (project / "migration" / "legacy.tsv").read_bytes().decode("utf-8")
+    assert legacy == "term\tdefinition\n猫\t動物\n"
+
+
+def called_name(call: ast.Call) -> tuple[str, int] | None:
+    """The name of what is called, and where its mode argument sits: first for
+    `path.open(mode)`, second for `open(file, mode)` and `io.open(file, mode)`."""
+    if isinstance(call.func, ast.Attribute):
+        owner = call.func.value
+        takes_file_first = isinstance(owner, ast.Name) and owner.id in {
+            "io",
+            "builtins",
+        }
+        return call.func.attr, 1 if takes_file_first else 0
+    if isinstance(call.func, ast.Name):
+        return call.func.id, 1
+    return None
+
+
+def open_mode(call: ast.Call, at: int) -> str:
+    given = next(
+        (k.value for k in call.keywords if k.arg == "mode"),
+        call.args[at] if len(call.args) > at else None,
+    )
+    if isinstance(given, ast.Constant) and isinstance(given.value, str):
+        return given.value
+    return "r"
+
+
+def unnamed_text_io(source: str) -> list[str]:
+    """The calls that handle text without naming its encoding, or write text
+    without naming its line ending."""
+    found = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.Call) or (called := called_name(node)) is None:
+            continue
+        name, at = called
+        mode = open_mode(node, at) if name == "open" else ""
+        if "b" in mode:
+            continue
+        need = set()
+        if name in {"read_text", "write_text", "open"} or any(
+            k.arg == "text" for k in node.keywords
+        ):
+            need.add("encoding")
+        if name == "write_text" or set(mode) & set("wax+"):
+            need.add("newline")
+        if missing := need - {k.arg for k in node.keywords}:
+            found.append(
+                f"line {node.lineno}: {name}() names no {' or '.join(sorted(missing))}"
+            )
+    return found
+
+
+def test_the_check_finds_text_handled_in_the_locale_encoding() -> None:
+    source = "\n".join(
+        [
+            'p.read_text(errors="replace")',
+            'p.write_text(s, encoding="utf-8")',
+            'out.open("a")',
+            "subprocess.run(c, text=True)",
+            'p.read_text(encoding="utf-8")',
+            'p.write_text(s, encoding="utf-8", newline="\\n")',
+            'open(f, "rb")',
+            'io.open("blob.txt", "w")',
+        ]
+    )
+    assert unnamed_text_io(source) == [
+        "line 1: read_text() names no encoding",
+        "line 2: write_text() names no newline",
+        "line 3: open() names no encoding or newline",
+        "line 4: run() names no encoding",
+        "line 8: open() names no encoding or newline",
+    ]
+
+
+@pytest.mark.parametrize("script", sorted(SCRIPTS.glob("*.py")), ids=lambda p: p.name)
+def test_every_script_names_the_encoding_and_line_ending_of_its_text(
+    script: Path,
+) -> None:
+    assert unnamed_text_io(script.read_text(encoding="utf-8")) == []

@@ -33,6 +33,7 @@ def hook_exit(call):
         input=json.dumps(call),
         capture_output=True,
         text=True,
+        encoding="utf-8",
     ).returncode
 
 
@@ -112,10 +113,10 @@ regenerate()
 checks = []
 checks.append(("untouched", gate_exit(), 0))
 p = gen / "summary.md"
-p.write_text(p.read_text() + "a line added by hand\n")
+p.write_text(p.read_text(encoding="utf-8") + "a line added by hand\n", encoding="utf-8", newline="\n")
 checks.append(("content edited", gate_exit(), 1))
 regenerate()
-(gen / "notes.md").write_text("a file written by hand\n")
+(gen / "notes.md").write_text("a file written by hand\n", encoding="utf-8", newline="\n")
 checks.append(("file added", gate_exit(), 1))
 (gen / "notes.md").unlink()
 (gen / "questions.md").unlink()

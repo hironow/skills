@@ -32,11 +32,11 @@ def main() -> int:
     header = "module\tproperty\tverdict\tdistinct_states"
     done = {}
     if out.exists():  # resume: keep the cells already decided
-        for line in out.read_text().splitlines()[1:]:
+        for line in out.read_text(encoding="utf-8").splitlines()[1:]:
             cells = line.split("\t")
             if len(cells) == 4:
                 done[(cells[0], cells[1])] = line
-    out.write_text("\n".join([header, *done.values()]) + "\n")
+    out.write_text("\n".join([header, *done.values()]) + "\n", encoding="utf-8", newline="\n")
     for module in args.modules.split(","):
         for prop in args.properties.split(","):
             if (module, prop) in done:
@@ -57,7 +57,7 @@ def main() -> int:
                 return 1
             states = (re.findall(r"(\d+) distinct states found", text) or [""])[-1]
             row = f"{module}\t{prop}\t{verdict}\t{states}"
-            with out.open("a") as handle:  # written as it goes, so an interruption loses nothing
+            with out.open("a", encoding="utf-8", newline="\n") as handle:  # written as it goes, so an interruption loses nothing
                 handle.write(row + "\n")
             print(row, flush=True)
     return 0

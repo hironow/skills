@@ -147,7 +147,7 @@ def from_delimited(text: str, delimiter: str):
 
 def parse_glossary(path: pathlib.Path):
     """A list of (term, definition), in the order they appear."""
-    text = path.read_text(errors="replace")
+    text = path.read_text(encoding="utf-8")  # strict: a wrong guess would corrupt every definition
     suffix = path.suffix.lower()
     if suffix in (".yaml", ".yml"):
         return from_yaml(text)
@@ -305,7 +305,12 @@ def main() -> int:
     parser.add_argument("--emit-lean", action="store_true")
     args = parser.parse_args()
     source = pathlib.Path(args.glossary)
-    entries = parse_glossary(source)
+    try:
+        entries = parse_glossary(source)
+    except UnicodeDecodeError as error:
+        print(f"import_glossary: {source} is not UTF-8 (byte {error.start}). Save it as UTF-8 and run again; "
+              "a Shift_JIS file converts with: iconv -f cp932 -t utf-8 OLD > NEW", file=sys.stderr)
+        return 1
     if len(entries) < 1:
         print(f"import_glossary: no entries recognised in {source}. Convert it to a Markdown table "
               "with the columns Term and Definition and run again.", file=sys.stderr)
@@ -321,10 +326,10 @@ def main() -> int:
         times[term] = times.get(term, 0) + 1
         keys.append(term if times[term] == 1 else f"{term} ({times[term]})")
     (out / "legacy.tsv").write_text("term\tdefinition\n" + "".join(
-        f"{tsv(k)}\t{tsv(d)}\n" for k, (_, d) in zip(keys, entries)))
+        f"{tsv(k)}\t{tsv(d)}\n" for k, (_, d) in zip(keys, entries)), encoding="utf-8", newline="\n")
     mapping = out / "mapping.tsv"
     if not mapping.exists():
-        mapping.write_text("term\tstatus\ttarget\n" + "".join(f"{tsv(k)}\t\t\n" for k in keys))
+        mapping.write_text("term\tstatus\ttarget\n" + "".join(f"{tsv(k)}\t\t\n" for k in keys), encoding="utf-8", newline="\n")
     per_entry, deps = mentions(entries)
     counts = {}
     for term, _ in entries:
@@ -372,7 +377,7 @@ def main() -> int:
     section("Isolated terms", isolated, "Check whether each is still used. A term nobody uses is a candidate to retire.")
     lines.extend(["## Which terms mention which", "", "| Term | Mentions in its definition |", "|---|---|"]
                  + [f"| {t} | {', '.join(deps[t]) or '—'} |" for t in counts] + [""])
-    (out / "report.md").write_text("\n".join(lines))
+    (out / "report.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"import_glossary: {len(entries)} entries -> {out}/legacy.tsv, mapping.tsv, report.md")
     print(f"  circular definitions: {len(circular)}; defined twice: {len(duplicates)}; "
           f"nearly the same name: {len(near)}; no definition: {len(empty)}")
@@ -381,7 +386,7 @@ def main() -> int:
         if target.exists():
             print(f"  kept the existing {target}")
         else:
-            target.write_text(emit_lean(entries, per_entry, deps, source.name, circular))
+            target.write_text(emit_lean(entries, per_entry, deps, source.name, circular), encoding="utf-8", newline="\n")
             print(f"  wrote {target}; add `import Glossary.Legacy` to Glossary.lean and a line to Audit.lean:")
             print("    #print axioms Glossary.Legacy.draft_check")
             for number in range(1, min(len(circular), 5) + 1):

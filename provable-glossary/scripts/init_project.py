@@ -64,8 +64,35 @@ def holds_an_implementation(repo: pathlib.Path) -> bool:
     return False
 
 
+def read_utf8(path: pathlib.Path) -> str:
+    """A file's text exactly as it is, line endings included."""
+    return path.read_bytes().decode("utf-8")
+
+
+def write_utf8(path: pathlib.Path, text: str) -> None:
+    """Write the text as UTF-8, character for character. Left to itself, Python writes the
+    locale's encoding and, on Windows, "\\r\\n" for every "\\n"."""
+    path.write_text(text, encoding="utf-8", newline="")
+
+
+def line_ending(text: str) -> str:
+    """The line ending for lines added to this text: "\\r\\n" when every line of it ends so,
+    otherwise "\\n". One CRLF line must not turn a whole script into CRLF."""
+    crlf = text.count("\r\n")
+    return "\r\n" if crlf and crlf == text.count("\n") else "\n"
+
+
+def append_lines(path: pathlib.Path, lines: str) -> None:
+    """Add lines (written with "\\n") to the end of a UTF-8 file, leaving its bytes as they are."""
+    text = read_utf8(path)
+    newline = line_ending(text)
+    if text and not text.endswith("\n"):
+        text += newline
+    write_utf8(path, text + lines.replace("\n", newline))
+
+
 def git(repo: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True)
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, encoding="utf-8")
 
 
 def install_hook(repo: pathlib.Path) -> None:
@@ -76,10 +103,12 @@ def install_hook(repo: pathlib.Path) -> None:
         hooks / "protect_generated.py",
     )
     settings_path = repo / ".claude" / "settings.json"
-    settings = {}
+    settings, newline = {}, "\n"
     if settings_path.exists():
         shutil.copy2(settings_path, settings_path.with_suffix(".json.bak"))
-        settings = json.loads(settings_path.read_text() or "{}")
+        text = read_utf8(settings_path)
+        newline = line_ending(text)
+        settings = json.loads(text or "{}")
     entries = settings.setdefault("hooks", {}).setdefault("PreToolUse", [])
     if "protect_generated.py" not in json.dumps(entries):
         entries.append(
@@ -88,7 +117,7 @@ def install_hook(repo: pathlib.Path) -> None:
                 "hooks": [{"type": "command", "command": HOOK_COMMAND}],
             }
         )
-    settings_path.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
+    write_utf8(settings_path, (json.dumps(settings, indent=2, ensure_ascii=False) + "\n").replace("\n", newline))
 
 
 def install_pre_commit(repo: pathlib.Path, recipe: str) -> str:
@@ -126,10 +155,11 @@ def install_pre_commit(repo: pathlib.Path, recipe: str) -> str:
     hook.parent.mkdir(exist_ok=True)
     line = recipe + "\n"
     if hook.exists():
-        if recipe not in hook.read_text():
-            hook.write_text(hook.read_text().rstrip("\n") + "\n" + line)
+        if recipe not in read_utf8(hook):
+            append_lines(hook, line)
     else:
-        hook.write_text(
+        write_utf8(
+            hook,
             "#!/usr/bin/env bash\n# Stop a commit whose generated documents do not match the glossaries.\n"
             "set -euo pipefail\n" + line
         )
@@ -220,23 +250,21 @@ def main() -> int:
         root_just = repo / "justfile"
         line = f"mod {subdir}"
         if root_just.exists():
-            if line not in root_just.read_text().splitlines():
-                root_just.write_text(
-                    root_just.read_text().rstrip("\n")
-                    + f"\n\n# Provable glossary: `just {subdir} check`, `just {subdir} generate`\n{line}\n"
+            if line not in read_utf8(root_just).splitlines():
+                append_lines(
+                    root_just, f"\n# Provable glossary: `just {subdir} check`, `just {subdir} generate`\n{line}\n"
                 )
         else:
-            root_just.write_text(
-                f"# Provable glossary: `just {subdir} check`, `just {subdir} generate`\n{line}\n"
-            )
+            write_utf8(root_just, f"# Provable glossary: `just {subdir} check`, `just {subdir} generate`\n{line}\n")
     prefix = f"just {subdir} " if subdir else "just "
 
     if subdir:
         # scan_terms.py writes scratch tables here; keep them out of the repository
         ignore = repo / ".gitignore"
-        lines = ignore.read_text().splitlines() if ignore.exists() else []
-        if "/glossary-scan/" not in lines:
-            ignore.write_text("\n".join([*lines, "/glossary-scan/"]) + "\n")
+        if not ignore.exists():
+            write_utf8(ignore, "/glossary-scan/\n")
+        elif "/glossary-scan/" not in read_utf8(ignore).splitlines():
+            append_lines(ignore, "/glossary-scan/\n")
 
     install_hook(repo)
     note = install_pre_commit(repo, prefix + "generated-check")

@@ -39,6 +39,7 @@ def template_versions(template: pathlib.Path, rel: str) -> set[bytes]:
         cwd=template,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     if top.returncode != 0:  # not in a git checkout: only the current template is known
@@ -50,6 +51,7 @@ def template_versions(template: pathlib.Path, rel: str) -> set[bytes]:
         cwd=repo,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     for commit in commits.stdout.split():

@@ -197,6 +197,7 @@ Pattern 11 in `references/patterns.md`.
 | `generated-check: docs/generated does not match` | Run `J generate` |
 | `anchor-check: ... no longer occurs in ...` | The code changed. Update the anchor, and check whether the definition still holds |
 | `migration-check: ... has status ''` | Fill that row of `migration/mapping.tsv` |
+| `import_glossary: ... is not UTF-8` | The old glossary is saved in another encoding, often Shift_JIS from a spreadsheet. Convert it (`iconv -f cp932 -t utf-8 OLD > NEW`), check that the terms read correctly, and import the new file |
 | `Failed to fetch from GitHub` | The hourly download limit. Wait and run again |
 | `Address already in use` | Another model check is running. Run again |
 | On Windows, `spawn ...apalache-mc.bat EINVAL` | Quint cannot start the Apalache server there (it spawns the `.bat` without a shell). Run `quint verify` through `J quint-verify` (as `spec-check` does): it starts the server with `java`, waits for it, and stops it. Put the checked Apalache distribution in `~/.quint/apalache-dist-<version>/` first; the recipe refuses to let Quint fetch it unverified |

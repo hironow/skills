@@ -87,7 +87,7 @@ def main() -> int:
             rel = str(path.relative_to(repo))
             run = []  # consecutive enum-like lines
             try:
-                source = path.read_text(errors="replace")
+                source = path.read_text(encoding="utf-8", errors="replace")
                 lines = source.splitlines()
                 corpus += source + "\n"
             except OSError:
@@ -125,7 +125,7 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     (out / "words.tsv").write_text("word\tcount\twhere\texamples\n" + "".join(
         f"{w}\t{n}\t{', '.join(d for d, _ in word_where[w].most_common(3))}\t{', '.join(word_examples[w])}\n"
-        for w, n in word_count.most_common()))
+        for w, n in word_count.most_common()), encoding="utf-8", newline="\n")
     seen = set()
     rows = []
     occurrences = collections.Counter(re.findall(r"[A-Za-z_]\w*", corpus))
@@ -134,9 +134,9 @@ def main() -> int:
             seen.add((name, kind))
             # how often the name appears in the scanned code besides its declaration
             rows.append(f"{name}\t{kind}\t{max(occurrences[name] - 1, 0)}\t{anchor}\n")
-    (out / "identifiers.tsv").write_text("name\tkind\tother_uses\tanchor\n" + "".join(rows))
+    (out / "identifiers.tsv").write_text("name\tkind\tother_uses\tanchor\n" + "".join(rows), encoding="utf-8", newline="\n")
     (out / "states.tsv").write_text("group\tmembers\tanchor\n" + "".join(
-        f"{g}\t{', '.join(m)}\t{a}\n" for g, m, a in states))
+        f"{g}\t{', '.join(m)}\t{a}\n" for g, m, a in states), encoding="utf-8", newline="\n")
     print(f"scan_terms: {scanned} source files; {len(word_count)} words, {len(rows)} identifiers, "
           f"{len(states)} state-like groups -> {out}")
     print("next: read words.tsv from the top and states.tsv in full; see references/start-from-code.md")
