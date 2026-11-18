@@ -221,7 +221,9 @@ class World:
             "QUINT": "quint",
             "QUINT_APALACHE_SERVER": "manage",
             "APALACHE_PORT": str(self.port),
-            "APALACHE_WAIT_SECONDS": "10",
+            # The recipe's own default. A busy Windows machine once took more than 10 s
+            # to start the fake server; the wait ends as soon as the server listens.
+            "APALACHE_WAIT_SECONDS": "60",
             "FAKE_JAVA_LOG": self.java_log.as_posix(),
             "FAKE_JAVA_HEARTBEAT": self.heartbeat.as_posix(),
             "FAKE_QUINT_LOG": self.quint_log.as_posix(),
@@ -239,6 +241,12 @@ class World:
             timeout=120,
             check=False,
         )
+
+    def explain(self, ran: subprocess.CompletedProcess) -> str:
+        """What the run printed, and how far the fake server got (the recipe hides its output)."""
+        started = self.java_log.exists()
+        listened = self.heartbeat.exists()
+        return f"{ran.stdout}{ran.stderr}fake java started: {started}; it listened: {listened}"
 
     def java_stopped(self) -> bool:
         """The fake server writes a heartbeat every 0.1 s while it lives."""
@@ -270,7 +278,7 @@ def test_quint_verify_waits_for_a_slow_server_and_then_stops_it(tmp_path: Path) 
 
     ran = world.run(FAKE_JAVA_DELAY="2")
 
-    assert ran.returncode == 0, ran.stdout + ran.stderr
+    assert ran.returncode == 0, world.explain(ran)
     assert "[ok] fake verification" in ran.stdout
     assert world.verify_calls() == [
         f"verify --server-endpoint=localhost:{world.port} --backend tlc --main=guarded spec.qnt"
@@ -307,7 +315,7 @@ def test_quint_verify_uses_a_server_that_is_already_running_and_leaves_it(
 
         ran = world.run()
 
-        assert ran.returncode == 0, ran.stdout + ran.stderr
+        assert ran.returncode == 0, world.explain(ran)
         assert not world.java_log.exists()
         assert listening(world.port)
 
