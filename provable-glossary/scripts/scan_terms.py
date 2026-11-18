@@ -81,10 +81,12 @@ def main() -> int:
     corpus = ""
     for root in roots:
         for path in walk_files(root):
-            if path.suffix not in SUFFIXES or re.search(r"(_test|\.test|\.spec|_spec)\.|/tests?/|/__tests__/", str(path)):
+            rel = path.relative_to(repo).as_posix()  # anchors and git want forward slashes, also on Windows
+            # Only the path inside the repository says whether a file is a test: a repository may sit in a
+            # folder named tests.
+            if path.suffix not in SUFFIXES or re.search(r"(_test|\.test|\.spec|_spec)\.|/tests?/|/__tests__/", "/" + rel):
                 continue
             scanned += 1
-            rel = str(path.relative_to(repo))
             run = []  # consecutive enum-like lines
             try:
                 source = path.read_text(encoding="utf-8", errors="replace")
@@ -118,7 +120,7 @@ def main() -> int:
                 identifiers.append((name, kind, f"{rel}#{text[:80]}"))
                 for word in words_of(name):
                     word_count[word] += 1
-                    word_where.setdefault(word, collections.Counter())[str(pathlib.Path(rel).parent)] += 1
+                    word_where.setdefault(word, collections.Counter())[str(pathlib.PurePosixPath(rel).parent)] += 1
                     examples = word_examples.setdefault(word, [])
                     if name not in examples and len(examples) < 4:
                         examples.append(name)
