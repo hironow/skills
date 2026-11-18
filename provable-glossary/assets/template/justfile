@@ -73,6 +73,41 @@ control-check:
     done
     [[ $found == 1 ]] || { echo "control-check: the control is declared .run, but no experiments/<name>/ has protocol.md committed before result.md" >&2; exit 1; }
 
+# `quint verify`, through the one entry every check uses. Quint starts the Apalache server it needs by
+# itself, except on Windows: there it spawns apalache-mc.bat without a shell, which Node and Bun refuse
+# (EINVAL). On Windows this recipe starts the server with java, waits until it accepts connections, runs
+# the verification against it, and stops only the server it started. A server already listening on the
+# port is used and left running. QUINT_APALACHE_SERVER=manage forces this path elsewhere (the skill's
+# tests use it); =quint leaves the server to Quint. APALACHE_PORT and APALACHE_WAIT_SECONDS override
+# the port (8822) and the wait (60 s).
+[positional-arguments]
+quint-verify *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mode="${QUINT_APALACHE_SERVER:-{{ if os() == "windows" { "manage" } else { "quint" } }}}"
+    if [[ "$mode" != manage ]]; then
+      exec {{quint}} verify "$@"
+    fi
+    port="${APALACHE_PORT:-8822}"
+    wait_s="${APALACHE_WAIT_SECONDS:-60}"
+    accepts() { (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; }
+    started=""
+    stop() { if [[ -n "$started" ]]; then kill "$started" 2>/dev/null || true; fi; }
+    trap stop EXIT
+    if ! accepts; then
+      # The Apalache version the pinned Quint asks for, as `quint verify --help` prints it.
+      version="$({{quint}} verify --help | awk '/--apalache-version/ {seen=1} seen && match($0, /default: "[^"]+"/) {print substr($0, RSTART + 10, RLENGTH - 11); exit}')"
+      [[ -n "$version" ]] || { echo "quint-verify: cannot read the Apalache version from 'quint verify --help'" >&2; exit 1; }
+      jar="$HOME/.quint/apalache-dist-$version/apalache/lib/apalache.jar"
+      # Quint would fetch a missing distribution from GitHub with no checksum. Do not let it.
+      [[ -f "$jar" ]] || { echo "quint-verify: $jar is missing. Put the checked Apalache $version distribution there first" >&2; exit 1; }
+      java -Xmx4096m -jar "$jar" server --port="$port" >/dev/null 2>&1 &
+      started=$!
+      for ((i = 0; i < wait_s; i++)); do accepts && break; sleep 1; done
+      accepts || { echo "quint-verify: the Apalache server did not accept connections on port $port within ${wait_s}s" >&2; exit 1; }
+    fi
+    {{quint}} verify --server-endpoint="localhost:$port" "$@"
+
 # Quint: typecheck, run the scripted tests (each line of Spec/tests.txt), then check every claim in the glossaries.
 spec-check:
     #!/usr/bin/env bash
@@ -82,7 +117,7 @@ spec-check:
     verify() {
       local out rc n
       for n in 1 2 3 4 5; do
-        out="$({{quint}} verify --backend tlc "$@" 2>&1)" && rc=0 || rc=$?
+        out="$({{quote(just_executable())}} --justfile {{quote(source_file())}} --working-directory {{quote(source_directory())}} quint-verify --backend tlc "$@" 2>&1)" && rc=0 || rc=$?
         # Finished with a verdict: done. No verdict (a busy port, a dropped connection): ask again.
         if rg -q '^\[(ok|violation)\]' <<<"$out" && ! rg -q 'Address already in use' <<<"$out"; then break; fi
         sleep $((n * 3))
