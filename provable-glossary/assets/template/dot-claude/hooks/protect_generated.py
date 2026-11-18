@@ -19,6 +19,14 @@ WRITE_TO_GENERATED = re.compile(
     + GENERATED,
     re.MULTILINE,
 )
+SLASHES = re.compile(r"[\\/]+")
+
+
+def with_forward_slashes(text: str) -> str:
+    """Windows paths use backslashes, escaped or not (`C:\\repo\\docs\\generated`). Compare in one form."""
+    return SLASHES.sub("/", text)
+
+
 MESSAGE = (
     f"{GENERATED}/ holds generated documents and is never edited by hand. "
     "To change their content, edit Glossary/*.lean and run `just generate`."
@@ -30,11 +38,15 @@ def main():
     tool = call.get("tool_name", "")
     args = call.get("tool_input", {})
     if tool in ("Edit", "Write", "NotebookEdit"):
-        path = str(args.get("file_path") or args.get("notebook_path") or "")
+        path = with_forward_slashes(
+            str(args.get("file_path") or args.get("notebook_path") or "")
+        )
         if f"/{GENERATED}/" in path or path.startswith(f"{GENERATED}/"):
             print(MESSAGE, file=sys.stderr)
             return 2
-    if tool == "Bash" and WRITE_TO_GENERATED.search(str(args.get("command", ""))):
+    if tool == "Bash" and WRITE_TO_GENERATED.search(
+        with_forward_slashes(str(args.get("command", "")))
+    ):
         print(MESSAGE, file=sys.stderr)
         return 2
     return 0

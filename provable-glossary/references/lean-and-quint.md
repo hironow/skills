@@ -223,6 +223,7 @@ Quint:
 - If TLC does not terminate, the state space is infinite. Look for a counter with no bound.
 - Running many `quint verify --backend tlc` in parallel fails silently unless an Apalache server is running (see `references/experiments.md`).
 - Even one after another, `quint verify` can fail with "Address already in use" on port 8822 when a previous run has not released the port or another project on the machine is verifying. Run it again; `scripts/truth_table.py` retries by itself.
+- On Windows, Quint starts the Apalache server by spawning `apalache-mc.bat` without a shell, which Node and Bun refuse with `EINVAL`. Call `quint verify` through the template recipe `quint-verify`: it starts the server with `java`, waits until it accepts connections, and stops only the server it started. A server already listening on 8822 is used as it is.
 - Do not put dozens of variants into one file; the translation to TLA+ fails. Generate one file per variant.
 - Quint has no formatter and no linter (as of 0.33.1); `quint typecheck` is the only static check. An unknown subcommand such as `quint lint` or `quint format` opens the REPL and exits 0, so a gate that calls it passes without checking anything. Do not add one.
 

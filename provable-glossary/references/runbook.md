@@ -199,6 +199,7 @@ Pattern 11 in `references/patterns.md`.
 | `migration-check: ... has status ''` | Fill that row of `migration/mapping.tsv` |
 | `Failed to fetch from GitHub` | The hourly download limit. Wait and run again |
 | `Address already in use` | Another model check is running. Run again |
+| On Windows, `spawn ...apalache-mc.bat EINVAL` | Quint cannot start the Apalache server there (it spawns the `.bat` without a shell). Run `quint verify` through `J quint-verify` (as `spec-check` does): it starts the server with `java`, waits for it, and stops it. Put the checked Apalache distribution in `~/.quint/apalache-dist-<version>/` first; the recipe refuses to let Quint fetch it unverified |
 | `omega could not prove the goal` with a type alias for numbers | Use `Nat` directly |
 | A scripted test passes sometimes and fails sometimes | It passes through a random choice. Give the action a parameter |
 | A shell call is refused with "a hook changed this call's input", and the refusal asks you to send the rewritten command | Send exactly that rewritten command as the next call, alone, and only when the refusal asks for it. Any other refusal is not retried another way. See "Shell" in `references/lean-and-quint.md` |
