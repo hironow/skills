@@ -41,7 +41,7 @@ def just(project: pathlib.Path, recipe: str, timeout: int = 3600) -> subprocess.
     """Run one recipe of the project, whichever layout it uses."""
     justfile = project / "justfile" if (project / "justfile").is_file() else project / "mod.just"
     return subprocess.run(["just", "--justfile", str(justfile), "--working-directory", str(project), recipe],
-                          capture_output=True, text=True, timeout=timeout)
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
 
 
 def just_prefix(project: pathlib.Path) -> str:

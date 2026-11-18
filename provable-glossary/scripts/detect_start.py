@@ -39,7 +39,7 @@ def main() -> int:
             if path.suffix in CODE_SUFFIXES:
                 code_files += 1
                 try:
-                    code_lines += sum(1 for _ in path.open(errors="replace"))
+                    code_lines += sum(1 for _ in path.open(encoding="utf-8", errors="replace"))
                 except OSError:
                     pass
             elif path.suffix.lower() in GLOSSARY_SUFFIXES and GLOSSARY_NAME.search(path.name):

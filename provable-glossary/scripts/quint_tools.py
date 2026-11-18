@@ -19,7 +19,7 @@ def quint_command(project: pathlib.Path) -> list[str]:
     if not pinned.is_file():
         raise SystemExit(f"{project} has no quint-version file. Pass the glossary project folder "
                          "(the one that holds lakefile.toml and quint-version), or set QUINT.")
-    version = pinned.read_text().strip()
+    version = pinned.read_text(encoding="utf-8").strip()
     return ["bunx", f"@informalsystems/quint@{version}"]
 
 
@@ -27,7 +27,7 @@ def run_quint(project: pathlib.Path, args: list[str], timeout: int = 900) -> tup
     """Run Quint. Retries when Apalache's port is still held by another run."""
     for attempt in range(6):
         done = subprocess.run(quint_command(project) + args, cwd=project, capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, encoding="utf-8", errors="replace", timeout=timeout)
         text = done.stdout + done.stderr
         if "Address already in use" not in text and "Failed to fetch from GitHub" not in text:
             return done.returncode, text

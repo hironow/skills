@@ -32,13 +32,13 @@ STEP = re.compile(r'^[A-Za-z_]\w*(\((\s*("[^"\\]*"|-?\d+|true|false)\s*(,\s*("[^
 def replays(project: pathlib.Path, spec: str, module: str, prop: str, trace: list) -> bool:
     if not trace or not all(isinstance(s, str) and STEP.match(s.strip()) for s in trace):
         return False
-    source = (project / spec).read_text()
+    source = (project / spec).read_text(encoding="utf-8")
     _, close = module_span(source, module)
     chain = "".join(f"\n      .then({s.strip()})" for s in trace)
     run = f"\n  run replayedTraceTest =\n    init{chain}\n      .expect(not({prop}))\n"
     with tempfile.TemporaryDirectory(dir=project / pathlib.Path(spec).parent) as tmp:
         path = pathlib.Path(tmp) / "replay.qnt"
-        path.write_text(source[:close] + run + source[close:])
+        path.write_text(source[:close] + run + source[close:], encoding="utf-8", newline="\n")
         code, text = run_quint(project, ["test", "--max-samples=1", f"--main={module}",
                                          "--match=replayedTraceTest", str(path)], 300)
     return code == 0 and "ok replayedTraceTest" in text

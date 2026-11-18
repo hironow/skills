@@ -32,10 +32,10 @@ def main() -> int:
     if args.effort:
         command += ["--effort", args.effort]
     with tempfile.TemporaryDirectory() as empty:
-        done = subprocess.run(command, input=pathlib.Path(args.prompt_file).read_text(), capture_output=True,
-                              text=True, cwd=empty, timeout=args.timeout)
+        done = subprocess.run(command, input=pathlib.Path(args.prompt_file).read_text(encoding="utf-8"), capture_output=True,
+                              text=True, encoding="utf-8", cwd=empty, timeout=args.timeout)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(done.stdout)
+    out.write_text(done.stdout, encoding="utf-8", newline="\n")
     has_json = bool(re.search(r"```json\s*\{.*?\}\s*```", done.stdout, re.S))
     print(f"{out}: exit {done.returncode}, {len(done.stdout)} bytes, final json block: {has_json}")
     return 0 if done.returncode == 0 and has_json else 1

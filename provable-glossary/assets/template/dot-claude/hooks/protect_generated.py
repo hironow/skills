@@ -34,7 +34,8 @@ MESSAGE = (
 
 
 def main():
-    call = json.load(sys.stdin)
+    # Claude Code sends UTF-8; sys.stdin would decode with the locale's encoding.
+    call = json.loads(sys.stdin.buffer.read())
     tool = call.get("tool_name", "")
     args = call.get("tool_input", {})
     if tool in ("Edit", "Write", "NotebookEdit"):
