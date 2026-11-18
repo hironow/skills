@@ -657,6 +657,29 @@ def test_scan_terms_writes_anchors_with_forward_slashes_and_skips_tests(
     assert "\tsrc/app\t" in words
 
 
+def test_scan_terms_reads_a_repository_that_sits_in_a_folder_named_tests(
+    tmp_path: Path,
+) -> None:
+    """The test-folder filter looks at the path inside the repository only; a
+    repository under `.../tests/shop/` is not a test folder."""
+    repo = tmp_path / "tests" / "shop"
+    (repo / "src").mkdir(parents=True)
+    (repo / "src" / "app.go").write_bytes(b"package app\n\nfunc PlaceHold() {}\n")
+
+    done = subprocess.run(
+        [sys.executable, "-I", str(SCRIPTS / "scan_terms.py"), str(repo)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+        check=False,
+    )
+
+    assert done.returncode == 0, done.stderr
+    identifiers = (repo / "glossary-scan" / "identifiers.tsv").read_bytes().decode()
+    assert "src/app.go#func PlaceHold" in identifiers
+
+
 def test_shared_files_finds_the_earlier_versions_of_a_template_file(
     tmp_path: Path,
 ) -> None:

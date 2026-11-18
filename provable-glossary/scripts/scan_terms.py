@@ -81,10 +81,12 @@ def main() -> int:
     corpus = ""
     for root in roots:
         for path in walk_files(root):
-            if path.suffix not in SUFFIXES or re.search(r"(_test|\.test|\.spec|_spec)\.|/tests?/|/__tests__/", path.as_posix()):
+            rel = path.relative_to(repo).as_posix()  # anchors and git want forward slashes, also on Windows
+            # Only the path inside the repository says whether a file is a test: a repository may sit in a
+            # folder named tests.
+            if path.suffix not in SUFFIXES or re.search(r"(_test|\.test|\.spec|_spec)\.|/tests?/|/__tests__/", "/" + rel):
                 continue
             scanned += 1
-            rel = path.relative_to(repo).as_posix()  # anchors and git want forward slashes, also on Windows
             run = []  # consecutive enum-like lines
             try:
                 source = path.read_text(encoding="utf-8", errors="replace")
