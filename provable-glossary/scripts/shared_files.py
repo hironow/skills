@@ -45,7 +45,8 @@ def template_versions(template: pathlib.Path, rel: str) -> set[bytes]:
     if top.returncode != 0:  # not in a git checkout: only the current template is known
         return versions
     repo = pathlib.Path(top.stdout.strip())
-    path = str((template / rel).resolve().relative_to(repo.resolve()))
+    # `git show <commit>:<path>` wants forward slashes, also on Windows
+    path = (template / rel).resolve().relative_to(repo.resolve()).as_posix()
     commits = subprocess.run(
         ["git", "log", "--format=%H", "--", path],
         cwd=repo,

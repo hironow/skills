@@ -24,7 +24,7 @@ if project is None:
 root = repo_root(project)  # the hook lives at the repository root
 hook = root / ".claude" / "hooks" / "protect_generated.py"
 gen = project / "docs" / "generated"
-G = str(gen.relative_to(root))
+G = gen.relative_to(root).as_posix()
 
 
 def hook_exit(call):

@@ -48,7 +48,7 @@ def main() -> int:
                 except Exception:  # an unreadable candidate is simply not a glossary
                     entries = []
                 if len(entries) >= 3:
-                    glossaries.append((str(path.relative_to(repo)), len(entries)))
+                    glossaries.append((path.relative_to(repo).as_posix(), len(entries)))
     has_code = code_files >= 3 or code_lines >= 200
     if glossaries:
         start, playbook = "C", "references/start-migrate.md"

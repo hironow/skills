@@ -1,6 +1,6 @@
 """Keep provable-glossary usable on Windows.
 
-Three things broke there (found on a Windows 11 machine with Git Bash, 2026-11-18):
+Four things broke there (found on a Windows 11 machine with Git Bash, 2026-11-18):
 
 - The edit-blocking hook compared paths with forward slashes only. Claude Code on
   Windows passes `C:\\...\\docs\\generated\\x.md`, so the hook let hand edits through.
@@ -11,6 +11,9 @@ Three things broke there (found on a Windows 11 machine with Git Bash, 2026-11-1
 - The scripts and the hook handled text in the locale's encoding and line ending:
   cp932 and CRLF on a Japanese Windows. They now name UTF-8 and LF (or keep the
   line ending of a file they extend), as on Linux.
+- The scripts wrote repository paths with str(), which uses backslashes there:
+  anchors a Lean string rejects, a test-folder filter that missed, and git
+  revisions (`commit:path`) that found nothing. They now use forward slashes.
 
 The server handling is chosen by `os()` and can be forced with
 `QUINT_APALACHE_SERVER=manage`, so these tests also run on the Linux CI.
@@ -611,3 +614,126 @@ def test_every_script_names_the_encoding_and_line_ending_of_its_text(
     script: Path,
 ) -> None:
     assert unnamed_text_io(script.read_text(encoding="utf-8")) == []
+
+
+# ── repository paths ────────────────────────────────────────────────────────
+#
+# On Windows, str() of a path joins its parts with backslashes. Anchors, git
+# revisions (`commit:path`) and the path filters all want forward slashes.
+
+
+def test_scan_terms_writes_anchors_with_forward_slashes_and_skips_tests(
+    tmp_path: Path,
+) -> None:
+    """On Windows the anchors read `src\\app\\state.go#...`, which a Lean string
+    rejects (`\\a` is no escape), and the filter for test folders, written with
+    "/", let `src/tests/` through."""
+    repo = tmp_path / "repo"
+    (repo / "src" / "app").mkdir(parents=True)
+    (repo / "src" / "tests").mkdir()
+    (repo / "src" / "app" / "state.go").write_bytes(
+        b"package app\n\nfunc PlaceHold() {}\n"
+    )
+    (repo / "src" / "tests" / "helper.go").write_bytes(
+        b"package tests\n\nfunc HelperOnly() {}\n"
+    )
+
+    done = subprocess.run(
+        [sys.executable, "-I", str(SCRIPTS / "scan_terms.py"), str(repo)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+        check=False,
+    )
+
+    assert done.returncode == 0, done.stderr
+    scan = repo / "glossary-scan"
+    identifiers = (scan / "identifiers.tsv").read_bytes().decode("utf-8")
+    assert "src/app/state.go#func PlaceHold" in identifiers
+    assert "HelperOnly" not in identifiers
+    assert "\\" not in identifiers
+    words = (scan / "words.tsv").read_bytes().decode("utf-8")
+    assert "\tsrc/app\t" in words
+
+
+def test_shared_files_finds_the_earlier_versions_of_a_template_file(
+    tmp_path: Path,
+) -> None:
+    """`git show <commit>:<path>` wants forward slashes. With the backslashes of
+    str() on Windows every lookup failed, so only the current template counted and
+    status.py called a project made from an earlier template "changed"."""
+    repo = tmp_path / "skill"
+    template = repo / "assets" / "template"
+    (template / "Glossary").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    core = template / "Glossary" / "Core.lean"
+    for version in (b"-- one\n", b"-- two\n"):
+        core.write_bytes(version)
+        subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo),
+                "-c",
+                "user.name=t",
+                "-c",
+                "user.email=t@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                version.decode().strip(),
+            ],
+            check=True,
+        )
+    probe = (
+        "import pathlib, sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import shared_files\n"
+        "found = shared_files.template_versions(pathlib.Path(sys.argv[1]), 'Glossary/Core.lean')\n"
+        "print(sorted(v.decode() for v in found))\n"
+    )
+
+    done = subprocess.run(
+        [sys.executable, "-I", "-c", probe, str(template)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+        check=False,
+    )
+
+    assert done.returncode == 0, done.stderr
+    assert done.stdout.strip() == repr(["-- one\n", "-- two\n"])
+
+
+def str_of_relative_path(source: str) -> list[str]:
+    """`str(x.relative_to(y))`: a repository path written with backslashes on Windows."""
+    found = []
+    for node in ast.walk(ast.parse(source)):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "str"
+            and node.args
+            and isinstance(inner := node.args[0], ast.Call)
+            and isinstance(inner.func, ast.Attribute)
+            and inner.func.attr == "relative_to"
+        ):
+            found.append(f"line {node.lineno}: str() of relative_to(); use .as_posix()")
+    return found
+
+
+def test_the_check_finds_a_relative_path_written_with_str() -> None:
+    source = "a = str(p.relative_to(root))\nb = p.relative_to(root).as_posix()\n"
+    assert str_of_relative_path(source) == [
+        "line 1: str() of relative_to(); use .as_posix()"
+    ]
+
+
+@pytest.mark.parametrize("script", sorted(SCRIPTS.glob("*.py")), ids=lambda p: p.name)
+def test_every_script_writes_repository_paths_with_forward_slashes(
+    script: Path,
+) -> None:
+    assert str_of_relative_path(script.read_text(encoding="utf-8")) == []
