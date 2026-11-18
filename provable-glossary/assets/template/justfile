@@ -56,6 +56,8 @@ question-check:
 control-check:
     #!/usr/bin/env bash
     set -euo pipefail
+    # A git hook exports GIT_DIR, and git then takes this folder for the top of the work tree.
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
     declared="$(lake exe claims control)"
     echo "control-check: the control is declared $declared"
     [[ "$declared" == run ]] || exit 0
@@ -211,6 +213,8 @@ generated-check:
 anchor-check:
     #!/usr/bin/env bash
     set -euo pipefail
+    # A git hook exports GIT_DIR, and git then takes this folder for the top of the work tree.
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
     # The repository root: the top of the git work tree, unless that tree ignores this folder.
     root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
     if git -C "$root" check-ignore -q "$(pwd)" 2>/dev/null; then root="$(pwd)"; fi

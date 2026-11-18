@@ -760,3 +760,86 @@ def test_every_script_writes_repository_paths_with_forward_slashes(
     script: Path,
 ) -> None:
     assert str_of_relative_path(script.read_text(encoding="utf-8")) == []
+
+
+# ── the gate inside a git hook ──────────────────────────────────────────────
+#
+# Git exports GIT_DIR to its hooks, and with GIT_DIR set and no GIT_WORK_TREE,
+# git takes the current folder for the top of the work tree. A pre-commit hook
+# that runs the whole gate therefore ran anchor-check with the project folder as
+# the "repository root", and every anchor said "no such file" (m4k3-co/.gpus,
+# 2026-11-18). This is not about Windows; it happens wherever a hook runs it.
+
+FAKE_LAKE = r"""#!/usr/bin/env python3
+# A stand-in for `lake exe claims anchors`: one term and one anchor at the repository root.
+import sys
+if sys.argv[1:] == ["exe", "claims", "anchors"]:
+    print("slot\tsrc/app.go#func PlaceHold")
+    sys.exit(0)
+sys.exit(2)
+"""
+
+
+needs_rg = pytest.mark.skipif(
+    shutil.which("rg") is None, reason="ripgrep is not installed (anchor-check uses it)"
+)
+
+
+@needs_just
+@needs_rg
+def test_anchor_check_finds_the_repository_root_inside_a_git_hook(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    project = repo / "glossary"
+    project.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "src").mkdir()
+    (repo / "src" / "app.go").write_bytes(b"package app\n\nfunc PlaceHold() {}\n")
+    shutil.copy2(JUSTFILE, project / "mod.just")
+    (project / "quint-version").write_text("0.32.0\n", encoding="utf-8")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    write_script(bin_dir / "lake", FAKE_LAKE)
+    git_dir = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
+    just = shutil.which("just")
+    assert just is not None
+
+    done = subprocess.run(
+        [
+            just,
+            "--justfile",
+            str(project / "mod.just"),
+            "--working-directory",
+            str(project),
+            "anchor-check",
+        ],
+        env={
+            **os.environ,
+            "PATH": os.pathsep.join([str(bin_dir), os.environ.get("PATH", "")]),
+            "GIT_DIR": git_dir,
+        },
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+        check=False,
+    )
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "1 anchors resolve" in done.stdout
+
+
+def test_the_recipes_that_ask_git_ignore_the_hook_environment() -> None:
+    """control-check reads git history by path, with the same hook problem."""
+    text = JUSTFILE.read_text(encoding="utf-8")
+    for recipe in ("\nanchor-check:", "\ncontrol-check:"):
+        start = text.index(recipe)
+        body = text[start : text.index("\n\n", start + 1)]
+        assert "unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE" in body, recipe
