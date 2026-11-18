@@ -467,11 +467,83 @@ def test_init_keeps_a_crlf_justfile_crlf(tmp_path: Path) -> None:
     assert b"\n" not in data.replace(b"\r\n", b"")
 
 
+def test_init_appends_to_a_file_of_mixed_line_endings_without_rewriting_it(
+    tmp_path: Path,
+) -> None:
+    """One CRLF line must not turn the whole file into CRLF: a shebang ending in
+    "\\r" no longer runs on Linux. The file's bytes stay as they are, and the added
+    line ends in "\\n" unless every line of the file ends in "\\r\\n"."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    hook = repo / ".githooks" / "pre-commit"
+    hook.parent.mkdir()
+    original = b"#!/usr/bin/env bash\n# a note\r\necho ok\n"
+    hook.write_bytes(original)
+
+    run_init(repo)
+
+    assert hook.read_bytes() == original + b"just generated-check\n"
+
+
+def run_import(source: Path, project: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            str(SCRIPTS / "import_glossary.py"),
+            str(source),
+            "--project",
+            str(project),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+        check=False,
+    )
+
+
+def test_import_stops_on_a_glossary_that_is_not_utf8(tmp_path: Path) -> None:
+    """A glossary saved in cp932 imported as replacement characters (or, on a Japanese
+    Windows, by luck as text). It now stops, names the file, and writes nothing."""
+    source = tmp_path / "legacy.tsv"
+    source.write_bytes("term\tdefinition\n猫\t動物\n".encode("cp932"))
+    project = tmp_path / "project"
+    project.mkdir()
+
+    done = run_import(source, project)
+
+    assert done.returncode != 0
+    assert "legacy.tsv" in done.stderr
+    assert "UTF-8" in done.stderr
+    assert not (project / "migration").exists()
+
+
+def test_import_reads_a_utf8_glossary(tmp_path: Path) -> None:
+    source = tmp_path / "legacy.tsv"
+    source.write_bytes("term\tdefinition\n猫\t動物\n".encode())
+    project = tmp_path / "project"
+    project.mkdir()
+
+    done = run_import(source, project)
+
+    assert done.returncode == 0, done.stderr
+    legacy = (project / "migration" / "legacy.tsv").read_bytes().decode("utf-8")
+    assert legacy == "term\tdefinition\n猫\t動物\n"
+
+
 def called_name(call: ast.Call) -> tuple[str, int] | None:
-    """The name of what is called, and where its mode argument sits:
-    first for `path.open(mode)`, second for `open(file, mode)`."""
+    """The name of what is called, and where its mode argument sits: first for
+    `path.open(mode)`, second for `open(file, mode)` and `io.open(file, mode)`."""
     if isinstance(call.func, ast.Attribute):
-        return call.func.attr, 0
+        owner = call.func.value
+        takes_file_first = isinstance(owner, ast.Name) and owner.id in {
+            "io",
+            "builtins",
+        }
+        return call.func.attr, 1 if takes_file_first else 0
     if isinstance(call.func, ast.Name):
         return call.func.id, 1
     return None
@@ -522,6 +594,7 @@ def test_the_check_finds_text_handled_in_the_locale_encoding() -> None:
             'p.read_text(encoding="utf-8")',
             'p.write_text(s, encoding="utf-8", newline="\\n")',
             'open(f, "rb")',
+            'io.open("blob.txt", "w")',
         ]
     )
     assert unnamed_text_io(source) == [
@@ -529,6 +602,7 @@ def test_the_check_finds_text_handled_in_the_locale_encoding() -> None:
         "line 2: write_text() names no newline",
         "line 3: open() names no encoding or newline",
         "line 4: run() names no encoding",
+        "line 8: open() names no encoding or newline",
     ]
 
 

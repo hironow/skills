@@ -147,7 +147,7 @@ def from_delimited(text: str, delimiter: str):
 
 def parse_glossary(path: pathlib.Path):
     """A list of (term, definition), in the order they appear."""
-    text = path.read_text(encoding="utf-8", errors="replace")
+    text = path.read_text(encoding="utf-8")  # strict: a wrong guess would corrupt every definition
     suffix = path.suffix.lower()
     if suffix in (".yaml", ".yml"):
         return from_yaml(text)
@@ -305,7 +305,12 @@ def main() -> int:
     parser.add_argument("--emit-lean", action="store_true")
     args = parser.parse_args()
     source = pathlib.Path(args.glossary)
-    entries = parse_glossary(source)
+    try:
+        entries = parse_glossary(source)
+    except UnicodeDecodeError as error:
+        print(f"import_glossary: {source} is not UTF-8 (byte {error.start}). Save it as UTF-8 and run again; "
+              "a Shift_JIS file converts with: iconv -f cp932 -t utf-8 OLD > NEW", file=sys.stderr)
+        return 1
     if len(entries) < 1:
         print(f"import_glossary: no entries recognised in {source}. Convert it to a Markdown table "
               "with the columns Term and Definition and run again.", file=sys.stderr)
