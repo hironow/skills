@@ -80,8 +80,8 @@ control-check:
 # (EINVAL). On Windows this recipe starts the server with java, waits until it accepts connections, runs
 # the verification against it, and stops only the server it started. A server already listening on the
 # port is used and left running. QUINT_APALACHE_SERVER=manage forces this path elsewhere (the skill's
-# tests use it); =quint leaves the server to Quint. APALACHE_PORT and APALACHE_WAIT_SECONDS override
-# the port (8822) and the wait (60 s).
+# tests use it); =quint leaves the server to Quint. On this path, APALACHE_PORT and
+# APALACHE_WAIT_SECONDS override the port (8822) and the wait (60 s).
 [positional-arguments]
 quint-verify *args:
     #!/usr/bin/env bash
@@ -306,3 +306,4 @@ skill-check:
     [[ -f skills/sync.py ]] || exit 0
     python3 -I skills/sync.py check
     python3 -I skills/tests/test_anchor_check.py
+    python3 -I skills/tests/test_windows.py
