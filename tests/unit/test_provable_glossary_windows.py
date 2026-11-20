@@ -183,7 +183,10 @@ if args[:2] == ["verify", "--help"]:
     print('                         found (using this option may result in incompatibility)')
     print('                                                    [string] [default: "0.56.1"]')
     sys.exit(0)
-endpoint = next((a.split("=", 1)[1] for a in args if a.startswith("--server-endpoint=")), "localhost:8822")
+# Quint's own default. The tests point this at the world's own port, so a server
+# the machine happens to run on 8822 cannot answer for the double.
+endpoint = os.environ.get("FAKE_QUINT_ENDPOINT", "localhost:8822")
+endpoint = next((a.split("=", 1)[1] for a in args if a.startswith("--server-endpoint=")), endpoint)
 host, port = endpoint.rsplit(":", 1)
 try:
     socket.create_connection((host, int(port)), timeout=1).close()
@@ -248,6 +251,12 @@ class World:
             "FAKE_JAVA_LOG": self.java_log.as_posix(),
             "FAKE_JAVA_HEARTBEAT": self.heartbeat.as_posix(),
             "FAKE_QUINT_LOG": self.quint_log.as_posix(),
+            # Where the double looks when the recipe names no server. Quint's own default
+            # is 8822, so without this the double reads whatever Apalache server the machine
+            # happens to run there (another session's `quint verify` held it on 2026-11-20)
+            # and the "leaves the server to Quint" test fails for a reason the recipe had
+            # nothing to do with.
+            "FAKE_QUINT_ENDPOINT": f"localhost:{self.port}",
         }
 
     def run(self, **env: str) -> subprocess.CompletedProcess:
@@ -377,12 +386,14 @@ def test_quint_verify_leaves_the_server_to_quint_outside_windows_unless_asked(
 
     ran = world.run(QUINT_APALACHE_SERVER="quint")
 
-    # Quint is called with the arguments as given; nothing starts a server.
+    # Quint is called with the arguments as given; nothing starts a server. The recipe named
+    # no server, so the double fell back to this world's own free port and found nothing
+    # there, as Quint does on Windows.
     assert world.verify_calls() == ["verify --backend tlc --main=guarded spec.qnt"]
     assert not world.java_log.exists()
-    assert (
-        ran.returncode == 1
-    )  # the fake Quint finds no server, as the real one on Windows
+    assert ran.returncode == 1, world.explain(ran)
+    assert "error: spawn apalache-mc.bat EINVAL" in ran.stdout
+    assert "[ok] fake verification" not in ran.stdout
 
 
 def test_the_template_manages_the_server_on_windows_and_spec_check_goes_through_it() -> (
