@@ -1,0 +1,3 @@
+[submodule "submodules/skill-validator"]
+	path = submodules/skill-validator
+	url = https://github.com/agent-ecosystem/skill-validator.git
