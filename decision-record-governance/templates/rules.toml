@@ -1,0 +1,20 @@
+# Rules registry template (`docs/rules.toml`)
+# Source of truth for active operational policies and named exceptions that
+# cannot live solely in code, tests, lint rules, or `provable-glossary`.
+# Agents read only the `area` relevant to their task.
+# Retired rules move to `docs/rules-retired.toml` (never auto-loaded).
+
+[[rule]]
+id = "deps.wait-seven-days"                  # Immutable ID (<area>.<kebab-case>); never rename or reuse
+level = "MUST"                               # MUST | MUST NOT | SHOULD | MAY
+text = "Wait 7 days after release before adopting new or updated dependencies."
+scope = "org"                                # org | repo | service:<name>
+area = "deps"                                # deps | ci | security | governance | ...
+enforced_by = []                             # Paths or recipes enforcing this rule; empty = human/AI review
+state = "approved"                           # approved (report/review) | enforced (blocks merge in CI)
+exceptions = []                              # IDs of exception rules in this file
+# expires = "2026-12-31"                     # Optional: required for time-boxed exceptions
+author_contact = "@handle"                   # Stable GitHub @handle (mandatory)
+decision_maker_contact = "@handle"           # Stable GitHub @handle (mandatory before settlement)
+decided_date = "2026-11-21"                  # ISO 8601 date of human ruling
+consultation_url = "https://github.com/org/repo/pull/1#issuecomment-1" # Durable ruling URL

@@ -1,46 +1,23 @@
-# RUBRIC — quality rubric for decision records (ADR/PDR)
+# RUBRIC — quality rubric for rules registry proposals
 
-Criteria for judging the **substance** of a decision record. Format (required header fields and sections) is checked against [REFERENCE.md](REFERENCE.md) §2/§4; this rubric measures whether what is written can stand up to an approval decision.
+Measures whether a proposed `docs/rules.toml` entry (or amendment/retirement) is ready for human ruling and merge. Schema completeness is checked against [REFERENCE.md](REFERENCE.md) §2.
 
-## How to use it (two gates)
+## Two gates
 
-- **Filing gate**: score every criterion before a record's filing (workflow A) is complete. **A single 0 means the filing is not complete** (fix it before posting an approval request externally, too).
-- **Settling gate**: score again before changing `status` to `Accepted`, `Rejected`, or `Deferred`. **Do not settle unless every gate criterion (marked "gate") is at 2.**
-- Scores: `0 = missing / fail`, `1 = present but insufficient`, `2 = pass`. Include the scores in the report to the user (for example `R1:2 R2:2 R3:1 …`).
+- **Filing gate** (before opening PR for review): score R1–R7; **no criterion may be 0**.
+- **Settling gate** (before merge): score R1–R7 again; **every gate criterion (R1, R3, R5, R7) must be 2**.
+- Report scores explicitly (for example `R1:2 R2:2 R3:2 R4:2 R5:2 R6:2 R7:2`).
 
 ## Criteria
 
-| # | criterion | 0 (missing) | 1 (insufficient) | 2 (pass) |
-|---|---|---|---|---|
-| R1 | **Header completeness** | A required field is missing, an author lacks `author-contact`, or a settled record lacks `decision-maker-contact` | All fields present but a rule is broken (duplicate number, file name mismatch, unstable or fabricated contact) | Every field follows REFERENCE §2; author and decision-maker have verified stable contact handles when required |
-| R2 | **Context is factual** | No background | Opinions or wishes ("we'd like to", "seems better") mixed into the facts, or the conclusion written first | Why a decision is needed now is stated only in verifiable facts (a gap between implementation and spec, an incident, the source of a request) |
-| R3 | **Decision is unambiguous** (gate) | The Decision section is empty (not even the Proposed placeholder) | Hedges such as "preferably", "basically", "in principle" (with no exception defined), or several independent decisions mixed without numbers | Accepted: unambiguous MUST/SHALL statements, numbered when multiple. Rejected: no option adopted plus reason. Deferred: explicit revisit condition. Proposed: the standard placeholder |
-| R4 | **Options are complete, rejections reasoned** (gate) | Only one option (the conclusion restated), or no section | Several options but no rejection reasons and no comparison axes (benefits/costs); a PDR written to steer toward one option | Two or more realistic options, each with benefits and costs; once settled, every rejected option has a reason; PDRs present options neutrally |
-| R5 | **Consequences are honest** | No section, or Positive only | Negative empty or perfunctory ("none in particular"); Positive/Negative/Neutral not distinguished | The cost of the chosen option (effort, risk, operational burden) is concrete, and the three categories are explicit |
-| R6 | **Plain-language explanation** | A PDR without the section | Jargon left unexplained; the gist cannot be understood without reading the body | A non-engineer can read just this section and understand what is being decided and why (mandatory for PDRs, recommended for ADRs; an ADR that omits it scores at most 1) |
-| R7 | **Readability (Japanese-first)** | The body is mostly English | English technical terms without a Japanese gloss on first use; sentences too long for a non-engineer to follow | Japanese-first, terms glossed on first use (for example「supersede（置き換え）」), short sentences |
-| R8 | **Traceability** (gate) | Not registered in the queue, or a supersede without `supersedes:` | `related` effectively empty; a reversal whose `## 反転記録 (Reversal)` is still `none`; queue row and header disagree | Queue, README index, supersession chain, and reversal record all consistent; links to related open questions, gaps, and other records |
-| R9 | **The pending-decision section is actionable** | Missing while Proposed | Option checkboxes only, with no follow-up actions, or no decision-maker/date fields | Options, decision-maker and date fields, and a follow-up action per option, so the approver can fill it in on the spot |
-| R10 | **Cross-DR consistency** (gate) | The consistency check (REFERENCE §10) was not run, or a finding was ignored and the record filed or settled without consultation | The check covered only the `related` neighbourhood, not a full scan; or a finding was handled without involving the people behind the conflicting record | Compared against every DR on all five categories. No findings, or every finding went through a durable consultation with the people involved, a human ruled, and the trace (thread/repository record plus commit) exists |
+| # | criterion | 0 (missing / fail) | 1 (insufficient) | 2 (pass) |
+| --- | --- | --- | --- | --- |
+| R1 | **Triage & SSOT placement** (gate) | Creates a `docs/adr/` file, or puts an ephemeral/easily-codable detail into `docs/rules.toml` without checking Step 0 | Placed in `docs/rules.toml` when a lint/test check is feasible, with no note on why it is `approved` instead of `enforced` | Passes Step 0 Triage cleanly; `enforced_by` and `state` accurately reflect mechanical enforcement |
+| R2 | **Schema & stable contacts** | Missing required field, duplicate/reused `id`, or missing/fabricated `author_contact` / `decision_maker_contact` | All fields present, but `expires` missing on a time-boxed exception or `id` format off | Every field matches REFERENCE §2; verified stable handles; immutable `<area>.<kebab-case>` ID |
+| R3 | **Normative clarity** (gate) | Empty `text` or no RFC 2119 `level` | Hedges ("basically", "preferably") without explicit exceptions, or multiple unrelated rules crammed into one entry | Single, unambiguous `MUST` / `MUST NOT` / `SHOULD` / `MAY` rule with explicit `scope` and `area` |
+| R4 | **Rationale & rejected options in PR** | PR body states only the conclusion with no alternatives | Alternatives listed without rejection reasons or tradeoffs | PR body states concrete facts, at least two options, tradeoffs, and rejection reasons |
+| R5 | **Human ruling & traceability** (gate) | Settled without `consultation_url`, `decided_date`, or explicit human ruling | Ruling occurred only in ephemeral chat and was not copied to a durable URL | Durable `consultation_url` records who ruled, what was chosen, and when; `exceptions`/`enforced_by` links resolve |
+| R6 | **Plain language** | Jargon-heavy or unreadable to someone outside the author's immediate context | Understandable only by reading the full PR diff | Short, direct sentences; clear to any maintainer reading `docs/rules.toml` |
+| R7 | **Consistency check & human resolution** (gate) | Consistency check skipped, or a conflict was patched/ignored by AI without consultation | Checked only a subset of `docs/rules.toml` or omitted the conflicting rule's contacts | Compared against all active rules in `docs/rules.toml` on all 5 categories; zero findings, or every finding went through durable consultation and human ruling |
 
-Gate criteria (must be 2 at the settling gate): R3, R4, R8, R10.
-
-## Good and bad examples (R3 Decision)
-
-- Score 0: 「（あとで書く）」
-- Score 1: 「エラーレスポンスはなるべく統一フォーマットにする」(a hedge, no force)
-- Score 2: 「D1. エラーレスポンスは `{error:{code,message}, meta}` 形式に統一しなければならない（MUST）。D2. HTTP ステータスは仕様の8系統に従う（MUST）。」
-
-## Good and bad examples (R4 Options)
-
-- Score 0: 「A) 統一する」(no alternative: a report after the fact, not a decision)
-- Score 1: 「A) 統一する B) 現状維持」(no comparison axes, no rejection reason)
-- Score 2: 「A) envelope 統一 — 利点: 契約テスト基準が定まる／コスト: フロント同時修正。B) 現状維持 — 利点: 工数ゼロ／却下: 152 件の契約テスト失敗の判定基準が定まらないため却下。」
-
-## Scoring in practice
-
-1. Before completing a filing (workflow A) — and before posting an approval request in the chosen venue — score R1–R10 and fix every 0 before continuing.
-2. Right before the status change in an update (workflow B), score again; if any gate criterion (R3/R4/R8/R10) is below 2, stop the settlement and report what is missing to the user.
-3. For a supersede or reversal (workflow C), apply the same gates to the new record (R8 includes the consistency of the supersession chain).
-4. R10 is 2 only when there are no findings or every finding has been ruled on after a durable consultation with the people involved. A finding handled without consultation scores 0.
-5. When in doubt, give the lower score (lenient self-scoring is how drift starts).
+Gate criteria (must be 2 at the settling gate): **R1, R3, R5, R7**.

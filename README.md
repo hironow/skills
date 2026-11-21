@@ -59,7 +59,7 @@ Generated from each skill's frontmatter by `just readme-index`; do not edit by h
 | [`caveman`](caveman/SKILL.md) | Ultra-compressed communication mode: drops filler, articles, and pleasantries while keeping full technical accuracy. | fork of JuliusBrussee/caveman |
 | [`cloudflare-deploy`](cloudflare-deploy/SKILL.md) | Deploy applications and infrastructure to Cloudflare using Workers, Pages, and related platform services. | fork of openai/skills |
 | [`decision-mapping`](decision-mapping/SKILL.md) | Turn a loose idea into a sequenced map of investigation tickets, then drive them to resolution one at a time. | user-invoked, fork of mattpocock/skills |
-| [`decision-record-governance`](decision-record-governance/SKILL.md) | Create, update, and supersede (or reverse) decision records — ADRs for technical decisions and PDRs for product decisions — governed by d… |  |
+| [`decision-record-governance`](decision-record-governance/SKILL.md) | Govern active engineering and operational rules using code-SSOT, mechanical checks, provable-glossary, and a structured rules registry (d… |  |
 | [`design-an-interface`](design-an-interface/SKILL.md) | Generate multiple radically different interface designs for a module using parallel sub-agents. | fork of mattpocock/skills |
 | [`develop-web-game`](develop-web-game/SKILL.md) | Use when building or iterating on a web game (HTML/JS) and a reliable development + testing loop is needed: implement small changes, run… | fork of openai/skills |
 | [`diagnose`](diagnose/SKILL.md) | Disciplined diagnosis loop for hard bugs and performance regressions - build a feedback loop, reproduce and minimise, hypothesise, instru… | fork of mattpocock/skills |
