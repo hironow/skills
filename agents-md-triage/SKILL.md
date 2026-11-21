@@ -140,9 +140,10 @@ pointer if needed.
   involved in nearly every session.
 - Tool lists, directory layout, dependency versions are discoverable from
   package.json / justfile / ls → discoverable.
-- Background and rationale for decisions: discoverable if an ADR exists
-  (evidence: docs/adr/xxxx.md). If no ADR exists, propose writing one
-  instead of deleting — never throw the information away.
+- Active rules and constraints: route to `provable-glossary`, mechanical
+  checks (lint/test/CI), or `docs/rules.toml`, leaving at most a one-line
+  pointer in the hub. Ephemeral rationale belongs in the PR description —
+  never propose creating a `docs/adr/` file.
 - Rules already mechanically enforced ("make lint pass") can be treated as
   discoverable when a hook or CI blocks violations (evidence: the hook/CI
   config file). Only when no enforcement exists are they `always`
